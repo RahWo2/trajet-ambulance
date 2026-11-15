@@ -724,25 +724,29 @@ function photonItems(j){var out=[];
   if(!main)return;parts=parts.filter(Boolean);
   out.push({main:main,sub:parts.join(", "),label:[main].concat(parts).join(", "),lat:c[1],lon:c[0]});});
  return out;}
+var IGN_SKIP=/hydrographie|orographie|administratif|construction linéaire|végétation|tramway/;
 function banItems(j){var out=[];
- (j&&j.results||[]).forEach(function(r){if(typeof r.x!=="number"||typeof r.y!=="number")return;var ft=r.fulltext||"",i=ft.indexOf(", ");
+ (j&&j.results||[]).forEach(function(r){if(typeof r.x!=="number"||typeof r.y!=="number")return;
+  if(r.country==="PositionOfInterest"&&IGN_SKIP.test(String(r.poiType||r.kind||"")))return;
+  var ft=(r.fulltext||"").replace(/\s+/g," "),i=ft.indexOf(", ");
   out.push({main:i>0?ft.slice(0,i):ft,sub:i>0?ft.slice(i+2):"",label:ft,lat:r.y,lon:r.x});});
  return out;}
-function acFetch(q){
- var c=acCenter(),la=c[0],lo=c[1],e=encodeURIComponent,num=/^\s*\d/.test(q),none=function(){return null;};
+/* Sources : IGN (Géoplateforme) en premier, affiché dès réception ; Photon (OpenStreetMap) en complément, ignoré 10 min s'il ne répond pas */
+var PH_DOWN=0;
+function acFetch(q,cb){
+ var c=acCenter(),la=c[0],lo=c[1],e=encodeURIComponent,num=/^\s*\d/.test(q);
  var bb="&bbox="+[lo-0.9,la-0.6,lo+0.9,la+0.6].map(function(v){return v.toFixed(3);}).join(",");
- var PH=PHOTON+"?lang=fr&limit=8&lat="+la.toFixed(4)+"&lon="+lo.toFixed(4)+"&q="+e(q);
- var phNear=fetchT(PH+bb,6000).then(photonItems,none);
- var phFar=fetchT(PH+"&zoom=11&location_bias_scale=0.1",6000).then(photonItems,none);
- var BAN=GEO+"completion?type=StreetAddress&maximumResponses=5&text="+e(q);
- var near=fetchT(BAN+bb,6000).then(banItems,none);
- var far=num?fetchT(BAN,6000).then(banItems,none):Promise.resolve([]);
- return Promise.all([phNear,near,far,phFar]).then(function(r){
-  if(!r[0]&&!r[1]&&!r[3])throw new Error("hors ligne");
-  var pn=r[0]||[],bn=r[1]||[],bf=r[2]||[],pf=r[3]||[];
-  var list=num?bn.concat(pn,bf,pf):pn.concat(bn,pf),seen={},out=[];
+ var IGN=GEO+"completion?type=StreetAddress,PositionOfInterest&text="+e(q);
+ var res={},keys=["near","ph","far"],left=3;
+ function merge(){var list=[],seen={},out=[];
+  keys.forEach(function(k){if(res[k]&&(k!=="far"||list.length<4))list=list.concat(res[k]);});
   list.forEach(function(it){var k=norm(it.label);if(seen[k]||out.length>=6)return;seen[k]=1;out.push(it);});
-  return out;});
+  return out;}
+ function done(k,v){res[k]=v;left--;var fin=left===0;cb(merge(),fin,fin&&!res.near&&!res.far&&!res.ph);}
+ fetchT(IGN+"&maximumResponses=8"+bb,5000).then(banItems).then(function(v){done("near",v);},function(){done("near",null);});
+ fetchT(IGN+"&maximumResponses="+(num?5:4),5000).then(banItems).then(function(v){done("far",v);},function(){done("far",null);});
+ if(Date.now()<PH_DOWN)done("ph",null);
+ else fetchT(PHOTON+"?lang=fr&limit=6&lat="+la.toFixed(4)+"&lon="+lo.toFixed(4)+bb+"&q="+e(q),3000).then(photonItems).then(function(v){done("ph",v);},function(){PH_DOWN=Date.now()+600000;done("ph",null);});
 }
 function acBox(inp){var b=inp.nextElementSibling;if(b&&b.classList.contains("ac"))return b;b=document.createElement("div");b.className="ac";b.hidden=true;inp.insertAdjacentElement("afterend",b);return b;}
 function acHide(){AC.seq++;clearTimeout(AC.t);AC.items=[];Array.prototype.forEach.call(document.querySelectorAll(".ac"),function(x){x.hidden=true;x.innerHTML="";});}
@@ -765,8 +769,9 @@ function acInput(inp){
  if(q.length<3){acPaint(inp,saved,"");return;}
  acPaint(inp,saved.concat(prev),(saved.length||prev.length)?"":"Recherche…");
  AC.t=setTimeout(function(){
-  acFetch(q).then(function(list){if(my!==AC.seq)return;acPaint(inp,saved.concat(list.slice(0,Math.max(3,8-saved.length))),list.length||saved.length?"":"Aucun lieu ni adresse trouvé : vérifie l'orthographe ou ajoute la ville.");},
-   function(){if(my!==AC.seq)return;acPaint(inp,saved,"Suggestions indisponibles (réseau ?) : tape l'adresse complète.");});
+  acFetch(q,function(list,fin,fail){if(my!==AC.seq)return;
+   if(!list.length&&!fin)return;
+   acPaint(inp,saved.concat(list.slice(0,Math.max(3,8-saved.length))),(list.length||saved.length)?"":(fail?"Suggestions indisponibles (réseau ?) : tape l'adresse complète.":"Aucun lieu ni adresse trouvé : vérifie l'orthographe ou ajoute la ville."));});
  },350);
 }
 function acPick(i){
