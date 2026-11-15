@@ -188,7 +188,7 @@ var GROUPS=[
  {k:"autres",label:"Autres centres de soins",type:"Cabinet / centre médical",on:false}
 ];
 function grp(k){for(var i=0;i<GROUPS.length;i++)if(GROUPS[i].k===k)return GROUPS[i];return null;}
-var OVERPASS=["https://overpass-api.de/api/interpreter","https://maps.mail.ru/osm/tools/overpass/api/interpreter"];
+var OVERPASS=["https://overpass.openstreetmap.fr/api/interpreter","https://overpass-api.de/api/interpreter","https://maps.mail.ru/osm/tools/overpass/api/interpreter"];
 var GEO="https://data.geopf.fr/geocodage/";
 var RADII=[10,20,30,50];
 
@@ -422,7 +422,7 @@ function getBumps(so,we,no,ea){
   var la=missing.map(function(k){return +k.split("_")[0];}),lo=missing.map(function(k){return +k.split("_")[1];});
   var bb=[Math.min.apply(null,la)*CELL,Math.min.apply(null,lo)*CELL,(Math.max.apply(null,la)+1)*CELL,(Math.max.apply(null,lo)+1)*CELL].map(function(x){return x.toFixed(3);}).join(",");
   var q='[out:json][timeout:25][bbox:'+bb+'];(node["traffic_calming"~"^(bump|hump|table|cushion|yes|dip|double_dip|mini_bumps)$"];way["traffic_calming"~"^(bump|hump|table|cushion|yes)$"];);out center;';
-  return fetchFirst(q,30000).then(function(j){
+  return fetchFirst(q,20000).then(function(j){
    var by={},rows=[],iso=new Date().toISOString();missing.forEach(function(k){by[k]=[];});
    j.elements.forEach(function(el){var a=el.lat!=null?el.lat:(el.center&&el.center.lat),o=el.lon!=null?el.lon:(el.center&&el.center.lon);if(a==null)return;var k=cellKey(a,o);if(by[k])by[k].push([+a.toFixed(5),+o.toFixed(5)]);});
    missing.forEach(function(k){cache[k]={t:now,p:by[k]};rows.push({cellule:k,donnees:by[k],maj_le:iso});});
