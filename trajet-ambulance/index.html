@@ -727,7 +727,7 @@ function zCtl(k,zr){
 }
 function zStatus(f){var el=document.getElementById("zpos");if(!el)return;var k=f.getAttribute("data-k"),t=zTrace(f);
  if(k==="pts")el.textContent=t.length?"✓ "+t.length+" dos-d'âne placé"+(t.length>1?"s":"")+" sur la carte.":"Aucun dos-d'âne placé pour l'instant.";
- else if(k==="line")el.textContent=ui.zbusy?"Tracé du tronçon le long de la route…":(t.length>1?"✓ Tronçon de "+Math.round(lenM(t))+" m surligné en rouge.":((ui.zv||[]).length===1?"Touche maintenant la fin du tronçon.":"Aucun tronçon tracé pour l'instant."));
+ else if(k==="line")el.textContent=ui.zbusy?"Tracé du tronçon le long de la route…":(t.length>1?"✓ Tronçon de "+Math.round(lenM(t))+" m surligné en rouge.":((ui.zv||[]).length===1?"Touche maintenant la fin du tronçon.":(isNaN(parseFloat(f.elements.lat.value))?"Aucun tronçon tracé pour l'instant.":"Ancienne zone en cercle (pointillés) : trace le tronçon pour le surligner en rouge.")));
  else{var la=parseFloat(f.elements.lat.value);el.textContent=isNaN(la)?"Pas encore placée : sans position, la zone sert seulement de rappel.":"✓ Zone placée sur la carte.";}}
 function zSnap(f){
  var v=(ui.zv||[]).slice(),my=ui.zsnap=(ui.zsnap||0)+1;
@@ -744,7 +744,7 @@ function zSnap(f){
 function zAdd(f,q){var k=f.getAttribute("data-k");
  if(k==="circle"){f.elements.lat.value=q[0].toFixed(6);f.elements.lon.value=q[1].toFixed(6);if(ui.zdraw)ui.zdraw();}
  else if(k==="pts"){var t=zTrace(f);t.push(q);zSetTrace(f,t);if(ui.zdraw)ui.zdraw();}
- else{ui.zv=(ui.zv||[]).concat([q]);zSnap(f);if(ui.zdraw)ui.zdraw();}}
+ else{f.elements.lat.value="";f.elements.lon.value="";ui.zv=(ui.zv||[]).concat([q]);zSnap(f);if(ui.zdraw)ui.zdraw();}}
 function zModeChange(f){
  var nk=zKind(f.elements.type.value),ok=f.getAttribute("data-k");if(nk===ok)return;
  var la=parseFloat(f.elements.lat.value),lo=parseFloat(f.elements.lon.value),t=zTrace(f),c=null;
@@ -772,6 +772,7 @@ function initZoneMap(){
    if(k==="circle"){var a=parseFloat(f.elements.lat.value),b=parseFloat(f.elements.lon.value);if(!isNaN(a)&&!isNaN(b))L.circle([a,b],{radius:+f.elements.rayon.value||60,color:"#d93a3f",weight:2,fillOpacity:.25}).addTo(layer);}
    else if(k==="pts")t.forEach(function(q){bumpMarker(L,q).addTo(layer);});
    else{if(t.length>1)L.polyline(t,{color:"#ff2d2d",weight:9,opacity:.85}).addTo(layer);
+    else{var oa=parseFloat(f.elements.lat.value),ob=parseFloat(f.elements.lon.value);if(!isNaN(oa)&&!isNaN(ob))L.circle([oa,ob],{radius:+f.getAttribute("data-r")||60,color:"#d93a3f",weight:2,dashArray:"6 6",fillOpacity:.08}).addTo(layer);}
     (ui.zv||[]).forEach(function(q){L.circleMarker(q,{radius:6,color:"#fff",weight:2,fillColor:"#b3001b",fillOpacity:1}).addTo(layer);});}
    zStatus(f);
   }
@@ -1251,10 +1252,10 @@ function fZone(z){
  z=z||{nom:"",type:"ralentisseurs",etab:"",note:""};
  var k=zKind(z.type),tr=(k!=="circle"&&z.trace&&z.trace.length)?z.trace:[],placed=typeof z.lat==="number"&&typeof z.lon==="number",zr=z.rayon||60;
  if(k==="pts"&&!tr.length&&placed)tr=[[z.lat,z.lon]];
- if(k!=="circle")placed=false;
+ if(k==="pts")placed=false;
  var o="";Object.keys(ZTYPES).forEach(function(k){o+='<option value="'+k+'"'+(k===z.type?" selected":"")+">"+esc(ZTYPES[k])+"</option>";});
  var e='<option value="">Toutes destinations</option>';state.etabs.forEach(function(x){e+='<option value="'+x.id+'"'+(x.id===z.etab?" selected":"")+">Vers "+esc(x.nom)+"</option>";});
- return '<form class="form" data-f="zone" data-k="'+k+'"><label>Lieu</label><input name="nom" required value="'+esc(z.nom)+'" placeholder="Ex. Rue de la République, centre-ville">'+
+ return '<form class="form" data-f="zone" data-k="'+k+'" data-r="'+zr+'"><label>Lieu</label><input name="nom" required value="'+esc(z.nom)+'" placeholder="Ex. Rue de la République, centre-ville">'+
  '<label>Problème</label><select name="type">'+o+'</select>'+
  '<label>Concerne</label><select name="etab">'+e+'</select>'+
  '<label>Position sur la carte</label><div class="hint" id="zhint" style="margin-top:0">'+esc(zHintTxt(k))+'</div>'+
@@ -1371,7 +1372,7 @@ document.addEventListener("submit",function(ev){
   if(chZ){var zk=zKind(v.type),ztr=null;try{ztr=JSON.parse(v.trace||"null");}catch(e){}
    if(zk!=="circle"){
     if(ztr&&ztr.length){chZ.trace=ztr;var zm=ztr[Math.floor(ztr.length/2)];chZ.lat=zm[0];chZ.lon=zm[1];chZ.rayon=zk==="pts"?15:Math.min(500,Math.round(lenM(ztr)/2)+15);}
-    else{delete chZ.trace;delete chZ.lat;delete chZ.lon;delete chZ.rayon;}}
+    else{delete chZ.trace;var ol=parseFloat(v.lat),oo=parseFloat(v.lon);if(zk==="line"&&!isNaN(ol)&&!isNaN(oo)){chZ.lat=ol;chZ.lon=oo;chZ.rayon=chZ.rayon||60;}else{delete chZ.lat;delete chZ.lon;delete chZ.rayon;}}}
    else{delete chZ.trace;var zl=parseFloat(v.lat),zo=parseFloat(v.lon);if(isNaN(zl)||isNaN(zo)){delete chZ.lat;delete chZ.lon;delete chZ.rayon;}else{chZ.lat=zl;chZ.lon=zo;chZ.rayon=parseInt(v.rayon,10)||60;}}}}
  ui.form=null;save();
  if(chE)enqueue({t:"putE",rows:[etabRow(chE)]});
