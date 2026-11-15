@@ -82,9 +82,9 @@ details summary{cursor:pointer;color:var(--acc)}
 .opt small{display:block;color:var(--mut);font-size:13.5px;margin-top:2px}
 .leaflet-container{font:inherit}
 .blk.cur{border-left:5px solid var(--acc);background:#1b2233}
-.blk.done{opacity:.6}
+.blk.past{opacity:.75;padding:10px 16px}
 .step-n{display:inline-block;min-width:24px;height:24px;line-height:24px;text-align:center;border-radius:12px;background:var(--acc);color:#fff;font-weight:700;font-size:13px;margin-right:6px}
-.blk.done .step-n{background:var(--ok)}
+.blk.past .step-n{background:var(--ok)}
 .acw{position:relative;min-width:0}
 .acw .ac{position:absolute;left:0;right:0;top:100%;z-index:20;box-shadow:0 8px 24px rgba(0,0,0,.5)}
 .ac{margin-top:6px;background:var(--card2);border:2px solid var(--acc);border-radius:12px;overflow:hidden}
@@ -117,11 +117,11 @@ details summary{cursor:pointer;color:var(--acc)}
 .done b{display:block;font-size:16.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .row.nowrap{flex-wrap:nowrap}
 .row.nowrap .btn{flex:0 0 auto}
-details.tip{margin-top:10px;padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:var(--card2)}
-details.tip summary{font-weight:600}
-details.tip ol{margin:8px 0 0;padding-left:20px}
-details.tip li{margin:10px 0;line-height:1.5}
-details.tip .btn.small{min-height:36px;padding:6px 10px;margin-left:4px;vertical-align:middle}
+.nav2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
+.nav2 .btn{min-height:60px;font-size:18px;padding:10px 8px;text-align:center}
+.btn.ok{background:var(--ok);border-color:var(--ok);color:#fff}
+.blk.next{color:var(--mut);font-size:15px}
+.blk.next b{color:var(--txt)}
 </style></head><body><div id="app"></div><script id="state" type="application/json">{"rev":0,"etabs":[],"zones":[],"setupDone":false}</script><script id="main">
 (function(){
 "use strict";
@@ -209,55 +209,46 @@ function goBtns(L,reco,wl,gl){
  var bG='<a class="btn '+(reco==="gmaps"?"pri":"")+'" href="'+L.gmaps+'"'+(L.app?'':' target="_blank" rel="noopener"')+'>'+gl+(reco==="gmaps"?" <small>Recommandé</small>":"")+'</a>';
  return '<div class="go">'+(reco==="waze"?bW+bG:bG+bW)+'</div>';
 }
+function navBtns(L,reco,gl){var t=L.app?'':' target="_blank" rel="noopener"';
+ return '<div class="nav2"><a class="btn'+(reco==="waze"?" pri":"")+'" href="'+L.waze+'"'+t+'>Waze</a><a class="btn'+(reco==="gmaps"?" pri":"")+'" href="'+L.gmaps+'"'+t+'>'+(gl||"Google Maps")+'</a></div>';}
+function vComfortMini(R){
+ if(!R)return '<button class="btn small" style="margin-top:12px" data-a="calcRoute">🗺️ Calculer un trajet confort</button>';
+ if(R.status==="loading")return '<div class="spin" style="margin:14px auto 8px;width:30px;height:30px"></div><p class="center" id="rtStep">'+esc(R.step||"Calcul…")+'</p>';
+ if(R.status==="error")return '<div class="warnbox">'+esc(R.msg)+'</div><button class="btn small" style="margin-top:10px" data-a="calcRoute">Réessayer</button>';
+ var h='<div id="rmap" class="map" style="margin-top:12px"></div>';
+ R.cands.forEach(function(c,i){
+  var parts=[Math.round(c.time/60)+" min",c.km.toFixed(1).replace(".",",")+" km",(R.bumpsOk||c.bumps?c.bumps+" ralentisseur"+(c.bumps>1?"s":""):"ralentisseurs ?")];
+  if(c.rough!=null&&c.rough>=20)parts.push(Math.round(c.rough)+" m pavés");
+  if(c.zoneHits)parts.push("⚠ "+c.zoneHits+" zone"+(c.zoneHits>1?"s":""));
+  var dt=Math.round((c.time-R.baseline.time)/60);
+  h+='<button class="opt'+(i===R.sel?" on":"")+'" data-a="pickRoute" data-i="'+i+'"><b>'+(i===0?"⭐ Le plus confortable":(c===R.baseline?"Le plus rapide":"Autre option"))+'</b>'+(dt>0?' <span class="tag">+'+dt+' min</span>':'')+'<small>'+parts.join(" · ")+'</small></button>';
+ });
+ return h;
+}
 function paintMission(el,e,d,addr){
  var p=PROFILS[e.p],pk=pecInfo();
- if(!pk.addr||!addr){clearRouteMap();el.innerHTML='<div class="empty">Indique l\'adresse de prise en charge du patient et le lieu du rendez-vous pour obtenir la feuille de mission.</div>';return;}
+ if(!pk.addr||!addr){clearRouteMap();el.innerHTML='<div class="empty">Indique la prise en charge et le rendez-vous.</div>';return;}
  var leg=ui.leg===2?2:1;
- var L1=links(pk.addr,"",pk.lat,pk.lon);
- var R=(ui.route&&ui.route.key===routeKey())?ui.route:null,RD=(R&&R.status==="done")?R:null,sel=RD?RD.cands[RD.sel]:null;
- var wps=sel?routeWaypoints(sel,RD.baseline):[],via=(d&&d.via)?d.via:"";
- var dl=d||libreLL(addr);
- var L2=links(addr,RD?"":via,dl&&dl.lat,dl&&dl.lon,{wps:wps,origin:RD?[RD.dep.lat,RD.dep.lon]:null,dest:RD?[RD.dest.lat,RD.dest.lon]:null});
- var f6=function(a,b){return a.toFixed(6)+","+b.toFixed(6);};
- var pkStop=typeof pk.lat==="number"?f6(pk.lat,pk.lon):(RD?f6(RD.dep.lat,RD.dep.lon):pk.addr);
- var LF=links(addr,RD?"":via,dl&&dl.lat,dl&&dl.lon,{pre:[pkStop],wps:wps.slice(0,7),dest:RD?[RD.dest.lat,RD.dest.lon]:null});
- var tgt=function(L){return L.app?'':' target="_blank" rel="noopener"';};
- var zs=state.zones.filter(function(z){return p.zones.indexOf(z.type)>=0&&(!z.etab||(d&&z.etab===d.id));});
- var h='<div class="sheet"><div class="band" style="--c:'+p.c+'"><b>Transport programmé · 2 étapes</b><span>1. Aller chercher le patient · 2. Le conduire au rendez-vous</span></div>';
- // Étape 1
- h+='<div class="blk '+(leg===1?"cur":"done")+'" id="leg1"><h3><span class="step-n">'+(leg===1?"1":"✓")+'</span>Aller chercher le patient</h3><div class="dest">'+esc(pk.label)+'</div>'+(pk.label!==pk.addr?'<div class="addr">'+esc(pk.addr)+'</div>':'')+(pk.infos?'<div class="infos">📍 '+esc(pk.infos)+'</div>':'');
+ var h='<div class="sheet"><div class="band" style="--c:'+p.c+'"><b>📋 Transport programmé</b></div>';
  if(leg===1){
-  h+='<div class="go"><a class="btn pri" href="'+LF.gmaps+'"'+tgt(LF)+'>Google Maps · patient puis RDV</a></div>'+
-   '<div class="hint">Google Maps fait un arrêt chez le patient, puis te propose de continuer jusqu\'au rendez-vous'+(RD?' par le trajet confort choisi plus bas':'')+'. '+(RD?'':'Si le patient a besoin d\'un trajet confort, calcule-le plus bas avant de lancer. ')+'Il peut annoncer d\'autres points comme des étapes : continue simplement.</div>';
-  h+='<div class="or">Avec Waze (il n\'accepte qu\'une destination envoyée par une autre appli) :</div>'+
-   '<div class="go"><a class="btn" href="'+L1.waze+'"'+tgt(L1)+'>Waze vers le patient</a></div>'+
-   '<div class="hint">Puis touche « Patient à bord » ci-dessous pour lancer l\'étape 2.</div>'+
-   '<details class="tip"><summary>Tout faire dans Waze avec un arrêt</summary><ol>'+
-   '<li>Copie l\'adresse du patient : <button class="btn small" data-a="copy" data-addr="'+esc(pk.addr)+'">📋 Copier</button></li>'+
-   '<li>Lance Waze vers le rendez-vous : <a class="btn small" href="'+L2.waze+'"'+tgt(L2)+'>Waze vers le RDV</a></li>'+
-   '<li>Dans Waze, touche la barre de l\'heure d\'arrivée en bas, puis « Ajouter un arrêt » : colle l\'adresse et valide. Waze passera chez le patient avant le rendez-vous.</li></ol><div class="hint" id="copyMsg"></div></details>';
-  h+='<button class="btn pri wide" style="margin-top:12px;min-height:56px" data-a="leg2">✅ Patient à bord : étape 2</button>';
- }else h+='<button class="btn small" style="margin-top:8px" data-a="leg1">Revenir à l\'étape 1</button>';
- h+='</div>';
- // Étape 2
- h+='<div class="blk '+(leg===2?"cur":"")+'" id="leg2"><h3><span class="step-n">2</span>Conduire au rendez-vous</h3><div class="dest">'+esc(d?d.nom:"Rendez-vous")+'</div><div class="addr">'+esc(addr)+'</div>'+(d&&d.infos?'<div class="infos">📍 '+esc(d.infos)+'</div>':'')+'</div>';
- if(via&&!RD)h+='<div class="blk"><h3>Passage conseillé</h3>Via <b>'+esc(via)+'</b> <span class="tag blue">inclus dans Google Maps</span></div>';
- h+='<div class="blk"><h3>Zones à éviter si elles sont sur ta route</h3>';
- if(zs.length)zs.forEach(function(z){h+='<div class="zone"><span class="tag">'+esc(ZTYPES[z.type]||z.type)+'</span><div><b>'+esc(z.nom)+'</b>'+(z.note?'<div class="addr">'+esc(z.note)+'</div>':"")+'</div></div>';});
- else h+='<div class="addr">Aucune zone enregistrée pour ce trajet.</div>';
- h+='</div><div class="blk"><h3>Consignes de conduite (patient à bord)</h3><ul>';
- p.consignes.forEach(function(c){h+="<li>"+esc(c)+"</li>";});
- h+='</ul></div></div>';
- h+=vComfort(R,pk.label);
- var reco=RD?"gmaps":p.reco;
- h+=goBtns(L2,reco,RD?"Waze (le plus rapide, sans le confort)":"Waze vers le rendez-vous",RD?"Google Maps · trajet confort":"Google Maps vers le rendez-vous");
- var why=RD?(wps.length?"Google Maps suivra le trajet choisi grâce à "+wps.length+" point"+(wps.length>1?"s":"")+" de passage. Il peut "+(wps.length>1?"les annoncer comme des étapes":"l'annoncer comme une étape")+" : continue simplement.":"Ce trajet est aussi celui que Google Maps choisit naturellement : aucun point de passage nécessaire."):"À lancer une fois le patient à bord, depuis le lieu de prise en charge.";
- h+='<div class="hint">'+esc(why)+'</div>';
- if(L2.app)h+='<div class="hint" style="margin-top:8px">L\'appli ne s\'ouvre pas ? Version web : <a href="'+(leg===1?L1:L2).wazeWeb+'" target="_blank" rel="noopener" style="color:var(--acc)">Waze</a> · <a href="'+(leg===1?L1:L2).gmapsWeb+'" target="_blank" rel="noopener" style="color:var(--acc)">Google Maps</a></div>';
+  var L1=links(pk.addr,"",pk.lat,pk.lon);
+  h+='<div class="blk cur" id="leg1"><h3><span class="step-n">1</span>Aller chercher le patient</h3><div class="dest">'+esc(pk.label)+'</div>'+(pk.label!==pk.addr?'<div class="addr">'+esc(pk.addr)+'</div>':'')+(pk.infos?'<div class="infos">📍 '+esc(pk.infos)+'</div>':'')+
+   navBtns(L1,"waze")+'<button class="btn ok wide" style="margin-top:12px;min-height:58px" data-a="leg2">✅ Patient à bord</button></div>'+
+   '<div class="blk next"><span class="step-n">2</span>Rendez-vous : <b>'+esc(d?d.nom:addr)+'</b></div></div>';
+ }else{
+  var R=(ui.route&&ui.route.key===routeKey())?ui.route:null,RD=(R&&R.status==="done")?R:null,sel=RD?RD.cands[RD.sel]:null;
+  var wps=sel?routeWaypoints(sel,RD.baseline):[],via=(d&&d.via)?d.via:"";
+  var dl=d||libreLL(addr);
+  var L2=links(addr,RD?"":via,dl&&dl.lat,dl&&dl.lon,{wps:wps,origin:RD?[RD.dep.lat,RD.dep.lon]:null,dest:RD?[RD.dest.lat,RD.dest.lon]:null});
+  var zs=state.zones.filter(function(z){return p.zones.indexOf(z.type)>=0&&(!z.etab||(d&&z.etab===d.id));});
+  h+='<div class="blk past" id="leg1"><div class="row nowrap" style="align-items:center;justify-content:space-between;margin:0"><span><span class="step-n">✓</span>Patient à bord</span><button class="btn small" data-a="leg1">Retour</button></div></div>';
+  h+='<div class="blk cur" id="leg2"><h3><span class="step-n">2</span>Conduire au rendez-vous</h3><div class="dest">'+esc(d?d.nom:"Rendez-vous")+'</div><div class="addr">'+esc(addr)+'</div>'+(d&&d.infos?'<div class="infos">📍 '+esc(d.infos)+'</div>':'');
+  if(zs.length){h+='<div style="margin-top:10px">';zs.forEach(function(z){h+='<div class="zone"><span class="tag">'+esc(ZTYPES[z.type]||z.type)+'</span><div><b>'+esc(z.nom)+'</b>'+(z.note?'<div class="addr">'+esc(z.note)+'</div>':"")+'</div></div>';});h+='</div>';}
+  h+=vComfortMini(R)+navBtns(L2,RD?"gmaps":p.reco,RD?"Google Maps · confort":"Google Maps")+'</div></div>';
+ }
  h+='<button class="btn reset" data-a="reset">Nouveau transport</button>';
- h+='<div class="foot">Prépare chaque étape avant de démarrer : ne manipule pas le téléphone en roulant. Le trafic est géré par Waze ou Google Maps. Itinéraires calculés avec Valhalla et les données © contributeurs OpenStreetMap.</div>';
  clearRouteMap();el.innerHTML=h;
- if(RD)initRouteMap();
+ if(leg===2&&ui.route&&ui.route.key===routeKey()&&ui.route.status==="done")initRouteMap();
 }
 
 function links(addr,via,lat,lon,x){
@@ -266,7 +257,7 @@ function links(addr,via,lat,lon,x){
  var ll=(typeof lat==="number"&&typeof lon==="number")?lat.toFixed(6)+","+lon.toFixed(6):"";
  var wPath=ll?"waze.com/ul?ll="+ll+"&navigate=yes":"waze.com/ul?q="+e(addr)+"&navigate=yes";
  var gDest=ll||addr;
- var wps=(x.pre||[]).concat(via?[via]:[]).concat((x.wps||[]).map(function(q){return q[0].toFixed(6)+","+q[1].toFixed(6);}));
+ var wps=(via?[via]:[]).concat((x.wps||[]).map(function(q){return q[0].toFixed(6)+","+q[1].toFixed(6);}));
  var org=x.origin?x.origin[0].toFixed(6)+","+x.origin[1].toFixed(6):"";
  var gPath="www.google.com/maps/dir/?api=1"+(org?"&origin="+e(org):"")+"&destination="+e(gDest)+"&travelmode=driving&dir_action=navigate"+(wps.length?"&waypoints="+e(wps.join("|")):"");
  var r={waze:"https://"+wPath,gmaps:"https://"+gPath,wazeWeb:"https://"+wPath,gmapsWeb:"https://"+gPath,app:false};
