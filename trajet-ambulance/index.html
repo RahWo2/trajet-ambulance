@@ -215,13 +215,13 @@ function vComfortMini(R){
  if(!R)return '<button class="btn small" style="margin-top:12px" data-a="calcRoute">🗺️ Calculer un trajet confort</button>';
  if(R.status==="loading")return '<div class="spin" style="margin:14px auto 8px;width:30px;height:30px"></div><p class="center" id="rtStep">'+esc(R.step||"Calcul…")+'</p>';
  if(R.status==="error")return '<div class="warnbox">'+esc(R.msg)+'</div><button class="btn small" style="margin-top:10px" data-a="calcRoute">Réessayer</button>';
- var h='<div id="rmap" class="map" style="margin-top:12px"></div>';
+ var h='<div id="rmap" class="map" style="margin-top:12px"></div>',tmin=Math.min.apply(null,R.cands.map(function(c){return c.time;}));
  R.cands.forEach(function(c,i){
   var parts=[Math.round(c.time/60)+" min",c.km.toFixed(1).replace(".",",")+" km",(R.bumpsOk||c.bumps?c.bumps+" ralentisseur"+(c.bumps>1?"s":""):"ralentisseurs ?")];
   if(c.rough!=null&&c.rough>=20)parts.push(Math.round(c.rough)+" m pavés");
   if(c.zoneHits)parts.push("⚠ "+c.zoneHits+" zone"+(c.zoneHits>1?"s":""));
-  var dt=Math.round((c.time-R.baseline.time)/60);
-  h+='<button class="opt'+(i===R.sel?" on":"")+'" data-a="pickRoute" data-i="'+i+'"><b>'+(i===0?"⭐ Le plus confortable":(c===R.baseline?"Le plus rapide":"Autre option"))+'</b>'+(dt>0?' <span class="tag">+'+dt+' min</span>':'')+'<small>'+parts.join(" · ")+'</small></button>';
+  var dt=Math.round((c.time-tmin)/60);
+  h+='<button class="opt'+(i===R.sel?" on":"")+'" data-a="pickRoute" data-i="'+i+'"><b>'+(i===0?"⭐ Conseillé":(c.time===tmin?"Le plus rapide":"Autre option"))+'</b>'+(dt>0?' <span class="tag">+'+dt+' min</span>':'')+'<small>'+parts.join(" · ")+'</small></button>';
  });
  return h;
 }
