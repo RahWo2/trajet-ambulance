@@ -9,7 +9,7 @@ h1{font-size:19px;margin:0;letter-spacing:.2px}
 .status{font-size:12.5px;color:var(--mut);text-align:right}
 .status.ok{color:var(--ok)}.status.warn{color:var(--warn)}
 nav{display:flex;gap:4px;margin-top:10px}
-nav a{flex:1;text-align:center;padding:11px 4px;color:var(--mut);text-decoration:none;font-weight:600;font-size:15px;border-bottom:3px solid transparent}
+nav a{flex:1 1 auto;text-align:center;padding:11px 5px;color:var(--mut);text-decoration:none;font-weight:600;font-size:14.5px;border-bottom:3px solid transparent;white-space:nowrap}
 nav a.on{color:var(--txt);border-color:var(--acc)}
 main{max-width:720px;margin:0 auto;padding:14px 14px 60px}
 h2{font-size:15px;text-transform:uppercase;letter-spacing:.6px;color:var(--mut);margin:22px 0 10px}
@@ -72,6 +72,9 @@ ul{margin:0;padding-left:20px}li{margin:4px 0}
 .stick{position:sticky;bottom:0;padding:16px 0 10px;background:linear-gradient(rgba(14,16,20,0),var(--bg) 35%)}
 .btn.wide{width:100%}
 .radius .chip{min-width:70px;text-align:center}
+.hr{display:flex;align-items:center;gap:8px}
+.sync{background:none;border:1px solid var(--line);color:var(--txt);border-radius:10px;width:40px;height:36px;font-size:19px;cursor:pointer}
+details summary{cursor:pointer;color:var(--acc)}
 </style></head><body><div id="app"></div><script id="state" type="application/json">{"rev":0,"etabs":[],"zones":[],"setupDone":false}</script><script id="main">
 (function(){
 "use strict";
@@ -128,7 +131,16 @@ function save(){
 function paintStatus(){
  var el=document.getElementById("status");if(!el)return;
  var t="",cl="status";
- if(saveStatus==="ok"){t="✓ Enregistré sur ce téléphone";cl+=" ok";}
+ if(state.mode==="cloud"&&sess){
+  var np=(state.pending||[]).length;
+  if(cloud.status==="sync")t="↻ Synchro…";
+  else if(cloud.status==="offline"){t="⚠ Hors ligne"+(np?" · "+np+" en attente":"");cl+=" warn";}
+  else if(cloud.status==="error"){t="⚠ Erreur de synchro";cl+=" warn";}
+  else if(cloud.status==="notmember"){t="⚠ Accès refusé";cl+=" warn";}
+  else if(np){t=np+" modif. en attente";cl+=" warn";}
+  else if(cloud.status==="ok"){t="☁️ Équipe à jour";cl+=" ok";}
+ }
+ else if(saveStatus==="ok"){t="✓ Enregistré sur ce téléphone";cl+=" ok";}
  else if(saveStatus==="fail"){t="⚠ Enregistrement impossible";cl+=" warn";}
  el.className=cl;el.textContent=t;
 }
@@ -270,9 +282,11 @@ function addSelected(){
  }
  function commit(){
   if(ui.search!==s)return;
-  sel.forEach(function(it){state.etabs.push({id:"osm-"+it.key.replace("/","-"),osm:it.key,nom:it.nom,type:grp(it.g).type,
-   adresse:it.addr||(it.lat.toFixed(5)+", "+it.lon.toFixed(5)),lat:it.lat,lon:it.lon,infos:it.infos,via:""});});
+  var base=nextOrdre(),added=[];
+  sel.forEach(function(it,ix){var e={id:"osm-"+it.key.replace("/","-"),osm:it.key,nom:it.nom,type:grp(it.g).type,
+   adresse:it.addr||(it.lat.toFixed(5)+", "+it.lon.toFixed(5)),lat:it.lat,lon:it.lon,infos:it.infos,via:"",ordre:base+ix};state.etabs.push(e);added.push(e);});
   state.setupDone=true;ui.search=null;save();
+  if(added.length)enqueue({t:"putE",rows:added.map(etabRow)});
   if(location.hash!=="#etablissements")location.hash="#etablissements";else render();
   window.scrollTo(0,0);
  }
@@ -327,25 +341,208 @@ document.addEventListener("change",function(ev){
  var b=document.getElementById("addBtn");if(b)b.textContent=addLabel();
 });
 function syncGroups(){var s=ui.search;if(!s||!s.results)return;GROUPS.forEach(function(g){var cb=document.querySelector('input[data-g="'+g.k+'"]');if(!cb)return;var sel=s.results.filter(function(r){return r.g===g.k&&!r.deja;}),on=sel.filter(function(r){return r.sel;}).length;cb.checked=sel.length>0&&on===sel.length;cb.indeterminate=on>0&&on<sel.length;});}
-if(!state.setupDone)ui.search={step:"start",radius:20};
 
+/* ===== Comptes et partage d'équipe (Supabase) ===== */
+var SB_URL="https://elesendfemgejwvjcsww.supabase.co",SB_KEY="sb_publishable_exSas_Tpp0slPPYO--cLBg_2DGp6g2q";
+var APP_URL="https://rahwo2.github.io/trajet-ambulance/";
+var SESSKEY="trajet-ambulance-session";
+var sess=null;try{sess=JSON.parse(localStorage.getItem(SESSKEY)||"null");}catch(e){}
+var cloud={status:"",members:[],me:null,err:"",last:0};
+function saveSess(){try{if(sess)localStorage.setItem(SESSKEY,JSON.stringify(sess));else localStorage.removeItem(SESSKEY);}catch(e){}}
+function isCloud(){return state.mode==="cloud"&&!!sess;}
+function isAdmin(){return !!(cloud.me&&cloud.me.role==="admin");}
+function netErr(e){return navigator.onLine===false||/failed to fetch|networkerror|load failed|network/i.test(String(e&&e.message));}
+function authErr(j,status){
+ var m=(j&&(j.msg||j.error_description||j.message||j.error))||("Erreur "+status);
+ if(/invalid login credentials/i.test(m))return "E-mail ou mot de passe incorrect.";
+ if(/already registered|already been registered|already exists/i.test(m))return "Ce compte existe déjà : utilise « Se connecter ».";
+ if(/password should|weak password|at least/i.test(m))return "Mot de passe trop faible : 8 caractères minimum.";
+ if(/not confirmed/i.test(m))return "Compte pas encore activé : la confirmation par e-mail est encore active dans Supabase.";
+ if(/non invit|database error saving new user/i.test(m))return "Cette adresse n'a pas été invitée dans l'équipe.";
+ if(/rate limit/i.test(m))return "Trop de tentatives, réessaie dans quelques minutes.";
+ return m;
+}
+function authPost(path,body,tok){
+ var h={apikey:SB_KEY,"Content-Type":"application/json"};if(tok)h.Authorization="Bearer "+tok;
+ return fetch(SB_URL+"/auth/v1/"+path,{method:"POST",headers:h,body:JSON.stringify(body||{})})
+  .then(function(r){return r.json().catch(function(){return{};}).then(function(j){if(!r.ok)throw new Error(authErr(j,r.status));return j;});});
+}
+function setSession(j){sess={access_token:j.access_token,refresh_token:j.refresh_token,expires_at:Date.now()+((j.expires_in||3600)*1000),email:String((j.user&&j.user.email)||(sess&&sess.email)||"").toLowerCase()};saveSess();}
+var refreshing=null;
+function token(){
+ if(!sess)return Promise.reject(new Error("Non connecté"));
+ if(Date.now()<sess.expires_at-60000)return Promise.resolve(sess.access_token);
+ if(!refreshing)refreshing=authPost("token?grant_type=refresh_token",{refresh_token:sess.refresh_token}).then(function(j){refreshing=null;setSession(j);return sess.access_token;},function(e){
+  refreshing=null;if(!netErr(e)){sess=null;saveSess();ui.auth={step:"login",msg:"Ta session a expiré : reconnecte-toi."};}throw e;});
+ return refreshing;
+}
+function api(method,path,body,prefer){
+ return token().then(function(t){
+  var h={apikey:SB_KEY,Authorization:"Bearer "+t};if(body!==undefined)h["Content-Type"]="application/json";if(prefer)h.Prefer=prefer;
+  return fetch(SB_URL+"/rest/v1/"+path,{method:method,headers:h,body:body!==undefined?JSON.stringify(body):undefined});
+ }).then(function(r){
+  return r.text().then(function(t){if(!r.ok){var e=new Error("Serveur "+r.status+" : "+t.slice(0,140));e.status=r.status;throw e;}return t?JSON.parse(t):null;});
+ });
+}
+function isInvited(email){
+ return fetch(SB_URL+"/rest/v1/rpc/est_invite",{method:"POST",headers:{apikey:SB_KEY,"Content-Type":"application/json"},body:JSON.stringify({p_email:email})}).then(function(r){return r.json();});
+}
+function doLogin(email,pw){
+ email=email.trim().toLowerCase();
+ return authPost("token?grant_type=password",{email:email,password:pw}).then(function(j){setSession(j);return enterCloud();});
+}
+function doSignup(email,pw){
+ email=email.trim().toLowerCase();
+ return isInvited(email).then(function(ok){
+  if(ok!==true)throw new Error("Cette adresse n'a pas été invitée. Demande à ton responsable de t'ajouter dans l'équipe (onglet Équipe).");
+  return authPost("signup",{email:email,password:pw});
+ }).then(function(j){
+  if(j&&j.access_token){setSession(j);return enterCloud();}
+  return doLogin(email,pw);
+ });
+}
+function enterCloud(){
+ var same=state.mode==="cloud"&&state.cloudEmail===sess.email;
+ if(!same){
+  if(state.mode!=="cloud"&&state.etabs.length)state.localBackup={etabs:state.etabs,zones:state.zones};
+  state.etabs=[];state.zones=[];state.pending=[];state.team=null;cloud.members=[];cloud.me=null;
+ }
+ state.mode="cloud";state.cloudEmail=sess.email;state.setupDone=true;save();
+ return sync(true);
+}
+function doLogout(){
+ var t=sess&&sess.access_token;
+ if(t)fetch(SB_URL+"/auth/v1/logout",{method:"POST",headers:{apikey:SB_KEY,Authorization:"Bearer "+t}}).catch(function(){});
+ sess=null;saveSess();
+ var b=state.localBackup;
+ state.mode=undefined;state.cloudEmail=undefined;state.pending=[];state.team=null;state.etabs=[];state.zones=[];
+ if(b){state.etabs=b.etabs||[];state.zones=b.zones||[];delete state.localBackup;}
+ cloud.members=[];cloud.me=null;cloud.status="";ui.destId=null;
+ save();ui.auth={step:"choice"};location.hash="#trajet";render();
+}
+function etabRow(x){return{id:x.id,osm:x.osm||null,nom:x.nom,type:x.type||"Autre",adresse:x.adresse||"",lat:typeof x.lat==="number"?x.lat:null,lon:typeof x.lon==="number"?x.lon:null,infos:x.infos||"",via:x.via||"",ordre:typeof x.ordre==="number"?x.ordre:0};}
+function zoneRow(z){return{id:z.id,nom:z.nom,type:z.type,etab:z.etab||null,note:z.note||""};}
+function nextOrdre(){var m=-1;state.etabs.forEach(function(x){if(typeof x.ordre==="number"&&x.ordre>m)m=x.ordre;});return Math.max(m+1,state.etabs.length);}
+function enqueue(op){if(!isCloud())return;state.pending=state.pending||[];state.pending.push(op);save();flush().catch(function(){});}
+var flushing=null;
+function runOp(op){
+ if(op.t==="putE")return api("POST","etablissements",op.rows,"resolution=merge-duplicates,return=minimal");
+ if(op.t==="delE")return api("DELETE","etablissements?id=eq."+encodeURIComponent(op.id));
+ if(op.t==="delAllE")return api("DELETE","etablissements?id=not.is.null");
+ if(op.t==="putZ")return api("POST","zones",op.rows,"resolution=merge-duplicates,return=minimal");
+ if(op.t==="delZ")return api("DELETE","zones?id=eq."+encodeURIComponent(op.id));
+ return Promise.resolve();
+}
+function flush(){
+ if(flushing)return flushing;
+ if(!isCloud()||!state.pending||!state.pending.length)return Promise.resolve();
+ cloud.status="sync";paintStatus();
+ flushing=new Promise(function(resolve,reject){
+  (function step(){
+   if(!isCloud()||!state.pending.length){flushing=null;if(cloud.status==="sync"||cloud.status==="offline"||cloud.status==="error")cloud.status="ok";paintStatus();resolve();return;}
+   runOp(state.pending[0]).then(function(){state.pending.shift();save();step();},function(e){
+    if(e.status&&e.status>=400&&e.status<500&&e.status!==401){cloud.err=e.message;state.pending.shift();save();step();return;}
+    flushing=null;cloud.status=netErr(e)?"offline":"error";cloud.err=e.message;paintStatus();reject(e);
+   });
+  })();
+ });
+ return flushing;
+}
+function nameOf(email){var n=email;cloud.members.forEach(function(m){if(m.email===email&&m.nom)n=m.nom;});return n;}
+function softRender(){var ae=document.activeElement;if(ui.form||ui.invite||(ae&&/INPUT|TEXTAREA|SELECT/.test(ae.tagName))){paintStatus();return;}render();}
+function sync(first){
+ if(!isCloud())return Promise.resolve();
+ cloud.status="sync";paintStatus();
+ return flush().catch(function(){}).then(function(){
+  if(!isCloud())return null;
+  return Promise.all([api("GET","etablissements?select=*&order=ordre.asc,nom.asc"),api("GET","zones?select=*&order=nom.asc"),api("GET","membres?select=*&order=role.asc,nom.asc")]);
+ }).then(function(res){
+  if(!res)return;
+  if(state.pending&&state.pending.length){paintStatus();return;}
+  var members=res[2]||[];cloud.members=members;cloud.me=null;
+  members.forEach(function(m){if(m.email===sess.email)cloud.me=m;});
+  if(!cloud.me){cloud.status="notmember";state.etabs=[];state.zones=[];save();softRender();return;}
+  state.etabs=(res[0]||[]).map(function(r){return{id:r.id,osm:r.osm||undefined,nom:r.nom,type:r.type,adresse:r.adresse,lat:r.lat==null?undefined:r.lat,lon:r.lon==null?undefined:r.lon,infos:r.infos||"",via:r.via||"",ordre:r.ordre,majPar:r.maj_par||""};});
+  state.zones=(res[1]||[]).map(function(r){return{id:r.id,nom:r.nom,type:r.type,etab:r.etab||"",note:r.note||"",majPar:r.maj_par||""};});
+  state.team={members:members};
+  if(ui.destId&&!etab(ui.destId))ui.destId=null;
+  save();cloud.status="ok";cloud.last=Date.now();
+  if(first&&!state.etabs.length&&!ui.search)ui.search={step:"start",radius:20};
+  softRender();
+ }).catch(function(e){
+  cloud.status=netErr(e)?"offline":"error";cloud.err=e.message;
+  if(!sess&&!ui.auth)ui.auth={step:"login",msg:"Ta session a expiré : reconnecte-toi."};
+  softRender();
+ });
+}
+function inviteMsg(email){return "Salut ! Je t'ai ajouté dans l'appli Trajet Ambulance de l'équipe. Ouvre ce lien sur ton téléphone avec Chrome : "+APP_URL+" puis choisis « Première connexion » avec l'adresse "+email+" et crée ton mot de passe. Ensuite, menu ⋮ ▸ « Installer l'application ».";}
+
+function headerHtml(nav){
+ return '<header><div class="top"'+(nav?'':' style="padding-bottom:10px"')+'><h1>🚑 Trajet Ambulance</h1><div class="hr"><div id="status" class="status"></div>'+(isCloud()&&!ui.auth?'<button class="sync" data-a="sync" aria-label="Synchroniser">↻</button>':'')+'</div></div>'+(nav||'')+'</header>';
+}
+function tabLink(k,l){return '<a href="#'+k+'" class="'+(ui.tab===k?"on":"")+'">'+l+'</a>';}
 function render(){
  var h=location.hash.replace("#","");
- ui.tab=(h==="etablissements"||h==="zones")?h:"trajet";
+ ui.tab=(h==="etablissements"||h==="zones"||(h==="equipe"&&isCloud()))?h:"trajet";
  var app=document.getElementById("app");
- if(ui.search){
-  app.innerHTML='<header><div class="top" style="padding-bottom:10px"><h1>🚑 Trajet Ambulance</h1><div id="status" class="status"></div></div></header><main>'+vSearch()+'</main>';
-  paintStatus();if(ui.search.step==="review")syncGroups();return;
- }
- var html='<header><div class="top"><h1>🚑 Trajet Ambulance</h1><div id="status" class="status"></div></div><nav>'+
-  '<a href="#trajet" class="'+(ui.tab==="trajet"?"on":"")+'">Trajet</a>'+
-  '<a href="#etablissements" class="'+(ui.tab==="etablissements"?"on":"")+'">Établissements</a>'+
-  '<a href="#zones" class="'+(ui.tab==="zones"?"on":"")+'">Zones ('+state.zones.length+')</a></nav></header><main>';
- if(ui.tab==="trajet")html+=vTrajet();else if(ui.tab==="etablissements")html+=vEtabs();else html+=vZones();
+ if((!state.mode||(state.mode==="cloud"&&!sess))&&!ui.auth)ui.auth={step:state.mode==="cloud"?"login":"choice"};
+ if(ui.auth){app.innerHTML=headerHtml("")+'<main>'+vAuth()+'</main>';paintStatus();return;}
+ if(!ui.search&&state.mode==="local"&&!state.setupDone)ui.search={step:"start",radius:20};
+ if(ui.search){app.innerHTML=headerHtml("")+'<main>'+vSearch()+'</main>';paintStatus();if(ui.search.step==="review")syncGroups();return;}
+ var nav='<nav>'+tabLink("trajet","Trajet")+tabLink("etablissements","Établissements")+tabLink("zones","Zones ("+state.zones.length+")")+(isCloud()?tabLink("equipe","Équipe"):"")+'</nav>';
+ var html=headerHtml(nav)+'<main>';
+ if(isCloud()&&cloud.status==="notmember")html+='<div class="warnbox" style="margin:0 0 12px">Ton compte n\'est pas (ou plus) dans l\'équipe. Demande à ton responsable de t\'ajouter, ou déconnecte-toi depuis l\'onglet Équipe.</div>';
+ if(ui.tab==="trajet")html+=vTrajet();else if(ui.tab==="etablissements")html+=vEtabs();else if(ui.tab==="zones")html+=vZones();else html+=vEquipe();
  html+="</main>";
  app.innerHTML=html;paintStatus();
  if(ui.tab==="trajet")paintFeuille();
 }
+function vAuth(){
+ var a=ui.auth,h="";
+ if(a.step==="choice"){
+  h+='<div class="hero"><div class="big">🚑</div><h2>Bienvenue</h2><p>Connecte-toi pour partager les établissements, les infos d\'arrivée et les zones à éviter avec ton équipe.</p></div>';
+  if(a.msg)h+='<div class="warnbox">'+esc(a.msg)+'</div>';
+  h+='<button class="btn pri wide" style="margin-top:14px;min-height:58px;font-size:18px" data-a="authStep" data-v="login">Se connecter</button>';
+  h+='<button class="btn wide" style="margin-top:10px" data-a="authStep" data-v="signup">Première connexion : créer mon mot de passe</button>';
+  h+='<button class="btn wide" style="margin-top:26px" data-a="authLocal">Utiliser sans compte</button><div class="hint">Sans compte, tout reste sur ce téléphone et rien n\'est partagé.</div>';
+  return h;
+ }
+ var sign=a.step==="signup";
+ h+='<h2 style="margin-top:6px">'+(sign?"Première connexion":"Se connecter")+'</h2>';
+ if(a.msg)h+='<div class="warnbox" style="margin-bottom:8px">'+esc(a.msg)+'</div>';
+ if(sign)h+='<div class="hint" style="margin-bottom:6px">Utilise l\'adresse e-mail que ton responsable a ajoutée dans l\'équipe, puis choisis ton mot de passe.</div>';
+ h+='<form data-f="auth"><label>E-mail</label><input name="email" type="email" autocomplete="username" required value="'+esc(a.email||"")+'">'+
+  '<label>Mot de passe'+(sign?" (8 caractères minimum)":"")+'</label><input name="pw" type="password" autocomplete="'+(sign?"new-password":"current-password")+'" required>'+
+  (sign?'<label>Confirme le mot de passe</label><input name="pw2" type="password" autocomplete="new-password" required>':'')+
+  (a.err?'<div class="warnbox">'+esc(a.err)+'</div>':'')+
+  '<button class="btn pri wide" style="margin-top:16px;min-height:56px" type="submit">'+(sign?"Créer mon compte":"Se connecter")+'</button></form>';
+ h+='<button class="btn wide" style="margin-top:10px" data-a="authStep" data-v="'+(sign?"login":"signup")+'">'+(sign?"J\'ai déjà un compte : se connecter":"Première connexion ? Créer mon mot de passe")+'</button>';
+ if(!sign)h+='<details style="margin-top:14px;color:var(--mut);font-size:14.5px"><summary>Mot de passe oublié ?</summary><p>Demande à ton responsable de réinitialiser ton accès, puis refais « Première connexion » avec la même adresse.</p></details>';
+ if(state.mode!=="cloud")h+='<button class="btn wide" style="margin-top:18px" data-a="authStep" data-v="choice">Retour</button>';
+ else h+='<button class="btn wide" style="margin-top:18px" data-a="logout">Utiliser sans compte</button>';
+ return h;
+}
+function vEquipe(){
+ var me=cloud.me,adm=isAdmin(),h="",np=(state.pending||[]).length;
+ h+='<h2>Mon compte</h2><div class="item"><div class="t">'+esc((me&&me.nom)||sess.email)+(me?' <span class="tag blue">'+(adm?"Responsable":"Membre")+'</span>':'')+'</div><div class="m">'+esc(sess.email)+'</div>'+
+  '<div class="m">'+(cloud.last?"Dernière synchro à "+new Date(cloud.last).toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit"}):"Pas encore synchronisé")+(np?" · "+np+" modification(s) en attente":"")+'</div>'+
+  '<div class="row"><button class="btn small" data-a="sync">↻ Synchroniser</button><button class="btn small danger" data-a="logout">Se déconnecter</button></div></div>';
+ h+='<h2>Équipe ('+cloud.members.length+')</h2>';
+ if(adm){
+  if(ui.invite)h+='<form class="form" data-f="invite"><label>E-mail du collègue</label><input name="email" type="email" required placeholder="prenom.nom@exemple.fr" autocomplete="off"><label>Nom (facultatif)</label><input name="nom" placeholder="Prénom N." autocomplete="off"><label>Rôle</label><select name="role"><option value="membre">Membre</option><option value="admin">Responsable (peut inviter)</option></select>'+
+   (ui.inviteErr?'<div class="warnbox">'+esc(ui.inviteErr)+'</div>':'')+'<div class="row" style="margin-top:14px"><button class="btn pri" type="submit">Ajouter</button><button class="btn" type="button" data-a="inviteCancel">Annuler</button></div></form>';
+  else h+='<button class="btn pri wide" style="margin-bottom:12px" data-a="inviteShow">＋ Inviter un collègue</button>';
+  if(ui.invited)h+='<div class="infos" style="margin-bottom:12px">✓ '+esc(ui.invited)+' peut maintenant créer son mot de passe. Envoie-lui ce message :<br><br>'+esc(inviteMsg(ui.invited))+'<div class="row" style="margin-top:8px"><button class="btn small" data-a="copyInvite">📋 Copier le message</button></div><div class="hint" id="invMsg"></div></div>';
+ }
+ if(ui.teamErr)h+='<div class="warnbox" style="margin-bottom:10px">'+esc(ui.teamErr)+'</div>';
+ cloud.members.forEach(function(m){var self=m.email===sess.email;
+  h+='<div class="item"><div class="t">'+esc(m.nom||m.email)+' <span class="tag'+(m.role==="admin"?" blue":"")+'">'+(m.role==="admin"?"Responsable":"Membre")+'</span>'+(self?' <span class="tag">toi</span>':'')+'</div>'+(m.nom?'<div class="m">'+esc(m.email)+'</div>':'')+
+   (adm&&!self?'<div class="row"><button class="btn small" data-a="role" data-id="'+esc(m.email)+'">'+(m.role==="admin"?"Passer membre":"Passer responsable")+'</button><button class="btn small danger" data-a="askDel" data-id="mb:'+esc(m.email)+'">Retirer</button></div>':'')+
+   (ui.confirm==="mb:"+m.email?'<div class="confirm">Retirer '+esc(m.nom||m.email)+' de l\'équipe ? Cette personne n\'aura plus accès aux données.<div class="row"><button class="btn small danger" data-a="delMember" data-id="'+esc(m.email)+'">Oui, retirer</button><button class="btn small" data-a="noDel">Annuler</button></div></div>':'')+'</div>';});
+ if(adm)h+='<div class="foot">Un collègue a oublié son mot de passe ? Dans Supabase, ouvre Authentication ▸ Users et supprime son compte : il pourra refaire « Première connexion » avec la même adresse.</div>';
+ return h;
+}
+function teamAction(p){ui.teamErr="";p.then(function(){return sync();},function(e){ui.teamErr=netErr(e)?"Pas de connexion internet : réessaie plus tard.":(/23505|duplicate/i.test(e.message)?"Cette adresse est déjà dans l'équipe.":e.message);render();});}
 
 function vTrajet(){
  var h='<h2>1 · État du patient</h2><div class="tiles">';
@@ -395,14 +592,16 @@ function vEtabs(){
  else h+='<button class="btn pri wide" style="margin-bottom:10px" data-a="searchStart">📍 Rechercher autour de moi</button><button class="btn wide" style="margin-bottom:14px" data-a="newEtab">＋ Ajouter un établissement à la main</button>';
  if(!state.etabs.length&&!ui.form)h+='<div class="empty">Aucun établissement. Lance une recherche autour de toi ou ajoute-les à la main. Pense ensuite à noter l\'entrée à prendre, le code du portail ou le parking : ils s\'afficheront sur la feuille de route.</div>';
  var n=state.etabs.length;
+ if(isCloud()&&isAdmin()&&state.localBackup&&state.localBackup.etabs&&state.localBackup.etabs.length)h+='<div class="infos" style="margin-bottom:12px;white-space:normal">Tu avais '+state.localBackup.etabs.length+' établissement(s) sur ce téléphone avant de te connecter.<div class="row" style="margin-top:8px"><button class="btn small pri" data-a="pushBackup">Les envoyer à l\'équipe</button><button class="btn small" data-a="dropBackup">Ignorer</button></div></div>';
  state.etabs.forEach(function(x,i){
   h+='<div class="item"><div class="t"><span style="color:var(--mut)">'+(i+1)+'.</span> '+esc(x.nom)+' <span class="tag blue">'+esc(x.type)+'</span></div><div class="m">'+esc(x.adresse)+'</div>'+
-   (x.infos?'<div class="x">📍 '+esc(x.infos)+'</div>':"")+(x.via?'<div class="m">Passage confort : via '+esc(x.via)+'</div>':"")+
+   (x.infos?'<div class="x">📍 '+esc(x.infos)+'</div>':"")+(x.via?'<div class="m">Passage confort : via '+esc(x.via)+'</div>':"")+(isCloud()&&x.majPar?'<div class="m" style="font-size:12.5px">Modifié par '+esc(nameOf(x.majPar))+'</div>':"")+
    '<div class="row">'+(i>0?'<button class="btn small" data-a="up" data-id="'+x.id+'" aria-label="Monter">▲</button>':"")+(i<n-1?'<button class="btn small" data-a="down" data-id="'+x.id+'" aria-label="Descendre">▼</button>':"")+'<button class="btn small" data-a="editEtab" data-id="'+x.id+'">Modifier</button><button class="btn small danger" data-a="askDel" data-k="etab" data-id="'+x.id+'">Supprimer</button></div>'+
    (ui.confirm===x.id?'<div class="confirm">Supprimer « '+esc(x.nom)+' » ?<div class="row"><button class="btn small danger" data-a="delEtab" data-id="'+x.id+'">Oui, supprimer</button><button class="btn small" data-a="noDel">Annuler</button></div></div>':"")+'</div>';});
- if(n){h+='<button class="btn small danger" style="margin-top:6px" data-a="askDel" data-id="ALL">Vider toute la liste</button>'+
+ if(n&&(!isCloud()||isAdmin())){h+='<button class="btn small danger" style="margin-top:6px" data-a="askDel" data-id="ALL">Vider toute la liste</button>'+
   (ui.confirm==="ALL"?'<div class="confirm">Supprimer les '+n+' établissements de ta liste ? Tes infos d\'arrivée seront perdues.<div class="row"><button class="btn small danger" data-a="delAll">Oui, tout supprimer</button><button class="btn small" data-a="noDel">Annuler</button></div></div>':"");}
  if(state.etabs.some(function(x){return x.osm;}))h+='<div class="foot">Établissements trouvés grâce aux données © contributeurs OpenStreetMap (licence ODbL), adresses : IGN Géoplateforme. Elles peuvent être incomplètes ou dépassées : vérifie sur place.</div>';
+ if(isCloud()){h+='<h2>Sauvegarde</h2><div class="hint">Les établissements et les zones de l\'équipe sont enregistrés en ligne et copiés sur ce téléphone pour fonctionner sans réseau.</div>';return h;}
  h+='<h2>Sauvegarde</h2><div class="hint">Tes infos (entrées, codes, zones) sont enregistrées uniquement sur ce téléphone. Copie-les de temps en temps dans une note pour ne pas les perdre.</div>'+
   '<div class="row" style="margin-top:8px"><button class="btn small" data-a="exp">Copier mes données</button><button class="btn small" data-a="impShow">Restaurer</button></div>'+
   (ui.imp?'<textarea id="impTxt" style="margin-top:8px" placeholder="Colle ici les données copiées"></textarea><div class="row" style="margin-top:8px"><button class="btn small pri" data-a="imp">Restaurer ces données</button></div>':'')+
@@ -427,7 +626,7 @@ function vZones(){
  else h+='<button class="btn pri" style="width:100%;margin-bottom:14px" data-a="newZone">＋ Ajouter une zone à éviter</button>';
  if(!state.zones.length&&!ui.form)h+='<div class="empty">Note ici ce que tu connais du terrain et qu\'aucun GPS ne sait : rue pavée, série de dos-d\'âne, route défoncée, virages serrés… La feuille de route te les rappellera selon l\'état du patient.</div>';
  state.zones.forEach(function(z){var d=z.etab?etab(z.etab):null;
-  h+='<div class="item"><div class="t">'+esc(z.nom)+'</div><div class="m"><span class="tag">'+esc(ZTYPES[z.type]||z.type)+'</span> · '+(d?"vers "+esc(d.nom):"toutes destinations")+'</div>'+(z.note?'<div class="x">'+esc(z.note)+'</div>':"")+
+  h+='<div class="item"><div class="t">'+esc(z.nom)+'</div><div class="m"><span class="tag">'+esc(ZTYPES[z.type]||z.type)+'</span> · '+(d?"vers "+esc(d.nom):"toutes destinations")+'</div>'+(z.note?'<div class="x">'+esc(z.note)+'</div>':"")+(isCloud()&&z.majPar?'<div class="m" style="font-size:12.5px">Ajouté par '+esc(nameOf(z.majPar))+'</div>':"")+
   '<div class="row"><button class="btn small" data-a="editZone" data-id="'+z.id+'">Modifier</button><button class="btn small danger" data-a="askDel" data-k="zone" data-id="'+z.id+'">Supprimer</button></div>'+
   (ui.confirm===z.id?'<div class="confirm">Supprimer « '+esc(z.nom)+' » ?<div class="row"><button class="btn small danger" data-a="delZone" data-id="'+z.id+'">Oui, supprimer</button><button class="btn small" data-a="noDel">Annuler</button></div></div>':"")+'</div>';});
  return h;
@@ -466,7 +665,23 @@ document.addEventListener("click",function(ev){
  else if(a==="retry"){var s1=ui.search;searchAround(s1.center.lat,s1.center.lon,s1.center.label);}
  else if(a==="villePick"){var v=ui.search.villes[+b.getAttribute("data-i")];searchAround(v.lat,v.lon,v.label);}
  else if(a==="addSel"){addSelected();}
- else if(a==="delAll"){state.etabs=[];state.zones.forEach(function(z){z.etab="";});ui.destId=null;ui.confirm=null;save();render();}
+ else if(a==="delAll"){state.etabs=[];state.zones.forEach(function(z){z.etab="";});ui.destId=null;ui.confirm=null;save();enqueue({t:"delAllE"});render();}
+ else if(a==="authStep"){var em0=ui.auth&&ui.auth.email;ui.auth={step:b.getAttribute("data-v"),email:em0};render();window.scrollTo(0,0);}
+ else if(a==="authLocal"){state.mode="local";save();ui.auth=null;render();window.scrollTo(0,0);}
+ else if(a==="logout"){doLogout();}
+ else if(a==="sync"){sync();}
+ else if(a==="inviteShow"){ui.invite=true;ui.inviteErr="";ui.invited=null;render();}
+ else if(a==="inviteCancel"){ui.invite=false;render();}
+ else if(a==="copyInvite"){var im=document.getElementById("invMsg");try{navigator.clipboard.writeText(inviteMsg(ui.invited)).then(function(){if(im)im.textContent="✓ Message copié.";},function(){if(im)im.textContent="Copie bloquée : recopie le message à la main.";});}catch(e){}}
+ else if(a==="role"){var mm=null;cloud.members.forEach(function(m){if(m.email===id)mm=m;});if(mm)teamAction(api("PATCH","membres?email=eq."+encodeURIComponent(id),{role:mm.role==="admin"?"membre":"admin"},"return=minimal"));}
+ else if(a==="delMember"){ui.confirm=null;teamAction(api("DELETE","membres?email=eq."+encodeURIComponent(id)));}
+ else if(a==="pushBackup"){var bk=state.localBackup||{etabs:[],zones:[]},ids={},osms={},base2=nextOrdre(),newE=[],newZ=[];
+  state.etabs.forEach(function(x){ids[x.id]=1;if(x.osm)osms[x.osm]=1;});
+  bk.etabs.forEach(function(x){if(ids[x.id]||(x.osm&&osms[x.osm]))return;var e=JSON.parse(JSON.stringify(x));e.ordre=base2+newE.length;newE.push(e);ids[e.id]=1;});
+  (bk.zones||[]).forEach(function(z){var c=JSON.parse(JSON.stringify(z));if(c.etab&&!ids[c.etab])c.etab="";newZ.push(c);});
+  state.etabs=state.etabs.concat(newE);state.zones=state.zones.concat(newZ);delete state.localBackup;save();
+  if(newE.length)enqueue({t:"putE",rows:newE.map(etabRow)});if(newZ.length)enqueue({t:"putZ",rows:newZ.map(zoneRow)});render();}
+ else if(a==="dropBackup"){delete state.localBackup;save();render();}
  else if(a==="reset"){ui.etat=null;ui.destId=null;ui.libre="";keepUi();render();window.scrollTo(0,0);}
  else if(a==="newEtab"){ui.form={kind:"etab"};ui.confirm=null;render();}
  else if(a==="editEtab"){ui.form={kind:"etab",id:id};ui.confirm=null;render();window.scrollTo(0,0);}
@@ -475,9 +690,9 @@ document.addEventListener("click",function(ev){
  else if(a==="cancel"){ui.form=null;render();}
  else if(a==="askDel"){ui.confirm=id;render();}
  else if(a==="noDel"){ui.confirm=null;render();}
- else if(a==="delEtab"){state.etabs=state.etabs.filter(function(x){return x.id!==id;});state.zones.forEach(function(z){if(z.etab===id)z.etab="";});if(ui.destId===id)ui.destId=null;ui.confirm=null;save();render();}
- else if(a==="up"||a==="down"){var k=-1;state.etabs.forEach(function(x,i){if(x.id===id)k=i;});var j=a==="up"?k-1:k+1;if(k>=0&&j>=0&&j<state.etabs.length){var t=state.etabs[k];state.etabs[k]=state.etabs[j];state.etabs[j]=t;save();render();}}
- else if(a==="delZone"){state.zones=state.zones.filter(function(x){return x.id!==id;});ui.confirm=null;save();render();}
+ else if(a==="delEtab"){state.etabs=state.etabs.filter(function(x){return x.id!==id;});state.zones.forEach(function(z){if(z.etab===id)z.etab="";});if(ui.destId===id)ui.destId=null;ui.confirm=null;save();enqueue({t:"delE",id:id});render();}
+ else if(a==="up"||a==="down"){var k=-1;state.etabs.forEach(function(x,i){if(x.id===id)k=i;});var j=a==="up"?k-1:k+1;if(k>=0&&j>=0&&j<state.etabs.length){var t=state.etabs[k];state.etabs[k]=state.etabs[j];state.etabs[j]=t;state.etabs.forEach(function(x,ix){x.ordre=ix;});save();enqueue({t:"putE",rows:state.etabs.map(etabRow)});render();}}
+ else if(a==="delZone"){state.zones=state.zones.filter(function(x){return x.id!==id;});ui.confirm=null;save();enqueue({t:"delZ",id:id});render();}
 });
 document.addEventListener("input",function(ev){
  if(ev.target.id==="filtre"){var q=ev.target.value.trim().toLowerCase();Array.prototype.forEach.call(document.querySelectorAll(".chip"),function(c){c.style.display=(!q||c.getAttribute("data-q").indexOf(q)>=0)?"":"none";});return;}
@@ -485,19 +700,37 @@ document.addEventListener("input",function(ev){
 });
 document.addEventListener("submit",function(ev){
  var f=ev.target;var k=f.getAttribute("data-f");if(!k)return;ev.preventDefault();
+ if(k==="auth"){var au=ui.auth,em=(f.elements.email.value||"").trim(),pw=f.elements.pw.value||"";au.email=em;au.err="";au.msg="";
+  if(au.step==="signup"){if(pw.length<8){au.err="Mot de passe trop court : 8 caractères minimum.";render();return;}if(pw!==f.elements.pw2.value){au.err="Les deux mots de passe ne sont pas identiques.";render();return;}}
+  var sb=f.querySelector('button[type="submit"]');if(sb){sb.disabled=true;sb.textContent="Connexion…";}
+  (au.step==="signup"?doSignup(em,pw):doLogin(em,pw)).then(function(){ui.auth=null;render();window.scrollTo(0,0);},function(e){au.err=netErr(e)?"Pas de connexion internet.":e.message;render();});
+  return;}
+ if(k==="invite"){var ie=(f.elements.email.value||"").trim().toLowerCase(),inom=(f.elements.nom.value||"").trim(),irole=f.elements.role.value;
+  if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(ie)){ui.inviteErr="Adresse e-mail invalide.";render();return;}
+  ui.inviteErr="";api("POST","membres",{email:ie,nom:inom||null,role:irole},"return=minimal").then(function(){ui.invite=false;ui.invited=ie;return sync();},function(e){ui.inviteErr=netErr(e)?"Pas de connexion internet.":(/23505|duplicate|409/i.test(e.message)?"Cette adresse est déjà dans l'équipe.":e.message);render();});
+  return;}
  if(k==="ville"){var q=(f.elements.ville.value||"").trim();if(q&&ui.search){ui.search.q=q;searchCity(q);}return;}
  var v={};Array.prototype.forEach.call(f.elements,function(el){if(el.name)v[el.name]=el.value.trim();});
  if(!v.nom)return;
+ var chE=null,chZ=null;
  if(k==="etab"){if(!v.adresse)return;
-  if(ui.form.id){var x=etab(ui.form.id);if(x){if(x.adresse!==v.adresse){delete x.lat;delete x.lon;}x.nom=v.nom;x.type=v.type;x.adresse=v.adresse;x.infos=v.infos;x.via=v.via;}}
-  else state.etabs.push({id:uid(),nom:v.nom,type:v.type,adresse:v.adresse,infos:v.infos,via:v.via});}
+  if(ui.form.id){var x=etab(ui.form.id);if(x){if(x.adresse!==v.adresse){delete x.lat;delete x.lon;}x.nom=v.nom;x.type=v.type;x.adresse=v.adresse;x.infos=v.infos;x.via=v.via;chE=x;}}
+  else{chE={id:uid(),nom:v.nom,type:v.type,adresse:v.adresse,infos:v.infos,via:v.via,ordre:nextOrdre()};state.etabs.push(chE);}}
  else{
-  if(ui.form.id){state.zones.forEach(function(z){if(z.id===ui.form.id){z.nom=v.nom;z.type=v.type;z.etab=v.etab;z.note=v.note;}});}
-  else state.zones.push({id:uid(),nom:v.nom,type:v.type,etab:v.etab,note:v.note});}
- ui.form=null;save();render();
+  if(ui.form.id){state.zones.forEach(function(z){if(z.id===ui.form.id){z.nom=v.nom;z.type=v.type;z.etab=v.etab;z.note=v.note;chZ=z;}});}
+  else{chZ={id:uid(),nom:v.nom,type:v.type,etab:v.etab,note:v.note};state.zones.push(chZ);}}
+ ui.form=null;save();
+ if(chE)enqueue({t:"putE",rows:[etabRow(chE)]});
+ if(chZ)enqueue({t:"putZ",rows:[zoneRow(chZ)]});
+ render();
 });
 window.addEventListener("hashchange",function(){ui.form=null;ui.confirm=null;if(ui.search&&ui.search.step==="adding")return;render();window.scrollTo(0,0);});
+if(state.team&&state.team.members)cloud.members=state.team.members;
+if(sess)cloud.members.forEach(function(m){if(m.email===sess.email)cloud.me=m;});
+document.addEventListener("visibilitychange",function(){if(document.visibilityState==="visible"&&isCloud())sync();});
+window.addEventListener("online",function(){if(isCloud())sync();});
 render();
+if(isCloud())sync();
 if("serviceWorker" in navigator&&location.protocol==="https:"){try{navigator.serviceWorker.register("sw.js");}catch(e){}}
 })();
 </script></body></html>
