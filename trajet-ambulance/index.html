@@ -696,13 +696,17 @@ function banItems(j){var out=[];
  return out;}
 function acFetch(q){
  var c=acCenter(),la=c[0],lo=c[1],e=encodeURIComponent,num=/^\s*\d/.test(q),none=function(){return null;};
- var ph=fetchT(PHOTON+"?lang=fr&limit=8&lat="+la.toFixed(4)+"&lon="+lo.toFixed(4)+"&zoom=11&location_bias_scale=0.1&q="+e(q),6000).then(photonItems,none);
+ var bb="&bbox="+[lo-0.9,la-0.6,lo+0.9,la+0.6].map(function(v){return v.toFixed(3);}).join(",");
+ var PH=PHOTON+"?lang=fr&limit=8&lat="+la.toFixed(4)+"&lon="+lo.toFixed(4)+"&q="+e(q);
+ var phNear=fetchT(PH+bb,6000).then(photonItems,none);
+ var phFar=fetchT(PH+"&zoom=11&location_bias_scale=0.1",6000).then(photonItems,none);
  var BAN=GEO+"completion?type=StreetAddress&maximumResponses=5&text="+e(q);
- var near=fetchT(BAN+"&bbox="+[lo-0.9,la-0.6,lo+0.9,la+0.6].map(function(v){return v.toFixed(3);}).join(","),6000).then(banItems,none);
+ var near=fetchT(BAN+bb,6000).then(banItems,none);
  var far=num?fetchT(BAN,6000).then(banItems,none):Promise.resolve([]);
- return Promise.all([ph,near,far]).then(function(r){
-  if(!r[0]&&!r[1])throw new Error("hors ligne");
-  var a=r[0]||[],b=r[1]||[],list=num?b.concat(a,r[2]||[]):a.concat(b),seen={},out=[];
+ return Promise.all([phNear,near,far,phFar]).then(function(r){
+  if(!r[0]&&!r[1]&&!r[3])throw new Error("hors ligne");
+  var pn=r[0]||[],bn=r[1]||[],bf=r[2]||[],pf=r[3]||[];
+  var list=num?bn.concat(pn,bf,pf):pn.concat(bn,pf),seen={},out=[];
   list.forEach(function(it){var k=norm(it.label);if(seen[k]||out.length>=6)return;seen[k]=1;out.push(it);});
   return out;});
 }
@@ -725,7 +729,7 @@ function acInput(inp){
  AC.t=setTimeout(function(){
   acFetch(q).then(function(list){if(my!==AC.seq)return;acPaint(inp,saved.concat(list),list.length||saved.length?"":"Aucune adresse trouvée : vérifie l'orthographe ou ajoute la ville.");},
    function(){if(my!==AC.seq)return;acPaint(inp,saved,"Suggestions indisponibles (réseau ?) : tape l'adresse complète.");});
- },300);
+ },350);
 }
 function acPick(i){
  var it=AC.items[i],inp=AC.input,f=AC.field;if(!it||!inp)return;acHide();
