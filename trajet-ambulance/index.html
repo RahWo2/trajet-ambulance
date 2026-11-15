@@ -75,7 +75,7 @@ ul{margin:0;padding-left:20px}li{margin:4px 0}
 .hr{display:flex;align-items:center;gap:8px}
 .sync{background:none;border:1px solid var(--line);color:var(--txt);border-radius:10px;width:40px;height:36px;font-size:19px;cursor:pointer}
 details summary{cursor:pointer;color:var(--acc)}
-.map{height:300px;border-radius:12px;margin-top:6px;border:1px solid var(--line);background:#1d2129;overflow:hidden}
+.map{height:300px;border-radius:12px;margin-top:6px;border:1px solid var(--line);background:#1d2129;overflow:hidden;position:relative;z-index:0}
 .map.small{height:240px}
 .opt{display:block;width:100%;text-align:left;padding:10px 12px;margin-top:8px;background:var(--card2);border:2px solid var(--line);border-radius:12px;color:var(--txt);font:inherit;cursor:pointer}
 .opt.on{border-color:var(--acc);background:#1b2a47}
@@ -355,7 +355,7 @@ function syncGroups(){var s=ui.search;if(!s||!s.results)return;GROUPS.forEach(fu
 var VALHALLA="https://valhalla1.openstreetmap.de/";
 var LEAFLET_JS="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js",LEAFLET_CSS="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css";
 var TILES="https://tile.openstreetmap.org/{z}/{x}/{y}.png";
-var POIDS={confort:{b:25,r:0.6,z:900},regulier:{b:12,r:0.3,z:600},standard:{b:4,r:0.15,z:300}};
+var POIDS={confort:{b:45,r:0.6,z:900},regulier:{b:20,r:0.3,z:600},standard:{b:5,r:0.15,z:300}};
 var ROUGH={paved_rough:1,compacted:1,dirt:1,gravel:1,path:1,impassable:1};
 var PAU=[43.2951,-0.3708];
 var leafletP=null;
