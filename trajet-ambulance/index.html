@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Trajet Ambulance</title><link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#0e1014"><meta name="mobile-web-app-capable" content="yes"><link rel="icon" href="icon.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="icon-192.png"><style id="css">
+<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Ambumaps</title><link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#0e1014"><meta name="mobile-web-app-capable" content="yes"><link rel="icon" href="icon.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="icon-192.png"><style id="css">
 :root{--bg:#0e1014;--card:#181b22;--card2:#20242d;--line:#2c313c;--txt:#f1f3f6;--mut:#9aa3b2;--acc:#4f8cff;--ok:#2fbf71;--warn:#f5a524;--red:#e5484d}
 *{box-sizing:border-box}
 html,body{margin:0;background:var(--bg);color:var(--txt);font:17px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-text-size-adjust:100%}
@@ -75,6 +75,12 @@ ul{margin:0;padding-left:20px}li{margin:4px 0}
 .hr{display:flex;align-items:center;gap:8px}
 .sync{background:none;border:1px solid var(--line);color:var(--txt);border-radius:10px;width:40px;height:36px;font-size:19px;cursor:pointer}
 details summary{cursor:pointer;color:var(--acc)}
+.map{height:300px;border-radius:12px;margin-top:6px;border:1px solid var(--line);background:#1d2129;overflow:hidden}
+.map.small{height:240px}
+.opt{display:block;width:100%;text-align:left;padding:10px 12px;margin-top:8px;background:var(--card2);border:2px solid var(--line);border-radius:12px;color:var(--txt);font:inherit;cursor:pointer}
+.opt.on{border-color:var(--acc);background:#1b2a47}
+.opt small{display:block;color:var(--mut);font-size:13.5px;margin-top:2px}
+.leaflet-container{font:inherit}
 </style></head><body><div id="app"></div><script id="state" type="application/json">{"rev":0,"etabs":[],"zones":[],"setupDone":false}</script><script id="main">
 (function(){
 "use strict";
@@ -148,12 +154,15 @@ function paintStatus(){
 var UA=navigator.userAgent||"";
 var IS_ANDROID=/Android/i.test(UA);
 var IS_IOS=/iPhone|iPad|iPod/i.test(UA)||(/Macintosh/.test(UA)&&navigator.maxTouchPoints>1);
-function links(addr,via,lat,lon){
- var e=encodeURIComponent;
+function links(addr,via,lat,lon,x){
+ x=x||{};var e=encodeURIComponent;
+ if(x.dest){lat=x.dest[0];lon=x.dest[1];}
  var ll=(typeof lat==="number"&&typeof lon==="number")?lat.toFixed(6)+","+lon.toFixed(6):"";
  var wPath=ll?"waze.com/ul?ll="+ll+"&navigate=yes":"waze.com/ul?q="+e(addr)+"&navigate=yes";
  var gDest=ll||addr;
- var gPath="www.google.com/maps/dir/?api=1&destination="+e(gDest)+"&travelmode=driving&dir_action=navigate"+(via?"&waypoints="+e(via):"");
+ var wps=(via?[via]:[]).concat((x.wps||[]).map(function(q){return q[0].toFixed(6)+","+q[1].toFixed(6);}));
+ var org=x.origin?x.origin[0].toFixed(6)+","+x.origin[1].toFixed(6):"";
+ var gPath="www.google.com/maps/dir/?api=1"+(org?"&origin="+e(org):"")+"&destination="+e(gDest)+"&travelmode=driving&dir_action=navigate"+(wps.length?"&waypoints="+e(wps.join("|")):"");
  var r={waze:"https://"+wPath,gmaps:"https://"+gPath,wazeWeb:"https://"+wPath,gmapsWeb:"https://"+gPath,app:false};
  if(IS_ANDROID){
   r.waze="intent://"+wPath+"#Intent;scheme=https;package=com.waze;S.browser_fallback_url="+e(r.wazeWeb)+";end";
@@ -161,7 +170,7 @@ function links(addr,via,lat,lon){
   r.app=true;
  }else if(IS_IOS){
   r.waze=ll?"waze://?ll="+ll+"&navigate=yes":"waze://?q="+e(addr)+"&navigate=yes";
-  r.gmaps="comgooglemaps://?daddr="+e(via?via+" to:"+gDest:gDest)+"&directionsmode=driving";
+  r.gmaps="comgooglemaps://?"+(org?"saddr="+e(org)+"&":"")+"daddr="+e(wps.concat([gDest]).join(" to:"))+"&directionsmode=driving";
   r.app=true;
  }
  return r;
@@ -179,7 +188,7 @@ var GROUPS=[
  {k:"autres",label:"Autres centres de soins",type:"Cabinet / centre médical",on:false}
 ];
 function grp(k){for(var i=0;i<GROUPS.length;i++)if(GROUPS[i].k===k)return GROUPS[i];return null;}
-var OVERPASS=["https://overpass-api.de/api/interpreter","https://maps.mail.ru/osm/tools/overpass/api/interpreter","https://overpass.private.coffee/api/interpreter"];
+var OVERPASS=["https://overpass-api.de/api/interpreter","https://maps.mail.ru/osm/tools/overpass/api/interpreter"];
 var GEO="https://data.geopf.fr/geocodage/";
 var RADII=[10,20,30,50];
 
@@ -202,12 +211,12 @@ function buildQuery(lat,lon,km){
  var bb=[lat-dLat,lon-dLon,lat+dLat,lon+dLon].map(function(x){return x.toFixed(4);}).join(",");
  return '[out:json][timeout:50][bbox:'+bb+'];(nwr["amenity"~"^(hospital|clinic|nursing_home)$"];nwr["healthcare"~"^(hospital|clinic|dialysis|rehabilitation|centre)$"];nwr["healthcare:speciality"~"radiology|dialysis|nephrology"];nwr["social_facility"="nursing_home"];);out center tags;';
 }
-function fetchFirst(q){
+function fetchFirst(q,ms){
  return new Promise(function(resolve,reject){
   var left=OVERPASS.length,done=false,ctrls=[];
   OVERPASS.forEach(function(ep){
    var ac=window.AbortController?new AbortController():null;ctrls.push(ac);
-   var to=setTimeout(function(){if(ac)ac.abort();},60000);
+   var to=setTimeout(function(){if(ac)ac.abort();},ms||60000);
    fetch(ep,{method:"POST",body:"data="+encodeURIComponent(q),signal:ac?ac.signal:undefined})
     .then(function(r){if(!r.ok)throw new Error("HTTP "+r.status);return r.json();})
     .then(function(j){clearTimeout(to);if(done)return;if(!j||!Array.isArray(j.elements)||(j.remark&&/error/i.test(j.remark)))throw new Error("réponse invalide");
@@ -342,6 +351,238 @@ document.addEventListener("change",function(ev){
 });
 function syncGroups(){var s=ui.search;if(!s||!s.results)return;GROUPS.forEach(function(g){var cb=document.querySelector('input[data-g="'+g.k+'"]');if(!cb)return;var sel=s.results.filter(function(r){return r.g===g.k&&!r.deja;}),on=sel.filter(function(r){return r.sel;}).length;cb.checked=sel.length>0&&on===sel.length;cb.indeterminate=on>0&&on<sel.length;});}
 
+/* ===== Carte et trajet confort ===== */
+var VALHALLA="https://valhalla1.openstreetmap.de/";
+var LEAFLET_JS="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js",LEAFLET_CSS="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css";
+var TILES="https://tile.openstreetmap.org/{z}/{x}/{y}.png";
+var POIDS={confort:{b:25,r:0.6,z:900},regulier:{b:12,r:0.3,z:600},standard:{b:4,r:0.15,z:300}};
+var ROUGH={paved_rough:1,compacted:1,dirt:1,gravel:1,path:1,impassable:1};
+var PAU=[43.2951,-0.3708];
+var leafletP=null;
+function loadLeaflet(){
+ if(window.L&&window.L.map)return Promise.resolve(window.L);
+ if(leafletP)return leafletP;
+ leafletP=new Promise(function(res,rej){
+  var l=document.createElement("link");l.rel="stylesheet";l.href=LEAFLET_CSS;document.head.appendChild(l);
+  var sc=document.createElement("script");sc.src=LEAFLET_JS;
+  sc.onload=function(){if(window.L&&window.L.map)res(window.L);else{leafletP=null;rej(new Error("Carte indisponible."));}};
+  sc.onerror=function(){leafletP=null;sc.remove();rej(new Error("Carte indisponible : pas de connexion internet ?"));};
+  document.head.appendChild(sc);
+ });
+ return leafletP;
+}
+function tiles(L){return L.tileLayer(TILES,{maxZoom:19,attribution:"© contributeurs OpenStreetMap"});}
+function decode6(str){
+ var i=0,lat=0,lon=0,out=[];
+ while(i<str.length){var b,sh=0,r=0;do{b=str.charCodeAt(i++)-63;r|=(b&31)<<sh;sh+=5;}while(b>=32);lat+=(r&1)?~(r>>1):(r>>1);
+  sh=0;r=0;do{b=str.charCodeAt(i++)-63;r|=(b&31)<<sh;sh+=5;}while(b>=32);lon+=(r&1)?~(r>>1):(r>>1);out.push([lat/1e6,lon/1e6]);}
+ return out;
+}
+var lastV=0;
+function valhalla(path,body){
+ var wait=Math.max(0,lastV+1100-Date.now());lastV=Date.now()+wait;
+ return new Promise(function(r){setTimeout(r,wait);}).then(function(){
+  var ac=window.AbortController?new AbortController():null,to=setTimeout(function(){if(ac)ac.abort();},20000);
+  return fetch(VALHALLA+path,{method:"POST",body:JSON.stringify(body),signal:ac?ac.signal:undefined}).then(function(r){clearTimeout(to);
+   return r.json().then(function(j){if(!r.ok||j.error)throw new Error(j.error||("Calcul impossible ("+r.status+")"));return j;});});
+ });
+}
+function projFn(lat0){var kx=111320*Math.cos(lat0*Math.PI/180),ky=110540;return function(q){return[q[1]*kx,q[0]*ky];};}
+function segDist(q,a,b){var dx=b[0]-a[0],dy=b[1]-a[1],l=dx*dx+dy*dy,t=l?((q[0]-a[0])*dx+(q[1]-a[1])*dy)/l:0;t=Math.max(0,Math.min(1,t));var x=a[0]+t*dx-q[0],y=a[1]+t*dy-q[1];return Math.sqrt(x*x+y*y);}
+function nearLine(q,line,maxd){
+ for(var i=1;i<line.length;i++){var a=line[i-1],b=line[i];
+  if(q[0]<Math.min(a[0],b[0])-maxd||q[0]>Math.max(a[0],b[0])+maxd||q[1]<Math.min(a[1],b[1])-maxd||q[1]>Math.max(a[1],b[1])+maxd)continue;
+  if(segDist(q,a,b)<=maxd)return true;}
+ return false;
+}
+function distM(a,b){var k=111320*Math.cos(a[0]*Math.PI/180),dx=(b[1]-a[1])*k,dy=(b[0]-a[0])*110540;return Math.sqrt(dx*dx+dy*dy);}
+function circlePoly(lat,lon,r){var out=[],k=111320*Math.cos(lat*Math.PI/180);for(var i=0;i<=8;i++){var a=(i%8)*Math.PI/4;out.push([+(lon+r*Math.cos(a)/k).toFixed(6),+(lat+r*Math.sin(a)/110540).toFixed(6)]);}return out;}
+function geocode(q){
+ return fetch(GEO+"search?q="+encodeURIComponent(q)+"&limit=1").then(function(r){return r.json();}).then(function(j){
+  var f=j.features&&j.features[0];if(!f)throw new Error("Adresse introuvable : « "+q+" ».");
+  return{lat:f.geometry.coordinates[1],lon:f.geometry.coordinates[0],label:f.properties.label};
+ });
+}
+/* Ralentisseurs : cache par cellule (téléphone + base d'équipe) */
+var CELL=0.05,BUMPKEY="ambumaps-ralentisseurs",BUMP_TTL=60*864e5;
+function cellKey(lat,lon){return Math.floor(lat/CELL)+"_"+Math.floor(lon/CELL);}
+function cellsFor(so,we,no,ea){var out=[];for(var a=Math.floor(so/CELL);a<=Math.floor(no/CELL);a++)for(var o=Math.floor(we/CELL);o<=Math.floor(ea/CELL);o++)out.push(a+"_"+o);return out;}
+function bumpCache(){try{return JSON.parse(localStorage.getItem(BUMPKEY)||"{}");}catch(e){return{};}}
+function saveBumpCache(c){try{localStorage.setItem(BUMPKEY,JSON.stringify(c));}catch(e){}}
+function getBumps(so,we,no,ea){
+ var cells=cellsFor(so,we,no,ea),cache=bumpCache(),now=Date.now();
+ function fresh(k){return cache[k]&&now-cache[k].t<BUMP_TTL;}
+ var missing=cells.filter(function(k){return !fresh(k);}),pr=Promise.resolve();
+ if(missing.length&&isCloud())pr=api("GET","osm_cache?select=cellule,donnees,maj_le&cellule=in.("+missing.join(",")+")").then(function(rows){
+  (rows||[]).forEach(function(r){var t=Date.parse(r.maj_le);if(now-t<BUMP_TTL)cache[r.cellule]={t:t,p:r.donnees||[]};});saveBumpCache(cache);
+ }).catch(function(){});
+ return pr.then(function(){
+  missing=cells.filter(function(k){return !fresh(k);});
+  if(!missing.length)return;
+  var la=missing.map(function(k){return +k.split("_")[0];}),lo=missing.map(function(k){return +k.split("_")[1];});
+  var bb=[Math.min.apply(null,la)*CELL,Math.min.apply(null,lo)*CELL,(Math.max.apply(null,la)+1)*CELL,(Math.max.apply(null,lo)+1)*CELL].map(function(x){return x.toFixed(3);}).join(",");
+  var q='[out:json][timeout:25][bbox:'+bb+'];(node["traffic_calming"~"^(bump|hump|table|cushion|yes|dip|double_dip|mini_bumps)$"];way["traffic_calming"~"^(bump|hump|table|cushion|yes)$"];);out center;';
+  return fetchFirst(q,30000).then(function(j){
+   var by={},rows=[],iso=new Date().toISOString();missing.forEach(function(k){by[k]=[];});
+   j.elements.forEach(function(el){var a=el.lat!=null?el.lat:(el.center&&el.center.lat),o=el.lon!=null?el.lon:(el.center&&el.center.lon);if(a==null)return;var k=cellKey(a,o);if(by[k])by[k].push([+a.toFixed(5),+o.toFixed(5)]);});
+   missing.forEach(function(k){cache[k]={t:now,p:by[k]};rows.push({cellule:k,donnees:by[k],maj_le:iso});});
+   saveBumpCache(cache);
+   if(isCloud())api("POST","osm_cache",rows,"resolution=merge-duplicates,return=minimal").catch(function(){});
+  },function(){});
+ }).then(function(){
+  var pts=[],ok=true;cells.forEach(function(k){if(cache[k])pts=pts.concat(cache[k].p);else ok=false;});
+  return{pts:pts,ok:ok};
+ });
+}
+function computeRoute(e,dest,dep,step){
+ var prof=e.p,W=POIDS[prof]||POIDS.standard,PR=PROFILS[prof];
+ var zs=state.zones.filter(function(z){return typeof z.lat==="number"&&typeof z.lon==="number"&&PR.zones.indexOf(z.type)>=0&&(!z.etab||z.etab===dest.id);});
+ var zonePolys=zs.map(function(z){return circlePoly(z.lat,z.lon,z.rayon||60);});
+ var P=projFn(dep.lat);
+ var base={locations:[{lat:dep.lat,lon:dep.lon},{lat:dest.lat,lon:dest.lon}],costing:"auto",alternates:2,directions_type:"none"};
+ var cands=[],bumps={pts:[],ok:false};
+ function add(j,tag){
+  [j.trip].concat((j.alternates||[]).map(function(a){return a.trip;})).forEach(function(t,ix){
+   if(!t||!t.legs||!t.legs[0])return;var sh=t.legs[0].shape,pts=decode6(sh);
+   if(cands.some(function(c){return Math.abs(c.km-t.summary.length)<0.02&&Math.abs(c.time-t.summary.time)<15;}))return;
+   cands.push({shape:sh,pts:pts,proj:pts.map(P),time:t.summary.time,km:t.summary.length,tag:tag,baseline:tag==="base"&&ix===0});
+  });
+ }
+ step("Calcul des itinéraires possibles…");
+ return valhalla("route",base).then(function(j){add(j,"base");
+  if(zonePolys.length)return valhalla("route",Object.assign({},base,{exclude_polygons:zonePolys})).then(function(j2){add(j2,"zones");},function(){});
+ }).then(function(){
+  step("Recherche des ralentisseurs sur le secteur…");
+  var so=90,we=180,no=-90,ea=-180;
+  cands.forEach(function(c){c.pts.forEach(function(q){if(q[0]<so)so=q[0];if(q[0]>no)no=q[0];if(q[1]<we)we=q[1];if(q[1]>ea)ea=q[1];});});
+  return getBumps(so-0.002,we-0.002,no+0.002,ea+0.002);
+ }).then(function(b){
+  bumps=b;
+  if(!b.pts.length||prof==="standard")return;
+  var near=b.pts.filter(function(q){
+   if(distM(q,[dep.lat,dep.lon])<150||distM(q,[dest.lat,dest.lon])<150)return false;
+   var pp=P(q);return cands.some(function(c){return nearLine(pp,c.proj,12);});
+  }).slice(0,80);
+  if(!near.length)return;
+  step("Recherche d'un itinéraire sans ralentisseurs…");
+  return valhalla("route",Object.assign({},base,{alternates:1,exclude_polygons:zonePolys.concat(near.map(function(q){return circlePoly(q[0],q[1],10);}))})).then(function(j3){add(j3,"bumps");},function(){});
+ }).then(function(){
+  step("Analyse du revêtement (pavés, routes dégradées)…");
+  var i=0;
+  function nextTrace(){
+   if(i>=cands.length)return Promise.resolve();var c=cands[i++];
+   return valhalla("trace_attributes",{encoded_polyline:c.shape,shape_match:"edge_walk",costing:"auto",filters:{attributes:["edge.surface","edge.length"],action:"include"}}).then(function(t){
+    c.rough=0;(t.edges||[]).forEach(function(ed){if(ROUGH[ed.surface])c.rough+=(ed.length||0)*1000;});
+   },function(){c.rough=null;}).then(nextTrace);
+  }
+  return nextTrace();
+ }).then(function(){
+  cands.forEach(function(c){
+   c.bumps=bumps.pts.filter(function(q){return nearLine(P(q),c.proj,12);}).length;
+   c.zoneHits=zs.filter(function(z){return c.pts.some(function(q){return distM(q,[z.lat,z.lon])<=(z.rayon||60)+10;});}).length;
+   c.score=c.time+W.b*c.bumps+W.r*(c.rough||0)+W.z*c.zoneHits;
+  });
+  var baseline=cands.filter(function(c){return c.baseline;})[0]||cands[0];
+  cands.sort(function(a,b){return a.score-b.score;});
+  return{cands:cands.slice(0,4),baseline:baseline,bumpsOk:bumps.ok,bumpPts:bumps.pts,zones:zs,dest:dest,dep:dep};
+ });
+}
+function routeWaypoints(ch,baseline){
+ if(!baseline||ch===baseline)return[];
+ var bl=baseline.proj,runs=[],cur=null,prev=null,acc=0;
+ for(var i=0;i<ch.pts.length;i++){
+  var q=ch.proj[i];if(prev)acc+=Math.sqrt((q[0]-prev[0])*(q[0]-prev[0])+(q[1]-prev[1])*(q[1]-prev[1]));prev=q;
+  if(!nearLine(q,bl,40)){if(!cur){cur={start:acc,end:acc,pts:[]};runs.push(cur);}cur.end=acc;cur.pts.push(ch.pts[i]);}else cur=null;
+ }
+ return runs.filter(function(r){return r.end-r.start>150;}).map(function(r){return r.pts[Math.floor(r.pts.length/2)];}).slice(0,8);
+}
+function curEtat(){var e=null;ETATS.forEach(function(x){if(x.id===ui.etat)e=x;});return e;}
+function routeKey(){return (ui.etat||"")+"|"+(ui.destId||ui.libre.trim())+"|"+(ui.dep&&ui.dep.mode==="addr"?ui.dep.q:"pos");}
+function getDepart(){
+ if(ui.dep&&ui.dep.mode==="addr"){
+  if(typeof ui.dep.lat==="number")return Promise.resolve({lat:ui.dep.lat,lon:ui.dep.lon,label:ui.dep.label});
+  return geocode(ui.dep.q).then(function(g){ui.dep.lat=g.lat;ui.dep.lon=g.lon;ui.dep.label=g.label;return g;});
+ }
+ return new Promise(function(res,rej){
+  if(!navigator.geolocation){rej(new Error("Localisation indisponible : indique une adresse de départ (« changer »)."));return;}
+  navigator.geolocation.getCurrentPosition(function(q){ui.lastPos=[q.coords.latitude,q.coords.longitude];res({lat:q.coords.latitude,lon:q.coords.longitude,label:"ta position",pos:true});},
+   function(err){rej(new Error(err&&err.code===1?"Localisation refusée : autorise-la dans Chrome, ou indique une adresse de départ (« changer »).":"Position introuvable : active la localisation du téléphone, ou indique une adresse de départ (« changer »)."));},
+   {enableHighAccuracy:true,timeout:15000,maximumAge:60000});
+ });
+}
+function resolveDest(d,addr){
+ if(d&&typeof d.lat==="number")return Promise.resolve({id:d.id,lat:d.lat,lon:d.lon,nom:d.nom});
+ return geocode(addr).then(function(g){return{id:d?d.id:"",lat:g.lat,lon:g.lon,nom:d?d.nom:g.label};});
+}
+function startRoute(){
+ var e=curEtat(),d=ui.destId?etab(ui.destId):null,addr=d?d.adresse:ui.libre.trim();if(!e||!addr)return;
+ var key=routeKey(),R={key:key,status:"loading",step:"Localisation du départ…"};ui.route=R;paintFeuille();
+ function step(t){R.step=t;var el=document.getElementById("rtStep");if(el)el.textContent=t;}
+ getDepart().then(function(dep){step("Recherche de la destination…");return resolveDest(d,addr).then(function(dest){return computeRoute(e,dest,dep,step);});})
+  .then(function(res){if(ui.route!==R)return;if(!res.cands.length)throw new Error("Aucun itinéraire trouvé.");res.status="done";res.sel=0;res.key=key;ui.route=res;paintFeuille();},
+   function(err){if(ui.route!==R)return;R.status="error";R.msg=netErr(err)?"Pas de connexion internet, ou serveur de calcul indisponible. Réessaie, ou lance directement Waze / Google Maps.":err.message;paintFeuille();});
+}
+function vComfort(R){
+ var dep=ui.dep&&ui.dep.mode==="addr"?ui.dep:null,h='<div class="blk"><h3>Trajet confort sur carte</h3>';
+ h+='<div class="addr" style="margin-bottom:8px">Départ : '+(dep?esc(dep.label||dep.q):"📍 ta position actuelle")+' · <a href="#" data-a="depEdit" style="color:var(--acc)">changer</a>'+(dep?' · <a href="#" data-a="depPos" style="color:var(--acc)">ma position</a>':'')+'</div>';
+ if(ui.depEdit)h+='<form data-f="depart" class="row" style="flex-wrap:nowrap;margin-bottom:10px"><input name="q" placeholder="Adresse de départ (ex. domicile du patient)" value="'+esc(dep?dep.q:"")+'" autocomplete="off"><button class="btn" type="submit">OK</button></form>';
+ if(!R)h+='<button class="btn pri wide" data-a="calcRoute">🗺️ Calculer le trajet le plus confortable</button><div class="hint">Compare les itinéraires possibles selon les ralentisseurs, les pavés et routes dégradées (OpenStreetMap) et tes zones placées sur la carte. Compte 5 à 30 secondes.</div>';
+ else if(R.status==="loading")h+='<div class="spin" style="margin:14px auto 8px;width:30px;height:30px"></div><p class="center" id="rtStep">'+esc(R.step||"Calcul…")+'</p>';
+ else if(R.status==="error")h+='<div class="warnbox">'+esc(R.msg)+'</div><button class="btn wide" style="margin-top:10px" data-a="calcRoute">Réessayer</button>';
+ else{
+  h+='<div id="rmap" class="map"></div><div class="hint" style="margin-top:6px">En bleu : le trajet choisi. En gris : les autres options (touche-les pour comparer). Points orange : ralentisseurs. Cercles rouges : tes zones.</div>';
+  R.cands.forEach(function(c,i){
+   var parts=[Math.round(c.time/60)+" min",c.km.toFixed(1).replace(".",",")+" km",(R.bumpsOk||c.bumps?c.bumps+" ralentisseur"+(c.bumps>1?"s":""):"ralentisseurs : ?"),(c.rough==null?"revêtement : ?":(c.rough<20?"pas de pavés ni route dégradée":Math.round(c.rough)+" m pavés / dégradé"))];
+   if(R.zones.length)parts.push(c.zoneHits?"⚠ traverse "+c.zoneHits+" de tes zones":"évite tes zones");
+   var dt=Math.round((c.time-R.baseline.time)/60),isB=c===R.baseline;
+   var t=i===0?(isB?"⭐ Le plus confortable et le plus rapide":"⭐ Le plus confortable"):(isB?"Le plus rapide":"Autre option");
+   h+='<button class="opt'+(i===R.sel?" on":"")+'" data-a="pickRoute" data-i="'+i+'"><b>'+t+'</b>'+(dt>0?' <span class="tag">+'+dt+' min</span>':'')+'<small>'+parts.join(" · ")+'</small></button>';
+  });
+  if(!R.bumpsOk)h+='<div class="hint">Ralentisseurs indisponibles pour une partie du secteur (serveurs OpenStreetMap saturés) : recalcule plus tard pour un comptage complet.</div>';
+  h+='<button class="btn small" style="margin-top:10px" data-a="calcRoute">↻ Recalculer</button>';
+ }
+ return h+'</div>';
+}
+function clearRouteMap(){if(ui.mapObj){try{ui.mapObj.remove();}catch(e){}ui.mapObj=null;}}
+function clearMaps(){clearRouteMap();if(ui.zmap){try{ui.zmap.remove();}catch(e){}ui.zmap=null;}ui.zdraw=null;}
+function initRouteMap(){
+ var el=document.getElementById("rmap"),R=ui.route;if(!el||!R||R.status!=="done")return;
+ loadLeaflet().then(function(L){
+  if(!document.body.contains(el)||ui.route!==R)return;
+  clearRouteMap();
+  var map=L.map(el,{zoomControl:true});ui.mapObj=map;tiles(L).addTo(map);
+  R.cands.forEach(function(c,i){if(i===R.sel)return;L.polyline(c.pts,{color:"#8b93a3",weight:5,opacity:.75}).addTo(map).on("click",function(){ui.route.sel=i;paintFeuille();});});
+  var sl=R.cands[R.sel];L.polyline(sl.pts,{color:"#2f6fe0",weight:7,opacity:.95}).addTo(map);
+  var bb=L.latLngBounds(sl.pts),bbp=bb.pad(0.15);
+  R.bumpPts.forEach(function(q){if(bbp.contains(q))L.circleMarker(q,{radius:4,color:"#8a5a00",weight:1,fillColor:"#f5a524",fillOpacity:1}).addTo(map);});
+  R.zones.forEach(function(z){L.circle([z.lat,z.lon],{radius:z.rayon||60,color:"#d93a3f",weight:2,fillOpacity:.2}).addTo(map);});
+  L.circleMarker([R.dep.lat,R.dep.lon],{radius:8,color:"#fff",weight:2,fillColor:"#2f9e6a",fillOpacity:1}).addTo(map);
+  L.circleMarker([R.dest.lat,R.dest.lon],{radius:8,color:"#fff",weight:2,fillColor:"#d93a3f",fillOpacity:1}).addTo(map);
+  map.fitBounds(bb,{padding:[20,20]});
+ },function(e){el.innerHTML='<div class="center" style="padding:30px 10px">'+esc(e.message)+'</div>';});
+}
+function defaultCenter(){var c=null;state.etabs.some(function(x){if(typeof x.lat==="number"){c=[x.lat,x.lon];return true;}return false;});return c||PAU;}
+function initZoneMap(){
+ var el=document.getElementById("zmap");if(!el)return;
+ var f=el.closest("form");if(!f)return;
+ loadLeaflet().then(function(L){
+  if(!document.body.contains(el))return;
+  if(ui.zmap){try{ui.zmap.remove();}catch(e){}ui.zmap=null;}
+  var la=parseFloat(f.elements.lat.value),lo=parseFloat(f.elements.lon.value),has=!isNaN(la)&&!isNaN(lo);
+  var c=has?[la,lo]:(ui.lastPos||defaultCenter());
+  var map=L.map(el).setView(c,has?17:(ui.lastPos?16:13));ui.zmap=map;tiles(L).addTo(map);
+  var circ=null;
+  function draw(){
+   if(circ){map.removeLayer(circ);circ=null;}
+   var a=parseFloat(f.elements.lat.value),b=parseFloat(f.elements.lon.value);if(isNaN(a)||isNaN(b))return;
+   circ=L.circle([a,b],{radius:+f.elements.rayon.value||60,color:"#d93a3f",weight:2,fillOpacity:.25}).addTo(map);
+  }
+  draw();ui.zdraw=draw;
+  map.on("click",function(ev){f.elements.lat.value=ev.latlng.lat.toFixed(6);f.elements.lon.value=ev.latlng.lng.toFixed(6);draw();var zp=document.getElementById("zpos");if(zp)zp.textContent="✓ Zone placée : elle sera contournée dans le calcul du trajet confort.";});
+ },function(e){el.innerHTML='<div class="center" style="padding:30px 10px">'+esc(e.message)+'</div>';});
+}
+document.addEventListener("change",function(ev){if(ev.target&&ev.target.name==="rayon"&&ui.zdraw)ui.zdraw();});
+
 /* ===== Comptes et partage d'équipe (Supabase) ===== */
 var SB_URL="https://elesendfemgejwvjcsww.supabase.co",SB_KEY="sb_publishable_exSas_Tpp0slPPYO--cLBg_2DGp6g2q";
 var APP_URL="https://rahwo2.github.io/trajet-ambulance/";
@@ -421,7 +662,7 @@ function doLogout(){
  save();ui.auth={step:"choice"};location.hash="#trajet";render();
 }
 function etabRow(x){return{id:x.id,osm:x.osm||null,nom:x.nom,type:x.type||"Autre",adresse:x.adresse||"",lat:typeof x.lat==="number"?x.lat:null,lon:typeof x.lon==="number"?x.lon:null,infos:x.infos||"",via:x.via||"",ordre:typeof x.ordre==="number"?x.ordre:0};}
-function zoneRow(z){return{id:z.id,nom:z.nom,type:z.type,etab:z.etab||null,note:z.note||""};}
+function zoneRow(z){return{id:z.id,nom:z.nom,type:z.type,etab:z.etab||null,note:z.note||"",lat:typeof z.lat==="number"?z.lat:null,lon:typeof z.lon==="number"?z.lon:null,rayon:typeof z.lat==="number"?(z.rayon||60):null};}
 function nextOrdre(){var m=-1;state.etabs.forEach(function(x){if(typeof x.ordre==="number"&&x.ordre>m)m=x.ordre;});return Math.max(m+1,state.etabs.length);}
 function enqueue(op){if(!isCloud())return;state.pending=state.pending||[];state.pending.push(op);save();flush().catch(function(){});}
 var flushing=null;
@@ -463,7 +704,7 @@ function sync(first){
   members.forEach(function(m){if(m.email===sess.email)cloud.me=m;});
   if(!cloud.me){cloud.status="notmember";state.etabs=[];state.zones=[];save();softRender();return;}
   state.etabs=(res[0]||[]).map(function(r){return{id:r.id,osm:r.osm||undefined,nom:r.nom,type:r.type,adresse:r.adresse,lat:r.lat==null?undefined:r.lat,lon:r.lon==null?undefined:r.lon,infos:r.infos||"",via:r.via||"",ordre:r.ordre,majPar:r.maj_par||""};});
-  state.zones=(res[1]||[]).map(function(r){return{id:r.id,nom:r.nom,type:r.type,etab:r.etab||"",note:r.note||"",majPar:r.maj_par||""};});
+  state.zones=(res[1]||[]).map(function(r){var z={id:r.id,nom:r.nom,type:r.type,etab:r.etab||"",note:r.note||"",majPar:r.maj_par||""};if(r.lat!=null&&r.lon!=null){z.lat=r.lat;z.lon=r.lon;z.rayon=r.rayon||60;}return z;});
   state.team={members:members};
   if(ui.destId&&!etab(ui.destId))ui.destId=null;
   save();cloud.status="ok";cloud.last=Date.now();
@@ -475,16 +716,17 @@ function sync(first){
   softRender();
  });
 }
-function inviteMsg(email){return "Salut ! Je t'ai ajouté dans l'appli Trajet Ambulance de l'équipe. Ouvre ce lien sur ton téléphone avec Chrome : "+APP_URL+" puis choisis « Première connexion » avec l'adresse "+email+" et crée ton mot de passe. Ensuite, menu ⋮ ▸ « Installer l'application ».";}
+function inviteMsg(email){return "Salut ! Je t'ai ajouté dans l'appli Ambumaps de l'équipe. Ouvre ce lien sur ton téléphone avec Chrome : "+APP_URL+" puis choisis « Première connexion » avec l'adresse "+email+" et crée ton mot de passe. Ensuite, menu ⋮ ▸ « Installer l'application ».";}
 
 function headerHtml(nav){
- return '<header><div class="top"'+(nav?'':' style="padding-bottom:10px"')+'><h1>🚑 Trajet Ambulance</h1><div class="hr"><div id="status" class="status"></div>'+(isCloud()&&!ui.auth?'<button class="sync" data-a="sync" aria-label="Synchroniser">↻</button>':'')+'</div></div>'+(nav||'')+'</header>';
+ return '<header><div class="top"'+(nav?'':' style="padding-bottom:10px"')+'><h1>🚑 Ambumaps</h1><div class="hr"><div id="status" class="status"></div>'+(isCloud()&&!ui.auth?'<button class="sync" data-a="sync" aria-label="Synchroniser">↻</button>':'')+'</div></div>'+(nav||'')+'</header>';
 }
 function tabLink(k,l){return '<a href="#'+k+'" class="'+(ui.tab===k?"on":"")+'">'+l+'</a>';}
 function render(){
  var h=location.hash.replace("#","");
  ui.tab=(h==="etablissements"||h==="zones"||(h==="equipe"&&isCloud()))?h:"trajet";
  var app=document.getElementById("app");
+ clearMaps();
  if((!state.mode||(state.mode==="cloud"&&!sess))&&!ui.auth)ui.auth={step:state.mode==="cloud"?"login":"choice"};
  if(ui.auth){app.innerHTML=headerHtml("")+'<main>'+vAuth()+'</main>';paintStatus();return;}
  if(!ui.search&&state.mode==="local"&&!state.setupDone)ui.search={step:"start",radius:20};
@@ -496,6 +738,7 @@ function render(){
  html+="</main>";
  app.innerHTML=html;paintStatus();
  if(ui.tab==="trajet")paintFeuille();
+ if(ui.tab==="zones"&&ui.form&&ui.form.kind==="zone")initZoneMap();
 }
 function vAuth(){
  var a=ui.auth,h="";
@@ -563,7 +806,9 @@ function paintFeuille(){
  if(!e||!addr){el.innerHTML='<div class="empty">Choisis l\'état du patient et la destination pour obtenir le trajet conseillé.</div>';return;}
  var p=PROFILS[e.p];
  var via=(d&&d.via&&e.p!=="rapide")?d.via:"";
- var L=links(addr,via,d&&d.lat,d&&d.lon);
+ var R=(ui.route&&ui.route.key===routeKey())?ui.route:null,RD=(R&&R.status==="done")?R:null,sel=RD?RD.cands[RD.sel]:null;
+ var wps=sel?routeWaypoints(sel,RD.baseline):[];
+ var L=links(addr,RD?"":via,d&&d.lat,d&&d.lon,{wps:wps,origin:(RD&&!RD.dep.pos)?[RD.dep.lat,RD.dep.lon]:null,dest:RD?[RD.dest.lat,RD.dest.lon]:null});
  var zs=state.zones.filter(function(z){return p.zones.indexOf(z.type)>=0&&(!z.etab||(d&&z.etab===d.id));});
  var h='<div class="sheet"><div class="band" style="--c:'+p.c+'"><b>Profil : '+esc(p.nom)+'</b><span>'+esc(e.label)+' — '+esc(p.resume)+'</span></div>';
  h+='<div class="blk"><h3>Destination</h3><div class="dest">'+esc(d?d.nom:"Adresse ponctuelle")+'</div><div class="addr">'+esc(addr)+'</div>';
@@ -576,14 +821,18 @@ function paintFeuille(){
  h+='</div><div class="blk"><h3>Consignes de conduite</h3><ul>';
  p.consignes.forEach(function(c){h+="<li>"+esc(c)+"</li>";});
  h+='</ul></div></div>';
- var bW='<a class="btn '+(p.reco==="waze"?"pri":"")+'" href="'+L.waze+'"'+(L.app?'':' target="_blank" rel="noopener"')+'>Lancer Waze'+(p.reco==="waze"?" <small>Recommandé</small>":"")+'</a>';
- var bG='<a class="btn '+(p.reco==="gmaps"?"pri":"")+'" href="'+L.gmaps+'"'+(L.app?'':' target="_blank" rel="noopener"')+'>Lancer Google Maps'+(p.reco==="gmaps"?" <small>Recommandé</small>":"")+'</a>';
- h+='<div class="go">'+(p.reco==="waze"?bW+bG:bG+bW)+'</div><div class="hint">'+esc(p.pourquoi)+(via&&p.reco!=="gmaps"?" Le passage conseillé n'est transmis qu'à Google Maps.":"")+'</div>';
+ if(e.p!=="rapide")h+=vComfort(R);
+ var reco=RD?"gmaps":p.reco,gl=RD?"Lancer Google Maps · trajet confort":"Lancer Google Maps",wl=RD?"Waze (le plus rapide, sans le confort)":"Lancer Waze";
+ var bW='<a class="btn '+(reco==="waze"?"pri":"")+'" href="'+L.waze+'"'+(L.app?'':' target="_blank" rel="noopener"')+'>'+wl+(reco==="waze"?" <small>Recommandé</small>":"")+'</a>';
+ var bG='<a class="btn '+(reco==="gmaps"?"pri":"")+'" href="'+L.gmaps+'"'+(L.app?'':' target="_blank" rel="noopener"')+'>'+gl+(reco==="gmaps"?" <small>Recommandé</small>":"")+'</a>';
+ var why=RD?(wps.length?"Google Maps suivra le trajet choisi grâce à "+wps.length+" point"+(wps.length>1?"s":"")+" de passage. Il peut "+(wps.length>1?"les annoncer comme des étapes":"l'annoncer comme une étape")+" : continue simplement.":"Ce trajet est aussi celui que Google Maps choisit naturellement : aucun point de passage nécessaire."):(p.pourquoi+(via&&p.reco!=="gmaps"?" Le passage conseillé n'est transmis qu'à Google Maps.":""));
+ h+='<div class="go">'+(reco==="waze"?bW+bG:bG+bW)+'</div><div class="hint">'+esc(why)+'</div>';
  if(L.app)h+='<div class="hint" style="margin-top:8px">L\'appli ne s\'ouvre pas ? Version web : <a href="'+L.wazeWeb+'" target="_blank" rel="noopener" style="color:var(--acc)">Waze</a> · <a href="'+L.gmapsWeb+'" target="_blank" rel="noopener" style="color:var(--acc)">Google Maps</a></div>';
  h+='<button class="btn reset" data-a="copy" data-addr="'+esc(addr)+'">📋 Copier l\'adresse</button><div class="hint" id="copyMsg"></div>';
  h+='<button class="btn reset" data-a="reset">Nouveau transport</button>';
- h+='<div class="foot">Prépare le trajet avant de démarrer : ne manipule pas le téléphone en roulant. Le trafic, les accidents et les fermetures de routes sont gérés par Waze ou Google Maps. L\'appli ne remplace ni la régulation ni le code de la route.</div>';
- el.innerHTML=h;
+ h+='<div class="foot">Prépare le trajet avant de démarrer : ne manipule pas le téléphone en roulant. Le trafic, les accidents et les fermetures de routes sont gérés par Waze ou Google Maps. Itinéraires calculés avec Valhalla et les données © contributeurs OpenStreetMap. L\'appli ne remplace ni la régulation ni le code de la route.</div>';
+ clearRouteMap();el.innerHTML=h;
+ if(RD)initRouteMap();
 }
 
 function vEtabs(){
@@ -626,18 +875,24 @@ function vZones(){
  else h+='<button class="btn pri" style="width:100%;margin-bottom:14px" data-a="newZone">＋ Ajouter une zone à éviter</button>';
  if(!state.zones.length&&!ui.form)h+='<div class="empty">Note ici ce que tu connais du terrain et qu\'aucun GPS ne sait : rue pavée, série de dos-d\'âne, route défoncée, virages serrés… La feuille de route te les rappellera selon l\'état du patient.</div>';
  state.zones.forEach(function(z){var d=z.etab?etab(z.etab):null;
-  h+='<div class="item"><div class="t">'+esc(z.nom)+'</div><div class="m"><span class="tag">'+esc(ZTYPES[z.type]||z.type)+'</span> · '+(d?"vers "+esc(d.nom):"toutes destinations")+'</div>'+(z.note?'<div class="x">'+esc(z.note)+'</div>':"")+(isCloud()&&z.majPar?'<div class="m" style="font-size:12.5px">Ajouté par '+esc(nameOf(z.majPar))+'</div>':"")+
+  h+='<div class="item"><div class="t">'+esc(z.nom)+'</div><div class="m"><span class="tag">'+esc(ZTYPES[z.type]||z.type)+'</span> · '+(d?"vers "+esc(d.nom):"toutes destinations")+'</div>'+(typeof z.lat==="number"?'<div class="m">📍 Placée sur la carte · rayon '+(z.rayon||60)+' m</div>':'')+(z.note?'<div class="x">'+esc(z.note)+'</div>':"")+(isCloud()&&z.majPar?'<div class="m" style="font-size:12.5px">Ajouté par '+esc(nameOf(z.majPar))+'</div>':"")+
   '<div class="row"><button class="btn small" data-a="editZone" data-id="'+z.id+'">Modifier</button><button class="btn small danger" data-a="askDel" data-k="zone" data-id="'+z.id+'">Supprimer</button></div>'+
   (ui.confirm===z.id?'<div class="confirm">Supprimer « '+esc(z.nom)+' » ?<div class="row"><button class="btn small danger" data-a="delZone" data-id="'+z.id+'">Oui, supprimer</button><button class="btn small" data-a="noDel">Annuler</button></div></div>':"")+'</div>';});
  return h;
 }
 function fZone(z){
  z=z||{nom:"",type:"ralentisseurs",etab:"",note:""};
+ var placed=typeof z.lat==="number"&&typeof z.lon==="number",zr=z.rayon||60;
  var o="";Object.keys(ZTYPES).forEach(function(k){o+='<option value="'+k+'"'+(k===z.type?" selected":"")+">"+esc(ZTYPES[k])+"</option>";});
  var e='<option value="">Toutes destinations</option>';state.etabs.forEach(function(x){e+='<option value="'+x.id+'"'+(x.id===z.etab?" selected":"")+">Vers "+esc(x.nom)+"</option>";});
  return '<form class="form" data-f="zone"><label>Lieu</label><input name="nom" required value="'+esc(z.nom)+'" placeholder="Ex. Rue de la République, centre-ville">'+
  '<label>Problème</label><select name="type">'+o+'</select>'+
  '<label>Concerne</label><select name="etab">'+e+'</select>'+
+ '<label>Position sur la carte</label><div class="hint" style="margin-top:0">Touche la carte à l\'endroit à éviter : la zone sera contournée dans le calcul du trajet confort.</div>'+
+ '<div id="zmap" class="map small"></div>'+
+ '<div class="row" style="align-items:center;margin-top:8px"><select name="rayon" style="width:auto;min-width:140px">'+[30,60,100,200].map(function(r){return '<option value="'+r+'"'+(zr===r?" selected":"")+'>Rayon '+r+' m</option>';}).join("")+'</select><button type="button" class="btn small" data-a="zLocate">📍 Ma position</button><button type="button" class="btn small" data-a="zClear">Effacer</button></div>'+
+ '<div class="hint" id="zpos">'+(placed?"✓ Zone placée sur la carte.":"Pas encore placée : sans position, la zone sert seulement de rappel.")+'</div>'+
+ '<input type="hidden" name="lat" value="'+(placed?z.lat:"")+'"><input type="hidden" name="lon" value="'+(placed?z.lon:"")+'">'+
  '<label>Comment l\'éviter (facultatif)</label><textarea name="note" placeholder="Ex. passer par le boulevard extérieur, +2 min">'+esc(z.note)+'</textarea>'+
  '<div class="row" style="margin-top:14px"><button class="btn pri" type="submit">Enregistrer</button><button class="btn" type="button" data-a="cancel">Annuler</button></div></form>';
 }
@@ -666,6 +921,12 @@ document.addEventListener("click",function(ev){
  else if(a==="villePick"){var v=ui.search.villes[+b.getAttribute("data-i")];searchAround(v.lat,v.lon,v.label);}
  else if(a==="addSel"){addSelected();}
  else if(a==="delAll"){state.etabs=[];state.zones.forEach(function(z){z.etab="";});ui.destId=null;ui.confirm=null;save();enqueue({t:"delAllE"});render();}
+ else if(a==="calcRoute"){startRoute();}
+ else if(a==="pickRoute"){if(ui.route&&ui.route.cands){ui.route.sel=+b.getAttribute("data-i");paintFeuille();}}
+ else if(a==="depEdit"){ev.preventDefault();ui.depEdit=!ui.depEdit;paintFeuille();var qi=document.querySelector('form[data-f="depart"] input');if(qi)qi.focus();}
+ else if(a==="depPos"){ev.preventDefault();ui.dep=null;ui.depEdit=false;paintFeuille();}
+ else if(a==="zClear"){var zf=b.closest("form");if(zf){zf.elements.lat.value="";zf.elements.lon.value="";}if(ui.zdraw)ui.zdraw();var zp=document.getElementById("zpos");if(zp)zp.textContent="Position effacée.";}
+ else if(a==="zLocate"){var zp2=document.getElementById("zpos");if(!navigator.geolocation){if(zp2)zp2.textContent="Localisation indisponible.";}else navigator.geolocation.getCurrentPosition(function(q){ui.lastPos=[q.coords.latitude,q.coords.longitude];if(ui.zmap)ui.zmap.setView(ui.lastPos,17);if(zp2)zp2.textContent="Carte centrée sur ta position : touche la carte pour placer la zone.";},function(){if(zp2)zp2.textContent="Position indisponible : autorise la localisation.";},{enableHighAccuracy:true,timeout:15000});}
  else if(a==="authStep"){var em0=ui.auth&&ui.auth.email;ui.auth={step:b.getAttribute("data-v"),email:em0};render();window.scrollTo(0,0);}
  else if(a==="authLocal"){state.mode="local";save();ui.auth=null;render();window.scrollTo(0,0);}
  else if(a==="logout"){doLogout();}
@@ -709,6 +970,7 @@ document.addEventListener("submit",function(ev){
   if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(ie)){ui.inviteErr="Adresse e-mail invalide.";render();return;}
   ui.inviteErr="";api("POST","membres",{email:ie,nom:inom||null,role:irole},"return=minimal").then(function(){ui.invite=false;ui.invited=ie;return sync();},function(e){ui.inviteErr=netErr(e)?"Pas de connexion internet.":(/23505|duplicate|409/i.test(e.message)?"Cette adresse est déjà dans l'équipe.":e.message);render();});
   return;}
+ if(k==="depart"){var dq=(f.elements.q.value||"").trim();ui.dep=dq?{mode:"addr",q:dq}:null;ui.depEdit=false;paintFeuille();return;}
  if(k==="ville"){var q=(f.elements.ville.value||"").trim();if(q&&ui.search){ui.search.q=q;searchCity(q);}return;}
  var v={};Array.prototype.forEach.call(f.elements,function(el){if(el.name)v[el.name]=el.value.trim();});
  if(!v.nom)return;
@@ -718,7 +980,8 @@ document.addEventListener("submit",function(ev){
   else{chE={id:uid(),nom:v.nom,type:v.type,adresse:v.adresse,infos:v.infos,via:v.via,ordre:nextOrdre()};state.etabs.push(chE);}}
  else{
   if(ui.form.id){state.zones.forEach(function(z){if(z.id===ui.form.id){z.nom=v.nom;z.type=v.type;z.etab=v.etab;z.note=v.note;chZ=z;}});}
-  else{chZ={id:uid(),nom:v.nom,type:v.type,etab:v.etab,note:v.note};state.zones.push(chZ);}}
+  else{chZ={id:uid(),nom:v.nom,type:v.type,etab:v.etab,note:v.note};state.zones.push(chZ);}
+  if(chZ){var zl=parseFloat(v.lat),zo=parseFloat(v.lon);if(isNaN(zl)||isNaN(zo)){delete chZ.lat;delete chZ.lon;delete chZ.rayon;}else{chZ.lat=zl;chZ.lon=zo;chZ.rayon=parseInt(v.rayon,10)||60;}}}
  ui.form=null;save();
  if(chE)enqueue({t:"putE",rows:[etabRow(chE)]});
  if(chZ)enqueue({t:"putZ",rows:[zoneRow(chZ)]});
