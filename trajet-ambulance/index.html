@@ -250,11 +250,14 @@ function searchCity(q){
 }
 function reverseAddr(it){
  if(it.addr)return Promise.resolve();
- var ac=window.AbortController?new AbortController():null,to=setTimeout(function(){if(ac)ac.abort();},8000);
- return fetch(GEO+"reverse?lon="+it.lon+"&lat="+it.lat+"&limit=1",{signal:ac?ac.signal:undefined}).then(function(r){return r.json();}).then(function(j){
-  clearTimeout(to);var p=j.features&&j.features[0]&&j.features[0].properties;
-  if(p)it.addr=(p.name?p.name+", ":"")+(p.postcode?p.postcode+" ":"")+(p.city||"");
- }).catch(function(){clearTimeout(to);});
+ function one(extra){
+  var ac=window.AbortController?new AbortController():null,to=setTimeout(function(){if(ac)ac.abort();},8000);
+  return fetch(GEO+"reverse?lon="+it.lon+"&lat="+it.lat+"&limit=1"+extra,{signal:ac?ac.signal:undefined}).then(function(r){return r.json();}).then(function(j){
+   clearTimeout(to);var p=j.features&&j.features[0]&&j.features[0].properties;
+   if(p)it.addr=(p.name?p.name+", ":"")+(p.postcode?p.postcode+" ":"")+(p.city||"");
+  }).catch(function(){clearTimeout(to);});
+ }
+ return one("").then(function(){if(!it.addr)return one("&index=address&searchgeom="+encodeURIComponent(JSON.stringify({type:"Circle",coordinates:[it.lon,it.lat],radius:600})));});
 }
 function addSelected(){
  var s=ui.search,sel=s.results.filter(function(r){return r.sel&&!r.deja;});
