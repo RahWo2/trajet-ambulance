@@ -101,6 +101,15 @@ details summary{cursor:pointer;color:var(--acc)}
 .fav.on{color:#f5c518}
 .btn.favb.on{color:#f5c518;border-color:#6b5a14}
 .sub{font-size:13px;color:var(--mut);margin:2px 0 8px}
+.modes{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.mode{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;min-height:104px;padding:12px 8px;background:var(--card);border:2px solid var(--line);border-top:7px solid var(--c);border-radius:14px;color:var(--txt);font:inherit;text-align:center;cursor:pointer}
+.mode .ic{font-size:30px;line-height:1.1}
+.mode b{font-size:17px;line-height:1.2}
+.mode small{color:var(--mut);font-size:13px;line-height:1.3}
+.mode.on{border-color:var(--c);background:var(--card2);box-shadow:0 0 0 2px var(--c) inset}
+.modes.picked .mode{min-height:62px;flex-direction:row;gap:8px}
+.modes.picked .mode .ic{font-size:22px}
+.modes.picked .mode small{display:none}
 </style></head><body><div id="app"></div><script id="state" type="application/json">{"rev":0,"etabs":[],"zones":[],"setupDone":false}</script><script id="main">
 (function(){
 "use strict";
@@ -141,7 +150,7 @@ try{var l=JSON.parse(localStorage.getItem(KEY)||"null");if(l&&l.etabs&&(l.rev||0
 if(!loaded){try{var o=JSON.parse(localStorage.getItem(OLDKEY)||"null");if(o&&Array.isArray(o.zones)&&o.zones.length){state.zones=o.zones.map(function(z){z.etab="";return z;});}}catch(e){}}
 
 var ui={tab:"trajet",etat:null,destId:null,libre:"",form:null,confirm:null,search:null,pec:{q:"",etab:""},leg:1};
-try{var u=JSON.parse(sessionStorage.getItem(KEY+"-ui")||"null");if(u){ui.etat=u.etat;ui.destId=u.destId;ui.libre=u.libre||"";ui.libreGeo=u.libreGeo||null;ui.pec=u.pec||{q:"",etab:""};ui.leg=u.leg===2?2:1;}}catch(e){}
+try{var u=JSON.parse(sessionStorage.getItem(KEY+"-ui")||"null");if(u){ui.etat=u.etat;ui.destId=u.destId;ui.libre=u.libre||"";ui.libreGeo=u.libreGeo||null;ui.pec=u.pec||{q:"",etab:""};ui.leg=u.leg===2?2:1;ui.mode=u.mode||(u.etat==="programme"?"programme":(u.etat?"urgence":null));}}catch(e){}
 var FAVKEY="ambumaps-favoris",favs={};
 try{favs=JSON.parse(localStorage.getItem(FAVKEY)||"{}")||{};}catch(e){favs={};}
 function isFav(id){return !!favs[id];}
@@ -155,7 +164,7 @@ var saveStatus="";
 function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});}
 function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,6);}
 function etab(id){for(var i=0;i<state.etabs.length;i++)if(state.etabs[i].id===id)return state.etabs[i];return null;}
-function keepUi(){try{sessionStorage.setItem(KEY+"-ui",JSON.stringify({etat:ui.etat,destId:ui.destId,libre:ui.libre,libreGeo:ui.libreGeo||null,pec:ui.pec,leg:ui.leg}));}catch(e){}}
+function keepUi(){try{sessionStorage.setItem(KEY+"-ui",JSON.stringify({mode:ui.mode||null,etat:ui.etat,destId:ui.destId,libre:ui.libre,libreGeo:ui.libreGeo||null,pec:ui.pec,leg:ui.leg}));}catch(e){}}
 function libreLL(addr){var g=ui.libreGeo;return(g&&g.q===addr&&typeof g.lat==="number")?g:null;}
 
 function save(){
@@ -972,24 +981,28 @@ function vEquipe(){
 function teamAction(p){ui.teamErr="";p.then(function(){return sync();},function(e){ui.teamErr=netErr(e)?"Pas de connexion internet : réessaie plus tard.":(/23505|duplicate/i.test(e.message)?"Cette adresse est déjà dans l'équipe.":e.message);render();});}
 
 function vTrajet(){
- var h='<h2>1 · État du patient</h2><div class="tiles">';
- ETATS.forEach(function(e){var p=PROFILS[e.p];
-  h+='<button class="tile'+(ui.etat===e.id?" on":"")+'" style="--c:'+p.c+'" data-a="etat" data-id="'+e.id+'"><span class="ic">'+e.ic+'</span><span><b>'+esc(e.label)+'</b><small>'+esc(e.sous)+'</small></span></button>';});
- var prog=ui.etat==="programme";
- h+='</div>';
+ var md=ui.mode,prog=md==="programme";
+ var h='<h2>Type de transport</h2><div class="modes'+(md?" picked":"")+'">'+
+  '<button class="mode'+(md==="urgence"?" on":"")+'" style="--c:#d93a3f" data-a="mode" data-id="urgence"><span class="ic">🚨</span><b>Urgence</b><small>Appel du 15, garde, détresse</small></button>'+
+  '<button class="mode'+(prog?" on":"")+'" style="--c:#2f9e6a" data-a="mode" data-id="programme"><span class="ic">📋</span><b>Transport programmé</b><small>Dialyse, consultation, retour domicile</small></button></div>';
+ if(!md)return h+'<div class="hint" style="margin-top:10px">Choisis le type de transport pour commencer.</div>';
+ if(!prog){h+='<h2>1 · État du patient</h2><div class="tiles">';
+  ETATS.forEach(function(e){if(e.id==="programme")return;var p=PROFILS[e.p];
+   h+='<button class="tile'+(ui.etat===e.id?" on":"")+'" style="--c:'+p.c+'" data-a="etat" data-id="'+e.id+'"><span class="ic">'+e.ic+'</span><span><b>'+esc(e.label)+'</b><small>'+esc(e.sous)+'</small></span></button>';});
+  h+='</div>';}
  if(prog){
   var opt=function(x){return '<option value="'+x.id+'"'+(ui.pec.etab===x.id?" selected":"")+'>'+esc(x.nom)+'</option>';};
   var favE=state.etabs.filter(function(x){return isFav(x.id);}),othE=state.etabs.filter(function(x){return !isFav(x.id);});
   var eo='<option value="">… ou choisir un lieu enregistré (sortie d\'hôpital, EHPAD…)</option>'+(favE.length?'<optgroup label="⭐ Favoris">'+favE.map(opt).join("")+'</optgroup><optgroup label="Autres lieux enregistrés">'+othE.map(opt).join("")+'</optgroup>':state.etabs.map(opt).join(""));
-  h+='<h2>2 · Prise en charge du patient</h2><input id="pec" data-ac="pec" type="text" placeholder="Adresse du patient (ex. 12 rue Carnot, Pau)" value="'+esc(ui.pec.etab?"":ui.pec.q)+'" autocomplete="off">'+
+  h+='<h2>1 · Prise en charge du patient</h2><input id="pec" data-ac="pec" type="text" placeholder="Adresse du patient (ex. 12 rue Carnot, Pau)" value="'+esc(ui.pec.etab?"":ui.pec.q)+'" autocomplete="off">'+
    '<select id="pecEtab" style="margin-top:8px">'+eo+'</select>'+
    '<div class="hint">Cette adresse reste sur ce téléphone le temps du transport : elle n\'est jamais enregistrée dans la base de l\'équipe.</div>';
  }
- h+='<h2>'+(prog?"3 · Lieu du rendez-vous":"2 · Destination")+'</h2>';
+ h+='<h2>2 · '+(prog?"Lieu du rendez-vous":"Destination")+'</h2>';
  if(!state.etabs.length)h+='<div class="empty">Aucun établissement enregistré.<button class="btn pri wide" style="margin-top:10px" data-a="searchStart">📍 Rechercher autour de moi</button></div>';
  else h+='<input id="filtre" type="search" placeholder="🔍 Chercher un lieu enregistré ('+state.etabs.length+')" value="'+esc(ui.filtre||"")+'" autocomplete="off" style="margin-bottom:6px"><div id="destList">'+destList()+'</div>';
  h+='<div class="or">ou une adresse ponctuelle :</div><input id="libre" data-ac="libre" type="text" placeholder="Ex. 12 rue Carnot, Pau" value="'+esc(ui.libre)+'" autocomplete="off">';
- h+='<h2>'+(prog?"4 · Feuille de mission":"3 · Feuille de route")+'</h2><div id="feuille"></div>';
+ h+='<h2>3 · '+(prog?"Feuille de mission":"Feuille de route")+'</h2><div id="feuille"></div>';
  return h;
 }
 function paintFeuille(){
@@ -1096,7 +1109,8 @@ function fZone(z){
 document.addEventListener("click",function(ev){
  var b=ev.target.closest("[data-a]");if(!b)return;
  var a=b.getAttribute("data-a"),id=b.getAttribute("data-id");
- if(a==="etat"){ui.etat=id;keepUi();render();var f=document.getElementById("feuille");if(f&&(ui.destId||ui.libre))f.scrollIntoView({behavior:"smooth",block:"start"});}
+ if(a==="mode"){if(ui.mode!==id){ui.mode=id;ui.route=null;ui.dep=null;ui.depEdit=false;ui.leg=1;ui.etat=id==="programme"?"programme":(ui.etat==="programme"?null:ui.etat);keepUi();render();}}
+ else if(a==="etat"){ui.etat=id;keepUi();render();var f=document.getElementById("feuille");if(f&&(ui.destId||ui.libre))f.scrollIntoView({behavior:"smooth",block:"start"});}
  else if(a==="dest"){ui.destId=(ui.destId===id?null:id);if(ui.destId){ui.libre="";ui.libreGeo=null;}ui.filtre="";keepUi();render();var f2=document.getElementById("feuille");if(f2&&ui.etat&&ui.destId)f2.scrollIntoView({behavior:"smooth",block:"start"});}
  else if(a==="fav"){toggleFav(id);if(document.getElementById("destList"))paintDest();else render();}
  else if(a==="acPick"){acPick(+b.getAttribute("data-i"));}
@@ -1141,7 +1155,7 @@ document.addEventListener("click",function(ev){
   state.etabs=state.etabs.concat(newE);state.zones=state.zones.concat(newZ);delete state.localBackup;save();
   if(newE.length)enqueue({t:"putE",rows:newE.map(etabRow)});if(newZ.length)enqueue({t:"putZ",rows:newZ.map(zoneRow)});render();}
  else if(a==="dropBackup"){delete state.localBackup;save();render();}
- else if(a==="reset"){ui.etat=null;ui.destId=null;ui.libre="";ui.libreGeo=null;ui.filtre="";ui.pec={q:"",etab:""};ui.leg=1;ui.dep=null;ui.depEdit=false;ui.route=null;keepUi();render();window.scrollTo(0,0);}
+ else if(a==="reset"){ui.etat=ui.mode==="programme"?"programme":null;ui.destId=null;ui.libre="";ui.libreGeo=null;ui.filtre="";ui.pec={q:"",etab:""};ui.leg=1;ui.dep=null;ui.depEdit=false;ui.route=null;keepUi();render();window.scrollTo(0,0);}
  else if(a==="leg2"||a==="leg1"){ui.leg=a==="leg2"?2:1;keepUi();paintFeuille();var lg=document.getElementById(a==="leg2"?"leg2":"leg1");if(lg)lg.scrollIntoView({behavior:"smooth",block:"start"});}
  else if(a==="newEtab"){ui.form={kind:"etab"};ui.confirm=null;render();}
  else if(a==="editEtab"){ui.form={kind:"etab",id:id};ui.confirm=null;render();window.scrollTo(0,0);}
