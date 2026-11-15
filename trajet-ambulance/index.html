@@ -95,6 +95,17 @@ details summary{cursor:pointer;color:var(--acc)}
 .ac small{display:block;color:var(--mut);font-size:13.5px}
 .ac .src{padding:7px 12px;font-size:12px;color:var(--mut);border-top:1px solid var(--line)}
 .ac .wait{padding:11px 12px;color:var(--mut);font-size:14.5px}
+.ac .acrow{position:relative;border-top:1px solid var(--line)}
+.ac .acrow:first-child{border-top:0}
+.ac .acrow button[data-a="acPick"]{border-top:0;padding-right:54px}
+.ac button.fav{position:absolute;top:50%;right:4px;transform:translateY(-50%);width:44px;height:44px;padding:0;border:0;text-align:center;font-size:22px;color:var(--mut)}
+.ac button.fav.on{color:#f5c518}
+.check{display:flex;align-items:center;gap:14px;width:100%;margin-top:14px;padding:14px 16px;min-height:66px;background:var(--card2);border:2px dashed var(--ok);border-radius:14px;color:var(--txt);font:inherit;text-align:left;cursor:pointer}
+.check .box{flex:0 0 34px;height:34px;border:3px solid var(--ok);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:800;color:#fff;line-height:1}
+.check b{display:block;font-size:18px}
+.check small{display:block;color:var(--mut);font-size:13.5px;margin-top:2px}
+.check.on{border-style:solid;background:#173325}
+.check.on .box{background:var(--ok)}
 .chipw{position:relative;display:inline-flex}
 .chipw .chip{padding-right:46px}
 .fav{position:absolute;top:50%;right:4px;transform:translateY(-50%);width:40px;height:40px;border:0;background:none;color:var(--mut);font-size:22px;line-height:1;cursor:pointer;border-radius:10px}
@@ -233,7 +244,7 @@ function paintMission(el,e,d,addr){
  if(leg===1){
   var L1=links(pk.addr,"",pk.lat,pk.lon);
   h+='<div class="blk cur" id="leg1"><h3><span class="step-n">1</span>Aller chercher le patient</h3><div class="dest">'+esc(pk.label)+'</div>'+(pk.label!==pk.addr?'<div class="addr">'+esc(pk.addr)+'</div>':'')+(pk.infos?'<div class="infos">📍 '+esc(pk.infos)+'</div>':'')+
-   navBtns(L1,"waze")+'<button class="btn ok wide" style="margin-top:12px;min-height:58px" data-a="leg2">✅ Patient à bord</button></div>'+
+   navBtns(L1,"waze")+'<button class="check" data-a="leg2"><span class="box"></span><span><b>Patient à bord</b><small>À cocher en revenant dans l\'appli</small></span></button></div>'+
    '<div class="blk next"><span class="step-n">2</span>Rendez-vous : <b>'+esc(d?d.nom:addr)+'</b></div></div>';
  }else{
   var R=(ui.route&&ui.route.key===routeKey())?ui.route:null,RD=(R&&R.status==="done")?R:null,sel=RD?RD.cands[RD.sel]:null;
@@ -241,12 +252,12 @@ function paintMission(el,e,d,addr){
   var dl=d||libreLL(addr);
   var L2=links(addr,RD?"":via,dl&&dl.lat,dl&&dl.lon,{wps:wps,origin:RD?[RD.dep.lat,RD.dep.lon]:null,dest:RD?[RD.dest.lat,RD.dest.lon]:null});
   var zs=state.zones.filter(function(z){return p.zones.indexOf(z.type)>=0&&(!z.etab||(d&&z.etab===d.id));});
-  h+='<div class="blk past" id="leg1"><div class="row nowrap" style="align-items:center;justify-content:space-between;margin:0"><span><span class="step-n">✓</span>Patient à bord</span><button class="btn small" data-a="leg1">Retour</button></div></div>';
+  h+='<div class="blk" id="leg1"><button class="check on" style="margin-top:0" data-a="leg1"><span class="box">✓</span><span><b>Patient à bord</b></span></button></div>';
   h+='<div class="blk cur" id="leg2"><h3><span class="step-n">2</span>Conduire au rendez-vous</h3><div class="dest">'+esc(d?d.nom:"Rendez-vous")+'</div><div class="addr">'+esc(addr)+'</div>'+(d&&d.infos?'<div class="infos">📍 '+esc(d.infos)+'</div>':'');
   if(zs.length){h+='<div style="margin-top:10px">';zs.forEach(function(z){h+='<div class="zone"><span class="tag">'+esc(ZTYPES[z.type]||z.type)+'</span><div><b>'+esc(z.nom)+'</b>'+(z.note?'<div class="addr">'+esc(z.note)+'</div>':"")+'</div></div>';});h+='</div>';}
   h+=vComfortMini(R)+navBtns(L2,RD?"gmaps":p.reco,RD?"Google Maps · confort":"Google Maps")+'</div></div>';
  }
- h+='<button class="btn reset" data-a="reset">Nouveau transport</button>';
+ h+='<button class="btn reset" data-a="reset">Fin de mission</button>';
  clearRouteMap();el.innerHTML=h;
  if(leg===2&&ui.route&&ui.route.key===routeKey()&&ui.route.status==="done")initRouteMap();
 }
@@ -737,20 +748,24 @@ function acBox(inp){var b=inp.nextElementSibling;if(b&&b.classList.contains("ac"
 function acHide(){AC.seq++;clearTimeout(AC.t);AC.items=[];Array.prototype.forEach.call(document.querySelectorAll(".ac"),function(x){x.hidden=true;x.innerHTML="";});}
 function acPaint(inp,items,msg){var b=acBox(inp),was=b.hidden;AC.items=items;
  if(!items.length&&!msg){b.hidden=true;b.innerHTML="";return;}
- var h="";items.forEach(function(it,i){h+='<button type="button" data-a="acPick" data-i="'+i+'">'+(it.etab?(it.fav?"⭐ ":"🏥 "):"📍 ")+'<b>'+esc(it.main)+'</b>'+((it.sub||it.etab)?'<small>'+(it.etab?"Lieu enregistré · ":"")+esc(it.sub)+'</small>':'')+'</button>';});
+ var h="";items.forEach(function(it,i){
+  var pick='<button type="button" data-a="acPick" data-i="'+i+'">'+(it.etab?(it.fav?"⭐ ":"🏥 "):"📍 ")+'<b>'+esc(it.main)+'</b>'+((it.sub||it.etab)?'<small>'+(it.etab?"Lieu enregistré · ":"")+esc(it.sub)+'</small>':'')+'</button>';
+  if(it.etab&&AC.field!=="dep"){var t=it.fav?"Retirer des favoris":"Ajouter aux favoris";h+='<div class="acrow">'+pick+'<button type="button" class="fav'+(it.fav?" on":"")+'" data-a="acFav" data-i="'+i+'" aria-label="'+t+'" title="'+t+'">'+(it.fav?"★":"☆")+'</button></div>';}
+  else h+=pick;});
  if(msg)h+='<div class="wait">'+esc(msg)+'</div>';
  else if(items.some(function(it){return !it.etab;}))h+='<div class="src">Adresses © contributeurs OpenStreetMap · IGN</div>';
  b.innerHTML=h;b.hidden=false;
  if(was){var r=inp.getBoundingClientRect();if(r.top>window.innerHeight*0.35)window.scrollBy({top:r.top-120,behavior:"smooth"});}}
 function acInput(inp){
  var field=inp.getAttribute("data-ac"),q=inp.value.trim();
- if(q.length<3){acHide();return;}
+ if(q.length<2||(field==="etab"&&q.length<3)){acHide();return;}
  var prev=AC.input===inp?AC.items.filter(function(it){return !it.etab;}):[];
  clearTimeout(AC.t);var my=++AC.seq;AC.input=inp;AC.field=field;
- var saved=field==="etab"?[]:matchEtabs(q,3).map(function(x){return{etab:x.id,main:x.nom,sub:x.adresse,label:x.nom,fav:isFav(x.id)};});
- acPaint(inp,saved.concat(prev),(saved.length||prev.length)?"":"Recherche d'adresses…");
+ var saved=field==="etab"?[]:matchEtabs(q,field==="dep"?3:5).map(function(x){return{etab:x.id,main:x.nom,sub:x.adresse,label:x.nom,fav:isFav(x.id)};});
+ if(q.length<3){acPaint(inp,saved,"");return;}
+ acPaint(inp,saved.concat(prev),(saved.length||prev.length)?"":"Recherche…");
  AC.t=setTimeout(function(){
-  acFetch(q).then(function(list){if(my!==AC.seq)return;acPaint(inp,saved.concat(list),list.length||saved.length?"":"Aucune adresse trouvée : vérifie l'orthographe ou ajoute la ville.");},
+  acFetch(q).then(function(list){if(my!==AC.seq)return;acPaint(inp,saved.concat(list.slice(0,Math.max(3,8-saved.length))),list.length||saved.length?"":"Aucun lieu ni adresse trouvé : vérifie l'orthographe ou ajoute la ville.");},
    function(){if(my!==AC.seq)return;acPaint(inp,saved,"Suggestions indisponibles (réseau ?) : tape l'adresse complète.");});
  },350);
 }
@@ -779,14 +794,10 @@ document.addEventListener("keydown",function(ev){if(ev.key==="Escape")acHide();
 function chipHtml(x,k){var f=isFav(x.id),t=f?"Retirer des favoris":"Ajouter aux favoris",cur=k==="pec"?ui.pec.etab:ui.destId;
  return '<div class="chipw"><button class="chip'+(cur===x.id?" on":"")+'" data-a="'+(k==="pec"?"pecPick":"dest")+'" data-id="'+x.id+'">'+esc(x.nom)+'<small>'+esc(x.type)+'</small></button><button type="button" class="fav'+(f?" on":"")+'" data-a="fav" data-id="'+x.id+'" aria-label="'+t+'" title="'+t+'">'+(f?"★":"☆")+'</button></div>';}
 function placeList(k){
- var pec=k==="pec",q=((pec?ui.pecFiltre:ui.filtre)||"").trim(),cur=pec?ui.pec.etab:ui.destId,h="";
- if(q){var m=matchEtabs(q);
-  if(!m.length)return '<div class="sub">Aucun lieu enregistré ne correspond à « '+esc(q)+' ».'+(pec?' Tape plutôt l\'adresse au-dessus.':' Tape plutôt l\'adresse ci-dessous.')+'</div>';
-  h='<div class="sub">'+m.length+(m.length>1?" lieux trouvés":" lieu trouvé")+' · touche ☆ pour l\'ajouter à tes favoris</div><div class="chips">';
-  m.slice(0,40).forEach(function(x){h+=chipHtml(x,k);});return h+'</div>';}
+ var cur=k==="pec"?ui.pec.etab:ui.destId,h="";
  var nf=state.etabs.filter(function(x){return isFav(x.id);}).length;
  var list=state.etabs.filter(function(x){return isFav(x.id)||x.id===cur;});
- h+=nf?'<div class="sub">⭐ Tes favoris</div>':'<div class="sub">Aucun favori pour l\'instant : cherche un lieu ci-dessus et touche ☆ pour le garder ici (favoris propres à ce téléphone).</div>';
+ h+=nf?'<div class="sub">⭐ Tes favoris</div>':'<div class="sub">Aucun favori : tape le nom d\'un lieu enregistré dans la barre et touche ☆ pour le garder ici.</div>';
  if(list.length){h+='<div class="chips">';list.forEach(function(x){h+=chipHtml(x,k);});h+='</div>';}
  return h;}
 function destList(){return placeList("dest");}
@@ -999,6 +1010,7 @@ function teamAction(p){ui.teamErr="";p.then(function(){return sync();},function(
 function stepDone(k){
  if(k===1){if(ui.mode==="programme")return !!(ui.pec.etab&&etab(ui.pec.etab))||!!(ui.pec.ok&&(ui.pec.q||"").trim());return !!(ui.etat&&ui.etat!=="programme");}
  return !!(ui.destId&&etab(ui.destId))||!!(ui.libreOk&&ui.libre.trim());}
+function searchRow(id,ph,val){return '<div class="row nowrap"><div class="acw" style="flex:1 1 auto"><input id="'+id+'" data-ac="'+id+'" type="text" placeholder="'+esc(ph)+'" value="'+esc(val)+'" autocomplete="off" enterkeyhint="done"></div><button class="btn pri" data-a="'+id+'Ok">OK</button></div>';}
 function curStep(){if(ui.edit===1||ui.edit===2)return ui.edit;return !stepDone(1)?1:(!stepDone(2)?2:3);}
 function doneRow(k,label,val,c){return '<div class="done"'+(c?' style="--c:'+c+'"':'')+'><span class="step-n">✓</span><div class="k"><small>'+esc(label)+'</small><b>'+esc(val)+'</b></div><button class="btn small" data-a="editStep" data-id="'+k+'">Modifier</button></div>';}
 function goStep(){ui.edit=null;keepUi();render();scrollStep();}
@@ -1015,9 +1027,9 @@ function vTrajet(){
   if(prog){var pk=pecInfo();h+=doneRow(1,"Prise en charge",pk.label||pk.addr);}
   else{var e=curEtat();h+=doneRow(1,"État du patient",e.ic+" "+e.label,PROFILS[e.p].c);}
  }else if(prog){
-  h+='<h2 id="stepCur">1 · Prise en charge du patient</h2><div class="row nowrap"><div class="acw" style="flex:1 1 auto"><input id="pec" data-ac="pec" type="text" placeholder="Adresse du patient (ex. 12 rue Carnot, Pau)" value="'+esc(ui.pec.etab?"":ui.pec.q)+'" autocomplete="off" enterkeyhint="done"></div><button class="btn pri" data-a="pecOk">OK</button></div>'+
-   '<div class="hint">Choisis une suggestion ou touche OK. Cette adresse reste sur ce téléphone le temps du transport : elle n\'est jamais enregistrée dans la base de l\'équipe.</div>';
-  if(n)h+='<div class="or">ou un lieu enregistré (sortie d\'hôpital, EHPAD…) :</div><input id="pecFiltre" type="search" placeholder="🔍 Chercher un lieu enregistré ('+n+')" value="'+esc(ui.pecFiltre||"")+'" autocomplete="off" style="margin-bottom:6px"><div id="pecList">'+placeList("pec")+'</div>';
+  h+='<h2 id="stepCur">1 · Prise en charge du patient</h2>'+searchRow("pec",n?"🔍 Adresse du patient ou lieu enregistré":"🔍 Adresse du patient",ui.pec.etab?"":ui.pec.q)+
+   '<div class="hint">L\'adresse du patient reste sur ce téléphone, jamais dans la base de l\'équipe.</div>';
+  if(n)h+='<div id="pecList" style="margin-top:12px">'+placeList("pec")+'</div>';
  }else{
   h+='<h2 id="stepCur">1 · État du patient</h2><div class="tiles">';
   ETATS.forEach(function(e){if(e.id==="programme")return;var p=PROFILS[e.p];
@@ -1028,10 +1040,9 @@ function vTrajet(){
  // Étape 2
  if(cs>2){var d=ui.destId?etab(ui.destId):null;h+=doneRow(2,prog?"Rendez-vous":"Destination",d?d.nom:ui.libre.trim());}
  else{
-  h+='<h2 id="stepCur">2 · '+(prog?"Lieu du rendez-vous":"Destination")+'</h2>';
-  if(!n)h+='<div class="empty">Aucun établissement enregistré.<button class="btn pri wide" style="margin-top:10px" data-a="searchStart">📍 Rechercher autour de moi</button></div>';
-  else h+='<input id="filtre" type="search" placeholder="🔍 Chercher un lieu enregistré ('+n+')" value="'+esc(ui.filtre||"")+'" autocomplete="off" style="margin-bottom:6px"><div id="destList">'+destList()+'</div>';
-  h+='<div class="or">ou une adresse ponctuelle :</div><div class="row nowrap"><div class="acw" style="flex:1 1 auto"><input id="libre" data-ac="libre" type="text" placeholder="Ex. 12 rue Carnot, Pau" value="'+esc(ui.destId?"":ui.libre)+'" autocomplete="off" enterkeyhint="done"></div><button class="btn pri" data-a="libreOk">OK</button></div>';
+  h+='<h2 id="stepCur">2 · '+(prog?"Lieu du rendez-vous":"Destination")+'</h2>'+searchRow("libre",n?"🔍 Lieu enregistré ou adresse":"🔍 Adresse",ui.destId?"":ui.libre);
+  if(!n)h+='<div class="empty" style="margin-top:12px">Aucun établissement enregistré.<button class="btn pri wide" style="margin-top:10px" data-a="searchStart">📍 Rechercher autour de moi</button></div>';
+  else h+='<div id="destList" style="margin-top:12px">'+destList()+'</div>';
   return h;
  }
  // Étape 3
@@ -1071,7 +1082,7 @@ function paintFeuille(){
  h+='<div class="go">'+(reco==="waze"?bW+bG:bG+bW)+'</div><div class="hint">'+esc(why)+'</div>';
  if(L.app)h+='<div class="hint" style="margin-top:8px">L\'appli ne s\'ouvre pas ? Version web : <a href="'+L.wazeWeb+'" target="_blank" rel="noopener" style="color:var(--acc)">Waze</a> · <a href="'+L.gmapsWeb+'" target="_blank" rel="noopener" style="color:var(--acc)">Google Maps</a></div>';
  h+='<button class="btn reset" data-a="copy" data-addr="'+esc(addr)+'">📋 Copier l\'adresse</button><div class="hint" id="copyMsg"></div>';
- h+='<button class="btn reset" data-a="reset">Nouveau transport</button>';
+ h+='<button class="btn reset" data-a="reset">Fin d\'intervention</button>';
  h+='<div class="foot">Prépare le trajet avant de démarrer : ne manipule pas le téléphone en roulant. Le trafic, les accidents et les fermetures de routes sont gérés par Waze ou Google Maps. Itinéraires calculés avec Valhalla et les données © contributeurs OpenStreetMap. L\'appli ne remplace ni la régulation ni le code de la route.</div>';
  clearRouteMap();el.innerHTML=h;
  if(RD)initRouteMap();
@@ -1151,6 +1162,7 @@ document.addEventListener("click",function(ev){
  else if(a==="editStep"){ui.edit=+id;acHide();render();scrollStep();}
  else if(a==="fav"){toggleFav(id);if(document.getElementById("destList"))paintDest();else render();}
  else if(a==="acPick"){acPick(+b.getAttribute("data-i"));}
+ else if(a==="acFav"){var ai=AC.items[+b.getAttribute("data-i")];if(ai&&ai.etab){toggleFav(ai.etab);ai.fav=isFav(ai.etab);if(AC.input)acPaint(AC.input,AC.items,"");paintDest();}}
  else if(a==="copy"){var ad=b.getAttribute("data-addr");var msg=document.getElementById("copyMsg");
   var ok=function(){if(msg)msg.textContent="✓ Adresse copiée : ouvre Waze ou Google Maps et colle-la dans la recherche.";};
   var ko=function(){if(msg)msg.textContent="Copie bloquée ici. Adresse : "+ad;};
@@ -1209,8 +1221,6 @@ document.addEventListener("input",function(ev){
  var t=ev.target;
  if(t.getAttribute&&t.getAttribute("data-ac"))acInput(t);
  if(t.name==="adresse"&&t.form&&t.form.getAttribute("data-f")==="etab"&&t.form.elements.lat){t.form.elements.lat.value="";t.form.elements.lon.value="";}
- if(t.id==="filtre"){ui.filtre=t.value;paintDest();return;}
- if(t.id==="pecFiltre"){ui.pecFiltre=t.value;var pl=document.getElementById("pecList");if(pl)pl.innerHTML=placeList("pec");return;}
  if(ev.target.id==="pec"){var had=ui.pec.etab;ui.pec={q:ev.target.value,etab:""};if(had)paintDest();keepUi();return;}
  if(ev.target.id==="libre"){ui.libre=ev.target.value;ui.libreOk=false;if(ui.libre.trim()&&ui.destId){ui.destId=null;paintDest();}keepUi();}
 });
