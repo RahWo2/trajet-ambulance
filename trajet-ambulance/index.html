@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Trajet Ambulance</title><link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#0e1014"><meta name="mobile-web-app-capable" content="yes"><link rel="icon" href="icon.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="icon-192.png"><style id="css">
+:root{--bg:#0e1014;--card:#181b22;--card2:#20242d;--line:#2c313c;--txt:#f1f3f6;--mut:#9aa3b2;--acc:#4f8cff;--ok:#2fbf71;--warn:#f5a524;--red:#e5484d}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--txt);font:17px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-text-size-adjust:100%}
+header{position:sticky;top:0;z-index:5;background:rgba(14,16,20,.96);border-bottom:1px solid var(--line);padding:10px 14px 0}
+.top{display:flex;align-items:center;justify-content:space-between;gap:10px}
+h1{font-size:19px;margin:0;letter-spacing:.2px}
+.status{font-size:12.5px;color:var(--mut);text-align:right}
+.status.ok{color:var(--ok)}.status.warn{color:var(--warn)}
+nav{display:flex;gap:4px;margin-top:10px}
+nav a{flex:1;text-align:center;padding:11px 4px;color:var(--mut);text-decoration:none;font-weight:600;font-size:15px;border-bottom:3px solid transparent}
+nav a.on{color:var(--txt);border-color:var(--acc)}
+main{max-width:720px;margin:0 auto;padding:14px 14px 60px}
+h2{font-size:15px;text-transform:uppercase;letter-spacing:.6px;color:var(--mut);margin:22px 0 10px}
+h2:first-child{margin-top:4px}
+.tiles{display:grid;gap:10px}
+.tile{display:flex;align-items:center;gap:14px;width:100%;min-height:74px;padding:12px 14px;background:var(--card);border:2px solid var(--line);border-left:8px solid var(--c,#555);border-radius:14px;color:var(--txt);font:inherit;text-align:left;cursor:pointer}
+.tile .ic{font-size:28px;width:34px;text-align:center}
+.tile b{display:block;font-size:17.5px}
+.tile small{color:var(--mut);font-size:14px}
+.tile.on{border-color:var(--c);background:var(--card2);box-shadow:0 0 0 2px var(--c) inset}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{padding:12px 14px;min-height:50px;background:var(--card);border:2px solid var(--line);border-radius:12px;color:var(--txt);font:inherit;font-weight:600;cursor:pointer;text-align:left}
+.chip small{display:block;font-weight:400;color:var(--mut);font-size:13px}
+.chip.on{border-color:var(--acc);background:#1b2a47}
+.or{color:var(--mut);font-size:14px;margin:14px 0 8px}
+input,select,textarea{width:100%;padding:13px 12px;background:var(--card);border:2px solid var(--line);border-radius:12px;color:var(--txt);font:inherit}
+textarea{min-height:76px;resize:vertical}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--acc)}
+label{display:block;font-size:14px;color:var(--mut);margin:12px 0 5px}
+.hint{font-size:13px;color:var(--mut);margin-top:4px}
+.empty{padding:16px;border:2px dashed var(--line);border-radius:14px;color:var(--mut);font-size:15px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:50px;padding:12px 18px;border-radius:12px;border:2px solid var(--line);background:var(--card2);color:var(--txt);font:inherit;font-weight:700;text-decoration:none;cursor:pointer}
+.btn.pri{background:var(--acc);border-color:var(--acc);color:#fff}
+.btn.danger{border-color:#5a2427;color:#ff8a8d}
+.btn.small{min-height:40px;padding:8px 12px;font-size:14.5px}
+.row{display:flex;gap:8px;flex-wrap:wrap}
+.go{display:grid;gap:10px;margin-top:16px}
+.go .btn{min-height:64px;font-size:19px;width:100%}
+.go .btn small{font-weight:600;font-size:12.5px;opacity:.85;background:rgba(255,255,255,.18);padding:2px 8px;border-radius:20px}
+.sheet{background:var(--card);border:1px solid var(--line);border-radius:16px;overflow:hidden;margin-top:6px}
+.band{padding:14px 16px;background:var(--c);color:#fff}
+.band b{font-size:21px;display:block}
+.band span{font-size:14.5px;opacity:.95}
+.blk{padding:14px 16px;border-top:1px solid var(--line)}
+.blk h3{margin:0 0 8px;font-size:13.5px;text-transform:uppercase;letter-spacing:.5px;color:var(--mut)}
+.dest{font-size:19px;font-weight:700}
+.addr{color:var(--mut);font-size:15px}
+.infos{margin-top:10px;padding:10px 12px;background:#2a2410;border:1px solid #5b4a15;border-radius:10px;color:#ffe3a3;white-space:pre-wrap;font-size:15.5px}
+ul{margin:0;padding-left:20px}li{margin:4px 0}
+.zone{display:flex;gap:10px;align-items:flex-start;padding:8px 0;border-bottom:1px solid var(--line)}
+.zone:last-child{border-bottom:0}
+.tag{display:inline-block;font-size:12.5px;font-weight:700;padding:2px 8px;border-radius:20px;background:#3a2a10;color:#ffc46b;white-space:nowrap}
+.tag.blue{background:#16284a;color:#9cc0ff}
+.item{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:10px}
+.item .t{font-weight:700;font-size:17.5px}
+.item .m{color:var(--mut);font-size:14.5px;margin-top:2px}
+.item .x{white-space:pre-wrap;font-size:14.5px;margin-top:8px;color:#d6dae2}
+.item .row{margin-top:10px}
+.form{background:var(--card);border:2px solid var(--acc);border-radius:14px;padding:6px 14px 14px;margin-bottom:14px}
+.confirm{margin-top:10px;padding:10px;border-radius:10px;background:#2b1416;border:1px solid #5a2427;font-size:15px}
+.foot{margin-top:18px;font-size:13px;color:var(--mut);line-height:1.5}
+.reset{margin-top:12px;width:100%}
+</style></head><body><div id="app"></div><script id="state" type="application/json">{"rev": 1000, "etabs": [{"id": "e01", "nom": "Centre Hospitalier de Pau – Urgences", "type": "Urgences", "adresse": "4 boulevard Hauterive, 64000 Pau", "infos": "Urgences adultes ET pédiatriques 24h/24, SAMU/SMUR, réanimation, maternité, bloc. Bâtiment François-Mitterrand. Accès par le bd Hauterive ou l'av. de Buros. Nouvelles urgences ouvertes en 2025 : vérifier l'entrée ambulances sur place.\nStandard 05 59 92 48 48 · Urgences pédiatriques 05 59 92 48 69\nSeules urgences de Pau ouvertes la nuit.", "via": ""}, {"id": "e02", "nom": "Polyclinique Pau Pyrénées – site Navarre", "type": "Clinique", "adresse": "8 boulevard Hauterive, 64000 Pau", "infos": "Antenne d'urgences en journée/soirée seulement (environ 9h–minuit) : FERMÉE LA NUIT depuis l'automne 2026. Maternité fermée (sept. 2026). Chirurgie, IRM (Océan Imagerie), dialyse NephroCare sur place.\nTél. 05 59 14 54 54", "via": ""}, {"id": "e03", "nom": "Clinique médicale et cardiologique d'Aressy", "type": "Cardiologie", "adresse": "Route de Lourdes, 64320 Aressy", "infos": "Cardiologie (dont interventionnelle), réadaptation cardiaque et pulmonaire, IRM, centre du sommeil.\nTél. 05 59 82 26 00", "via": ""}, {"id": "e04", "nom": "Centre Hospitalier d'Oloron-Sainte-Marie", "type": "Urgences", "adresse": "1 avenue Alexander Fleming, 64400 Oloron-Sainte-Marie", "infos": "Urgences 24h/24 et SMUR (déjà fermées ponctuellement par manque de médecins : se renseigner). Chirurgie, médecine, SMR, imagerie. Pas de maternité. Environ 45 min de Pau.\nStandard 05 59 88 30 30", "via": ""}, {"id": "e05", "nom": "Centre Hospitalier d'Orthez", "type": "Urgences", "adresse": "1 rue du Moulin, 64300 Orthez", "infos": "Urgences et SMUR, obstétrique, scanner, médecine, SMR.\nStandard 05 59 69 70 70 · Urgences 05 59 69 70 20", "via": ""}, {"id": "e06", "nom": "Centre Hospitalier des Pyrénées (psychiatrie)", "type": "Psychiatrie", "adresse": "29 avenue du Général Leclerc, 64000 Pau", "infos": "Établissement public de psychiatrie.", "via": ""}, {"id": "e07", "nom": "Clinique Princess (emeis)", "type": "Clinique", "adresse": "6 boulevard Hauterive, 64000 Pau", "infos": "Voisine du CH et de Navarre. Hôpitaux de jour (psychiatrie, addictologie), consultations.\nTél. 05 59 02 55 32", "via": ""}, {"id": "e08", "nom": "Centre de soins La Nouvelle Aquitaine (emeis)", "type": "Psychiatrie", "adresse": "152 boulevard de la Paix, 64000 Pau", "infos": "Psychiatrie adulte et infanto-juvénile, hospitalisation complète.\nTél. 05 59 90 97 10", "via": ""}, {"id": "e09", "nom": "Clinique Les Jeunes Chênes (emeis)", "type": "SMR / Rééducation", "adresse": "21 bis avenue de l'Europe, 64000 Pau", "infos": "Soins médicaux et de réadaptation (SMR) polyvalents, environ 90 lits.", "via": ""}, {"id": "e10", "nom": "Centre de dialyse NephroCare Pau Navarre", "type": "Dialyse", "adresse": "8 boulevard Hauterive, 64000 Pau", "infos": "Sur le site de la Polyclinique Navarre.", "via": ""}, {"id": "e11", "nom": "Centre de dialyse du Béarn", "type": "Dialyse", "adresse": "6 rue du Village, 64320 Aressy", "infos": "", "via": ""}, {"id": "e12", "nom": "Autodialyse NephroCare Oloron", "type": "Dialyse", "adresse": "11 avenue Alexander Fleming, 64400 Oloron-Sainte-Marie", "infos": "À côté du CH d'Oloron.", "via": ""}, {"id": "e13", "nom": "Autodialyse NephroCare Orthez", "type": "Dialyse", "adresse": "6 rue du Moulin, 64300 Orthez", "infos": "À côté du CH d'Orthez.", "via": ""}, {"id": "e14", "nom": "Imagerie du CH de Pau (scanner, IRM, médecine nucléaire)", "type": "Imagerie", "adresse": "4 boulevard Hauterive, 64000 Pau", "infos": "Radio / scanner / écho 05 59 92 47 48 · IRM 05 59 72 67 05 · Médecine nucléaire 05 59 92 49 70", "via": ""}, {"id": "e15", "nom": "Océan Imagerie – Cabinet Pau Pyrénées", "type": "Imagerie", "adresse": "3 passage de l'Europe, 64000 Pau", "infos": "Radio, écho, mammographie, scanner.\nTél. 05 59 27 65 60", "via": ""}, {"id": "e16", "nom": "Centre de radiologie Baradat (IMDEP)", "type": "Imagerie", "adresse": "37 avenue Honoré Baradat, 64000 Pau", "infos": "Radio, écho, doppler, mammographie.\nTél. 05 59 14 07 00", "via": ""}, {"id": "e17", "nom": "Centre d'imagerie médicale Phoebus", "type": "Imagerie", "adresse": "26 bis avenue Gaston Phoebus, 64140 Billère", "infos": "", "via": ""}, {"id": "e18", "nom": "Scanner IRM du Béarn – Pau", "type": "Imagerie", "adresse": "40 boulevard d'Alsace-Lorraine, 64000 Pau", "infos": "Scanner, IRM. À VÉRIFIER : à l'adresse de l'ex-clinique Marzet, fermée en 2026.", "via": ""}, {"id": "e19", "nom": "Établissement Français du Sang (EFS) Pau", "type": "Autre", "adresse": "145 avenue de Buros, 64000 Pau", "infos": "Près du CH de Pau.", "via": ""}], "zones": []}</script><script id="main">
+(function(){
+"use strict";
+var KEY="trajet-ambulance-v1";
+var PROFILS={
+ rapide:{nom:"Rapide",c:"#d93a3f",resume:"Le trajet le plus court en temps, sans compromis sur la sécurité.",
+  zones:["travaux"],reco:"waze",
+  pourquoi:"Waze réagit le plus vite aux bouchons et accidents en temps réel.",
+  consignes:["Destination fixée par la régulation (Centre 15) : vérifie-la avec le DEA avant de partir.","Sécurité d'abord : un accident en route ne sauve personne.","Feux et avertisseurs : uniquement dans le cadre réglementaire de ton véhicule et de la mission.","Fais confirmer l'entrée (urgences, déchocage…) pendant le trajet par le DEA, pas par toi."]},
+ confort:{nom:"Confort maximal",c:"#2f6fe0",resume:"Le trajet le plus doux, quitte à perdre quelques minutes.",
+  zones:["paves","ralentisseurs","degradee","virages","travaux"],reco:"gmaps",
+  pourquoi:"Google Maps reste souvent sur les grands axes ; Waze peut couper par des petites rues pour gagner une minute.",
+  consignes:["Accélérations et freinages très progressifs, anticipe tout.","Ralentisseurs et plateaux surélevés au pas.","Virages et ronds-points lentement, trajectoire régulière.","Préviens le DEA avant chaque freinage ou passage délicat.","Quelques minutes de plus valent mieux qu'un choc pour le patient."]},
+ regulier:{nom:"Régulier",c:"#8a5cf6",resume:"Un trajet stable : peu de virages, peu d'à-coups.",
+  zones:["ralentisseurs","virages","paves","degradee","travaux"],reco:"gmaps",
+  pourquoi:"Google Maps privilégie plus souvent les axes larges et réguliers.",
+  consignes:["Vitesse stable, évite les à-coups.","Ralentisseurs au pas, virages en douceur.","Préfère les axes larges aux raccourcis sinueux.","Reste en contact avec le DEA sur l'évolution du patient."]},
+ standard:{nom:"Standard",c:"#2f9e6a",resume:"Trajet habituel en conduite souple.",
+  zones:["degradee","travaux"],reco:"waze",
+  pourquoi:"Waze pour éviter les bouchons sur un transport programmé.",
+  consignes:["Conduite souple, trajet habituel.","Évite les routes dégradées que tu connais.","Pense aux infos d'accès de l'établissement (entrée, parking, code)."]}
+};
+var ETATS=[
+ {id:"vitale",ic:"⚡",label:"Urgence vitale",sous:"Détresse, AVC, douleur thoracique, hémorragie…",p:"rapide"},
+ {id:"rachis",ic:"🦴",label:"Trauma rachis / bassin / fracture",sous:"Patient immobilisé, matelas coquille",p:"confort"},
+ {id:"enceinte",ic:"🤰",label:"Femme enceinte",sous:"Contractions, fin de grossesse",p:"regulier"},
+ {id:"fragile",ic:"🤕",label:"Douleur, nausées, patient fragile",sous:"Personne âgée, post-op, malaise",p:"regulier"},
+ {id:"programme",ic:"📋",label:"Transport programmé",sous:"Dialyse, consultation, retour domicile",p:"standard"}
+];
+var ZTYPES={paves:"Pavés",ralentisseurs:"Ralentisseurs / dos-d'âne",degradee:"Route dégradée / nids-de-poule",virages:"Virages serrés / route sinueuse",travaux:"Travaux / bouchon récurrent"};
+var ETYPES=["Urgences","Maternité","CHU / Hôpital","Clinique","Cardiologie","Imagerie","Dialyse","Psychiatrie","SMR / Rééducation","EHPAD","Cabinet / centre médical","Autre"];
+
+var state;
+try{state=JSON.parse(document.getElementById("state").textContent);}catch(e){state=null;}
+if(!state||!state.etabs)state={rev:0,etabs:[],zones:[]};
+try{var l=JSON.parse(localStorage.getItem(KEY)||"null");if(l&&l.etabs&&(l.rev||0)>(state.rev||0))state=l;}catch(e){}
+
+var ui={tab:"trajet",etat:null,destId:null,libre:"",form:null,confirm:null};
+try{var u=JSON.parse(sessionStorage.getItem(KEY+"-ui")||"null");if(u){ui.etat=u.etat;ui.destId=u.destId;ui.libre=u.libre||"";}}catch(e){}
+var saveStatus="";
+
+function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});}
+function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,6);}
+function etab(id){for(var i=0;i<state.etabs.length;i++)if(state.etabs[i].id===id)return state.etabs[i];return null;}
+function keepUi(){try{sessionStorage.setItem(KEY+"-ui",JSON.stringify({etat:ui.etat,destId:ui.destId,libre:ui.libre}));}catch(e){}}
+
+function save(){
+ state.rev=(state.rev||0)+1;
+ var ok=true;try{localStorage.setItem(KEY,JSON.stringify(state));}catch(e){ok=false;}
+ keepUi();saveStatus=ok?"ok":"fail";paintStatus();
+}
+function paintStatus(){
+ var el=document.getElementById("status");if(!el)return;
+ var t="",cl="status";
+ if(saveStatus==="ok"){t="✓ Enregistré sur ce téléphone";cl+=" ok";}
+ else if(saveStatus==="fail"){t="⚠ Enregistrement impossible";cl+=" warn";}
+ el.className=cl;el.textContent=t;
+}
+
+var UA=navigator.userAgent||"";
+var IS_ANDROID=/Android/i.test(UA);
+var IS_IOS=/iPhone|iPad|iPod/i.test(UA)||(/Macintosh/.test(UA)&&navigator.maxTouchPoints>1);
+function links(addr,via){
+ var e=encodeURIComponent;
+ var wPath="waze.com/ul?q="+e(addr)+"&navigate=yes";
+ var gPath="www.google.com/maps/dir/?api=1&destination="+e(addr)+"&travelmode=driving&dir_action=navigate"+(via?"&waypoints="+e(via):"");
+ var r={waze:"https://"+wPath,gmaps:"https://"+gPath,wazeWeb:"https://"+wPath,gmapsWeb:"https://"+gPath,app:false};
+ if(IS_ANDROID){
+  r.waze="intent://"+wPath+"#Intent;scheme=https;package=com.waze;S.browser_fallback_url="+e(r.wazeWeb)+";end";
+  r.gmaps="intent://"+gPath+"#Intent;scheme=https;package=com.google.android.apps.maps;S.browser_fallback_url="+e(r.gmapsWeb)+";end";
+  r.app=true;
+ }else if(IS_IOS){
+  r.waze="waze://?q="+e(addr)+"&navigate=yes";
+  r.gmaps="comgooglemaps://?daddr="+e(via?via+" to:"+addr:addr)+"&directionsmode=driving";
+  r.app=true;
+ }
+ return r;
+}
+
+function render(){
+ var h=location.hash.replace("#","");
+ ui.tab=(h==="etablissements"||h==="zones")?h:"trajet";
+ var app=document.getElementById("app");
+ var html='<header><div class="top"><h1>🚑 Trajet Ambulance</h1><div id="status" class="status"></div></div><nav>'+
+  '<a href="#trajet" class="'+(ui.tab==="trajet"?"on":"")+'">Trajet</a>'+
+  '<a href="#etablissements" class="'+(ui.tab==="etablissements"?"on":"")+'">Établissements</a>'+
+  '<a href="#zones" class="'+(ui.tab==="zones"?"on":"")+'">Zones ('+state.zones.length+')</a></nav></header><main>';
+ if(ui.tab==="trajet")html+=vTrajet();else if(ui.tab==="etablissements")html+=vEtabs();else html+=vZones();
+ html+="</main>";
+ app.innerHTML=html;paintStatus();
+ if(ui.tab==="trajet")paintFeuille();
+}
+
+function vTrajet(){
+ var h='<h2>1 · État du patient</h2><div class="tiles">';
+ ETATS.forEach(function(e){var p=PROFILS[e.p];
+  h+='<button class="tile'+(ui.etat===e.id?" on":"")+'" style="--c:'+p.c+'" data-a="etat" data-id="'+e.id+'"><span class="ic">'+e.ic+'</span><span><b>'+esc(e.label)+'</b><small>'+esc(e.sous)+'</small></span></button>';});
+ h+='</div><h2>2 · Destination</h2>';
+ if(!state.etabs.length)h+='<div class="empty">Aucun établissement enregistré. <a href="#etablissements" style="color:var(--acc)">Ajoute tes hôpitaux et centres</a> pour les choisir en un clic.</div>';
+ else{h+='<input id="filtre" type="search" placeholder="🔍 Chercher un établissement…" autocomplete="off" style="margin-bottom:10px"><div class="chips">';state.etabs.forEach(function(x){h+='<button class="chip'+(ui.destId===x.id?" on":"")+'" data-a="dest" data-id="'+x.id+'" data-q="'+esc((x.nom+" "+x.type+" "+x.adresse).toLowerCase())+'">'+esc(x.nom)+'<small>'+esc(x.type)+'</small></button>';});h+="</div>";}
+ h+='<div class="or">ou une adresse ponctuelle :</div><input id="libre" type="text" placeholder="Ex. 12 rue Victor Hugo, Évry" value="'+esc(ui.libre)+'" autocomplete="off">';
+ h+='<h2>3 · Feuille de route</h2><div id="feuille"></div>';
+ return h;
+}
+function paintFeuille(){
+ var el=document.getElementById("feuille");if(!el)return;
+ var e=null;ETATS.forEach(function(x){if(x.id===ui.etat)e=x;});
+ var d=ui.destId?etab(ui.destId):null;
+ var addr=d?d.adresse:ui.libre.trim();
+ if(!e||!addr){el.innerHTML='<div class="empty">Choisis l\'état du patient et la destination pour obtenir le trajet conseillé.</div>';return;}
+ var p=PROFILS[e.p];
+ var via=(d&&d.via&&e.p!=="rapide")?d.via:"";
+ var L=links(addr,via);
+ var zs=state.zones.filter(function(z){return p.zones.indexOf(z.type)>=0&&(!z.etab||(d&&z.etab===d.id));});
+ var h='<div class="sheet"><div class="band" style="--c:'+p.c+'"><b>Profil : '+esc(p.nom)+'</b><span>'+esc(e.label)+' — '+esc(p.resume)+'</span></div>';
+ h+='<div class="blk"><h3>Destination</h3><div class="dest">'+esc(d?d.nom:"Adresse ponctuelle")+'</div><div class="addr">'+esc(addr)+'</div>';
+ if(d&&d.infos)h+='<div class="infos">📍 '+esc(d.infos)+'</div>';
+ h+='</div>';
+ if(via)h+='<div class="blk"><h3>Passage conseillé</h3>Via <b>'+esc(via)+'</b> <span class="tag blue">inclus dans Google Maps</span></div>';
+ h+='<div class="blk"><h3>Zones à éviter si elles sont sur ta route</h3>';
+ if(zs.length){zs.forEach(function(z){h+='<div class="zone"><span class="tag">'+esc(ZTYPES[z.type]||z.type)+'</span><div><b>'+esc(z.nom)+'</b>'+(z.note?'<div class="addr">'+esc(z.note)+'</div>':"")+'</div></div>';});}
+ else h+='<div class="addr">Aucune zone enregistrée pour ce profil'+(d?" et ce trajet":"")+'. Ajoute celles que tu connais dans l\'onglet <a href="#zones" style="color:var(--acc)">Zones</a>.</div>';
+ h+='</div><div class="blk"><h3>Consignes de conduite</h3><ul>';
+ p.consignes.forEach(function(c){h+="<li>"+esc(c)+"</li>";});
+ h+='</ul></div></div>';
+ var bW='<a class="btn '+(p.reco==="waze"?"pri":"")+'" href="'+L.waze+'"'+(L.app?'':' target="_blank" rel="noopener"')+'>Lancer Waze'+(p.reco==="waze"?" <small>Recommandé</small>":"")+'</a>';
+ var bG='<a class="btn '+(p.reco==="gmaps"?"pri":"")+'" href="'+L.gmaps+'"'+(L.app?'':' target="_blank" rel="noopener"')+'>Lancer Google Maps'+(p.reco==="gmaps"?" <small>Recommandé</small>":"")+'</a>';
+ h+='<div class="go">'+(p.reco==="waze"?bW+bG:bG+bW)+'</div><div class="hint">'+esc(p.pourquoi)+(via&&p.reco!=="gmaps"?" Le passage conseillé n'est transmis qu'à Google Maps.":"")+'</div>';
+ if(L.app)h+='<div class="hint" style="margin-top:8px">L\'appli ne s\'ouvre pas ? Version web : <a href="'+L.wazeWeb+'" target="_blank" rel="noopener" style="color:var(--acc)">Waze</a> · <a href="'+L.gmapsWeb+'" target="_blank" rel="noopener" style="color:var(--acc)">Google Maps</a></div>';
+ h+='<button class="btn reset" data-a="copy" data-addr="'+esc(addr)+'">📋 Copier l\'adresse</button><div class="hint" id="copyMsg"></div>';
+ h+='<button class="btn reset" data-a="reset">Nouveau transport</button>';
+ h+='<div class="foot">Prépare le trajet avant de démarrer : ne manipule pas le téléphone en roulant. Le trafic, les accidents et les fermetures de routes sont gérés par Waze ou Google Maps. L\'appli ne remplace ni la régulation ni le code de la route.</div>';
+ el.innerHTML=h;
+}
+
+function vEtabs(){
+ var h="";
+ if(ui.form&&ui.form.kind==="etab")h+=fEtab(ui.form.id?etab(ui.form.id):null);
+ else h+='<button class="btn pri" style="width:100%;margin-bottom:14px" data-a="newEtab">＋ Ajouter un établissement</button>';
+ if(!state.etabs.length&&!ui.form)h+='<div class="empty">Ajoute les hôpitaux, urgences, maternités, centres de dialyse et EHPAD où tu vas souvent. Note l\'entrée à prendre, le code du portail ou le parking : ils s\'afficheront sur la feuille de route.</div>';
+ var n=state.etabs.length;
+ state.etabs.forEach(function(x,i){
+  h+='<div class="item"><div class="t"><span style="color:var(--mut)">'+(i+1)+'.</span> '+esc(x.nom)+' <span class="tag blue">'+esc(x.type)+'</span></div><div class="m">'+esc(x.adresse)+'</div>'+
+   (x.infos?'<div class="x">📍 '+esc(x.infos)+'</div>':"")+(x.via?'<div class="m">Passage confort : via '+esc(x.via)+'</div>':"")+
+   '<div class="row">'+(i>0?'<button class="btn small" data-a="up" data-id="'+x.id+'" aria-label="Monter">▲</button>':"")+(i<n-1?'<button class="btn small" data-a="down" data-id="'+x.id+'" aria-label="Descendre">▼</button>':"")+'<button class="btn small" data-a="editEtab" data-id="'+x.id+'">Modifier</button><button class="btn small danger" data-a="askDel" data-k="etab" data-id="'+x.id+'">Supprimer</button></div>'+
+   (ui.confirm===x.id?'<div class="confirm">Supprimer « '+esc(x.nom)+' » ?<div class="row"><button class="btn small danger" data-a="delEtab" data-id="'+x.id+'">Oui, supprimer</button><button class="btn small" data-a="noDel">Annuler</button></div></div>':"")+'</div>';});
+ h+='<h2>Sauvegarde</h2><div class="hint">Tes infos (entrées, codes, zones) sont enregistrées uniquement sur ce téléphone. Copie-les de temps en temps dans une note pour ne pas les perdre.</div>'+
+  '<div class="row" style="margin-top:8px"><button class="btn small" data-a="exp">Copier mes données</button><button class="btn small" data-a="impShow">Restaurer</button></div>'+
+  (ui.imp?'<textarea id="impTxt" style="margin-top:8px" placeholder="Colle ici les données copiées"></textarea><div class="row" style="margin-top:8px"><button class="btn small pri" data-a="imp">Restaurer ces données</button></div>':'')+
+  '<div class="hint" id="bkMsg"></div>';
+ return h;
+}
+function fEtab(x){
+ x=x||{nom:"",type:"Urgences",adresse:"",infos:"",via:""};
+ var o="";ETYPES.forEach(function(t){o+='<option'+(t===x.type?" selected":"")+">"+esc(t)+"</option>";});
+ return '<form class="form" data-f="etab"><label>Nom</label><input name="nom" required value="'+esc(x.nom)+'" placeholder="Ex. Urgences CH Sud Francilien">'+
+ '<label>Type</label><select name="type">'+o+'</select>'+
+ '<label>Adresse (telle que tu la taperais dans Waze)</label><input name="adresse" required value="'+esc(x.adresse)+'" placeholder="Ex. 40 avenue Serge Dassault, Corbeil-Essonnes">'+
+ '<label>Infos d\'arrivée</label><textarea name="infos" placeholder="Entrée urgences côté parking B, code portail 1234, se garer sur le quai ambulances…">'+esc(x.infos)+'</textarea>'+
+ '<label>Passage confort (facultatif)</label><input name="via" value="'+esc(x.via)+'" placeholder="Ex. N104 sortie 32 ou une rue à emprunter">'+
+ '<div class="hint">Ajouté comme étape dans Google Maps pour les patients à transporter en douceur, jamais en urgence vitale.</div>'+
+ '<div class="row" style="margin-top:14px"><button class="btn pri" type="submit">Enregistrer</button><button class="btn" type="button" data-a="cancel">Annuler</button></div></form>';
+}
+
+function vZones(){
+ var h="";
+ if(ui.form&&ui.form.kind==="zone"){var z=null;state.zones.forEach(function(q){if(q.id===ui.form.id)z=q;});h+=fZone(z);}
+ else h+='<button class="btn pri" style="width:100%;margin-bottom:14px" data-a="newZone">＋ Ajouter une zone à éviter</button>';
+ if(!state.zones.length&&!ui.form)h+='<div class="empty">Note ici ce que tu connais du terrain et qu\'aucun GPS ne sait : rue pavée, série de dos-d\'âne, route défoncée, virages serrés… La feuille de route te les rappellera selon l\'état du patient.</div>';
+ state.zones.forEach(function(z){var d=z.etab?etab(z.etab):null;
+  h+='<div class="item"><div class="t">'+esc(z.nom)+'</div><div class="m"><span class="tag">'+esc(ZTYPES[z.type]||z.type)+'</span> · '+(d?"vers "+esc(d.nom):"toutes destinations")+'</div>'+(z.note?'<div class="x">'+esc(z.note)+'</div>':"")+
+  '<div class="row"><button class="btn small" data-a="editZone" data-id="'+z.id+'">Modifier</button><button class="btn small danger" data-a="askDel" data-k="zone" data-id="'+z.id+'">Supprimer</button></div>'+
+  (ui.confirm===z.id?'<div class="confirm">Supprimer « '+esc(z.nom)+' » ?<div class="row"><button class="btn small danger" data-a="delZone" data-id="'+z.id+'">Oui, supprimer</button><button class="btn small" data-a="noDel">Annuler</button></div></div>':"")+'</div>';});
+ return h;
+}
+function fZone(z){
+ z=z||{nom:"",type:"ralentisseurs",etab:"",note:""};
+ var o="";Object.keys(ZTYPES).forEach(function(k){o+='<option value="'+k+'"'+(k===z.type?" selected":"")+">"+esc(ZTYPES[k])+"</option>";});
+ var e='<option value="">Toutes destinations</option>';state.etabs.forEach(function(x){e+='<option value="'+x.id+'"'+(x.id===z.etab?" selected":"")+">Vers "+esc(x.nom)+"</option>";});
+ return '<form class="form" data-f="zone"><label>Lieu</label><input name="nom" required value="'+esc(z.nom)+'" placeholder="Ex. Rue de la République, centre-ville">'+
+ '<label>Problème</label><select name="type">'+o+'</select>'+
+ '<label>Concerne</label><select name="etab">'+e+'</select>'+
+ '<label>Comment l\'éviter (facultatif)</label><textarea name="note" placeholder="Ex. passer par le boulevard extérieur, +2 min">'+esc(z.note)+'</textarea>'+
+ '<div class="row" style="margin-top:14px"><button class="btn pri" type="submit">Enregistrer</button><button class="btn" type="button" data-a="cancel">Annuler</button></div></form>';
+}
+
+document.addEventListener("click",function(ev){
+ var b=ev.target.closest("[data-a]");if(!b)return;
+ var a=b.getAttribute("data-a"),id=b.getAttribute("data-id");
+ if(a==="etat"){ui.etat=id;keepUi();render();var f=document.getElementById("feuille");if(f&&(ui.destId||ui.libre))f.scrollIntoView({behavior:"smooth",block:"start"});}
+ else if(a==="dest"){ui.destId=(ui.destId===id?null:id);if(ui.destId)ui.libre="";keepUi();render();var f2=document.getElementById("feuille");if(f2&&ui.etat&&ui.destId)f2.scrollIntoView({behavior:"smooth",block:"start"});}
+ else if(a==="copy"){var ad=b.getAttribute("data-addr");var msg=document.getElementById("copyMsg");
+  var ok=function(){if(msg)msg.textContent="✓ Adresse copiée : ouvre Waze ou Google Maps et colle-la dans la recherche.";};
+  var ko=function(){if(msg)msg.textContent="Copie bloquée ici. Adresse : "+ad;};
+  try{navigator.clipboard.writeText(ad).then(ok,ko);}catch(e){ko();}}
+ else if(a==="exp"){var txt=JSON.stringify(state);var bm=document.getElementById("bkMsg");
+  try{navigator.clipboard.writeText(txt).then(function(){bm.textContent="✓ Données copiées : colle-les dans une note ou un message à toi-même.";},function(){bm.textContent="Copie bloquée.";});}catch(e){bm.textContent="Copie bloquée.";}}
+ else if(a==="impShow"){ui.imp=!ui.imp;render();}
+ else if(a==="imp"){var bm2=document.getElementById("bkMsg");try{var d=JSON.parse(document.getElementById("impTxt").value);
+  if(!d||!Array.isArray(d.etabs)||!Array.isArray(d.zones))throw 0;d.rev=Math.max(d.rev||0,state.rev||0);state=d;ui.imp=false;save();render();
+  var b3=document.getElementById("bkMsg");if(b3)b3.textContent="✓ Données restaurées.";}catch(e){bm2.textContent="Ces données ne sont pas valides.";}}
+ else if(a==="reset"){ui.etat=null;ui.destId=null;ui.libre="";keepUi();render();window.scrollTo(0,0);}
+ else if(a==="newEtab"){ui.form={kind:"etab"};ui.confirm=null;render();}
+ else if(a==="editEtab"){ui.form={kind:"etab",id:id};ui.confirm=null;render();window.scrollTo(0,0);}
+ else if(a==="newZone"){ui.form={kind:"zone"};ui.confirm=null;render();}
+ else if(a==="editZone"){ui.form={kind:"zone",id:id};ui.confirm=null;render();window.scrollTo(0,0);}
+ else if(a==="cancel"){ui.form=null;render();}
+ else if(a==="askDel"){ui.confirm=id;render();}
+ else if(a==="noDel"){ui.confirm=null;render();}
+ else if(a==="delEtab"){state.etabs=state.etabs.filter(function(x){return x.id!==id;});state.zones.forEach(function(z){if(z.etab===id)z.etab="";});if(ui.destId===id)ui.destId=null;ui.confirm=null;save();render();}
+ else if(a==="up"||a==="down"){var k=-1;state.etabs.forEach(function(x,i){if(x.id===id)k=i;});var j=a==="up"?k-1:k+1;if(k>=0&&j>=0&&j<state.etabs.length){var t=state.etabs[k];state.etabs[k]=state.etabs[j];state.etabs[j]=t;save();render();}}
+ else if(a==="delZone"){state.zones=state.zones.filter(function(x){return x.id!==id;});ui.confirm=null;save();render();}
+});
+document.addEventListener("input",function(ev){
+ if(ev.target.id==="filtre"){var q=ev.target.value.trim().toLowerCase();Array.prototype.forEach.call(document.querySelectorAll(".chip"),function(c){c.style.display=(!q||c.getAttribute("data-q").indexOf(q)>=0)?"":"none";});return;}
+ if(ev.target.id==="libre"){ui.libre=ev.target.value;if(ui.libre.trim()&&ui.destId){ui.destId=null;var on=document.querySelector(".chip.on");if(on)on.classList.remove("on");}keepUi();paintFeuille();}
+});
+document.addEventListener("submit",function(ev){
+ var f=ev.target;var k=f.getAttribute("data-f");if(!k)return;ev.preventDefault();
+ var v={};Array.prototype.forEach.call(f.elements,function(el){if(el.name)v[el.name]=el.value.trim();});
+ if(!v.nom)return;
+ if(k==="etab"){if(!v.adresse)return;
+  if(ui.form.id){var x=etab(ui.form.id);if(x){x.nom=v.nom;x.type=v.type;x.adresse=v.adresse;x.infos=v.infos;x.via=v.via;}}
+  else state.etabs.push({id:uid(),nom:v.nom,type:v.type,adresse:v.adresse,infos:v.infos,via:v.via});}
+ else{
+  if(ui.form.id){state.zones.forEach(function(z){if(z.id===ui.form.id){z.nom=v.nom;z.type=v.type;z.etab=v.etab;z.note=v.note;}});}
+  else state.zones.push({id:uid(),nom:v.nom,type:v.type,etab:v.etab,note:v.note});}
+ ui.form=null;save();render();
+});
+window.addEventListener("hashchange",function(){ui.form=null;ui.confirm=null;render();window.scrollTo(0,0);});
+render();
+if("serviceWorker" in navigator&&location.protocol==="https:"){try{navigator.serviceWorker.register("sw.js");}catch(e){}}
+})();
+</script></body></html>
