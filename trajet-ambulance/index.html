@@ -679,7 +679,6 @@ function initZoneMap(){
 }
 document.addEventListener("change",function(ev){
  if(ev.target&&ev.target.name==="rayon"&&ui.zdraw)ui.zdraw();
- if(ev.target&&ev.target.id==="pecEtab"){ui.pec={q:"",etab:ev.target.value};var pi=document.getElementById("pec");if(pi)pi.value="";keepUi();paintFeuille();}
 });
 
 /* ===== Suggestions d'adresse : Photon (OpenStreetMap, trié par proximité) + Base Adresse Nationale (IGN, numéros de rue) ===== */
@@ -742,10 +741,11 @@ function acInput(inp){
 }
 function acPick(i){
  var it=AC.items[i],inp=AC.input,f=AC.field;if(!it||!inp)return;acHide();
- if(f==="pec"){var ps=document.getElementById("pecEtab");
-  if(it.etab){ui.pec={q:"",etab:it.etab};inp.value="";if(ps)ps.value=it.etab;}
-  else{ui.pec={q:it.label,etab:"",gq:it.label,glat:it.lat,glon:it.lon,glabel:it.label};inp.value=it.label;if(ps)ps.value="";}
-  inp.blur();keepUi();paintFeuille();}
+ if(f==="pec"){
+  if(it.etab){ui.pec={q:"",etab:it.etab};inp.value="";}
+  else{ui.pec={q:it.label,etab:"",gq:it.label,glat:it.lat,glon:it.lon,glabel:it.label};inp.value=it.label;}
+  ui.pecFiltre="";var pf=document.getElementById("pecFiltre");if(pf)pf.value="";
+  inp.blur();keepUi();paintDest();paintFeuille();}
  else if(f==="libre"){inp.blur();
   if(it.etab){ui.destId=it.etab;ui.libre="";ui.libreGeo=null;ui.filtre="";keepUi();render();}
   else{ui.libre=it.label;ui.libreGeo={q:it.label,lat:it.lat,lon:it.lon};ui.destId=null;inp.value=it.label;keepUi();paintDest();paintFeuille();}
@@ -760,21 +760,22 @@ document.addEventListener("mousedown",function(ev){if(ev.target.closest&&ev.targ
 document.addEventListener("focusout",function(ev){var t=ev.target;if(t&&t.getAttribute&&t.getAttribute("data-ac"))setTimeout(function(){if(document.activeElement!==t)acHide();},250);});
 document.addEventListener("keydown",function(ev){if(ev.key==="Escape")acHide();});
 
-/* ===== Lieux du rendez-vous : favoris affichés, recherche dans tous les lieux enregistrés ===== */
-function chipHtml(x){var f=isFav(x.id),t=f?"Retirer des favoris":"Ajouter aux favoris";
- return '<div class="chipw"><button class="chip'+(ui.destId===x.id?" on":"")+'" data-a="dest" data-id="'+x.id+'">'+esc(x.nom)+'<small>'+esc(x.type)+'</small></button><button type="button" class="fav'+(f?" on":"")+'" data-a="fav" data-id="'+x.id+'" aria-label="'+t+'" title="'+t+'">'+(f?"★":"☆")+'</button></div>';}
-function destList(){
- var q=(ui.filtre||"").trim(),h="";
+/* ===== Lieux enregistrés (rendez-vous et prise en charge) : favoris affichés, recherche dans tous les lieux ===== */
+function chipHtml(x,k){var f=isFav(x.id),t=f?"Retirer des favoris":"Ajouter aux favoris",cur=k==="pec"?ui.pec.etab:ui.destId;
+ return '<div class="chipw"><button class="chip'+(cur===x.id?" on":"")+'" data-a="'+(k==="pec"?"pecPick":"dest")+'" data-id="'+x.id+'">'+esc(x.nom)+'<small>'+esc(x.type)+'</small></button><button type="button" class="fav'+(f?" on":"")+'" data-a="fav" data-id="'+x.id+'" aria-label="'+t+'" title="'+t+'">'+(f?"★":"☆")+'</button></div>';}
+function placeList(k){
+ var pec=k==="pec",q=((pec?ui.pecFiltre:ui.filtre)||"").trim(),cur=pec?ui.pec.etab:ui.destId,h="";
  if(q){var m=matchEtabs(q);
-  if(!m.length)return '<div class="sub">Aucun lieu enregistré ne correspond à « '+esc(q)+' ». Tape plutôt l\'adresse ci-dessous.</div>';
+  if(!m.length)return '<div class="sub">Aucun lieu enregistré ne correspond à « '+esc(q)+' ».'+(pec?' Tape plutôt l\'adresse au-dessus.':' Tape plutôt l\'adresse ci-dessous.')+'</div>';
   h='<div class="sub">'+m.length+(m.length>1?" lieux trouvés":" lieu trouvé")+' · touche ☆ pour l\'ajouter à tes favoris</div><div class="chips">';
-  m.slice(0,40).forEach(function(x){h+=chipHtml(x);});return h+'</div>';}
+  m.slice(0,40).forEach(function(x){h+=chipHtml(x,k);});return h+'</div>';}
  var nf=state.etabs.filter(function(x){return isFav(x.id);}).length;
- var list=state.etabs.filter(function(x){return isFav(x.id)||x.id===ui.destId;});
+ var list=state.etabs.filter(function(x){return isFav(x.id)||x.id===cur;});
  h+=nf?'<div class="sub">⭐ Tes favoris</div>':'<div class="sub">Aucun favori pour l\'instant : cherche un lieu ci-dessus et touche ☆ pour le garder ici (favoris propres à ce téléphone).</div>';
- if(list.length){h+='<div class="chips">';list.forEach(function(x){h+=chipHtml(x);});h+='</div>';}
+ if(list.length){h+='<div class="chips">';list.forEach(function(x){h+=chipHtml(x,k);});h+='</div>';}
  return h;}
-function paintDest(){var el=document.getElementById("destList");if(el)el.innerHTML=destList();}
+function destList(){return placeList("dest");}
+function paintDest(){var el=document.getElementById("destList");if(el)el.innerHTML=placeList("dest");var el2=document.getElementById("pecList");if(el2)el2.innerHTML=placeList("pec");}
 
 /* ===== Comptes et partage d'équipe (Supabase) ===== */
 var SB_URL="https://elesendfemgejwvjcsww.supabase.co",SB_KEY="sb_publishable_exSas_Tpp0slPPYO--cLBg_2DGp6g2q";
@@ -991,12 +992,9 @@ function vTrajet(){
    h+='<button class="tile'+(ui.etat===e.id?" on":"")+'" style="--c:'+p.c+'" data-a="etat" data-id="'+e.id+'"><span class="ic">'+e.ic+'</span><span><b>'+esc(e.label)+'</b><small>'+esc(e.sous)+'</small></span></button>';});
   h+='</div>';}
  if(prog){
-  var opt=function(x){return '<option value="'+x.id+'"'+(ui.pec.etab===x.id?" selected":"")+'>'+esc(x.nom)+'</option>';};
-  var favE=state.etabs.filter(function(x){return isFav(x.id);}),othE=state.etabs.filter(function(x){return !isFav(x.id);});
-  var eo='<option value="">… ou choisir un lieu enregistré (sortie d\'hôpital, EHPAD…)</option>'+(favE.length?'<optgroup label="⭐ Favoris">'+favE.map(opt).join("")+'</optgroup><optgroup label="Autres lieux enregistrés">'+othE.map(opt).join("")+'</optgroup>':state.etabs.map(opt).join(""));
   h+='<h2>1 · Prise en charge du patient</h2><input id="pec" data-ac="pec" type="text" placeholder="Adresse du patient (ex. 12 rue Carnot, Pau)" value="'+esc(ui.pec.etab?"":ui.pec.q)+'" autocomplete="off">'+
-   '<select id="pecEtab" style="margin-top:8px">'+eo+'</select>'+
    '<div class="hint">Cette adresse reste sur ce téléphone le temps du transport : elle n\'est jamais enregistrée dans la base de l\'équipe.</div>';
+  if(state.etabs.length)h+='<div class="or">ou un lieu enregistré (sortie d\'hôpital, EHPAD…) :</div><input id="pecFiltre" type="search" placeholder="🔍 Chercher un lieu enregistré ('+state.etabs.length+')" value="'+esc(ui.pecFiltre||"")+'" autocomplete="off" style="margin-bottom:6px"><div id="pecList">'+placeList("pec")+'</div>';
  }
  h+='<h2>2 · '+(prog?"Lieu du rendez-vous":"Destination")+'</h2>';
  if(!state.etabs.length)h+='<div class="empty">Aucun établissement enregistré.<button class="btn pri wide" style="margin-top:10px" data-a="searchStart">📍 Rechercher autour de moi</button></div>';
@@ -1112,6 +1110,7 @@ document.addEventListener("click",function(ev){
  if(a==="mode"){if(ui.mode!==id){ui.mode=id;ui.route=null;ui.dep=null;ui.depEdit=false;ui.leg=1;ui.etat=id==="programme"?"programme":(ui.etat==="programme"?null:ui.etat);keepUi();render();}}
  else if(a==="etat"){ui.etat=id;keepUi();render();var f=document.getElementById("feuille");if(f&&(ui.destId||ui.libre))f.scrollIntoView({behavior:"smooth",block:"start"});}
  else if(a==="dest"){ui.destId=(ui.destId===id?null:id);if(ui.destId){ui.libre="";ui.libreGeo=null;}ui.filtre="";keepUi();render();var f2=document.getElementById("feuille");if(f2&&ui.etat&&ui.destId)f2.scrollIntoView({behavior:"smooth",block:"start"});}
+ else if(a==="pecPick"){ui.pec=(ui.pec.etab===id)?{q:"",etab:""}:{q:"",etab:id};ui.pecFiltre="";keepUi();render();}
  else if(a==="fav"){toggleFav(id);if(document.getElementById("destList"))paintDest();else render();}
  else if(a==="acPick"){acPick(+b.getAttribute("data-i"));}
  else if(a==="copy"){var ad=b.getAttribute("data-addr");var msg=document.getElementById("copyMsg");
@@ -1155,7 +1154,7 @@ document.addEventListener("click",function(ev){
   state.etabs=state.etabs.concat(newE);state.zones=state.zones.concat(newZ);delete state.localBackup;save();
   if(newE.length)enqueue({t:"putE",rows:newE.map(etabRow)});if(newZ.length)enqueue({t:"putZ",rows:newZ.map(zoneRow)});render();}
  else if(a==="dropBackup"){delete state.localBackup;save();render();}
- else if(a==="reset"){ui.etat=ui.mode==="programme"?"programme":null;ui.destId=null;ui.libre="";ui.libreGeo=null;ui.filtre="";ui.pec={q:"",etab:""};ui.leg=1;ui.dep=null;ui.depEdit=false;ui.route=null;keepUi();render();window.scrollTo(0,0);}
+ else if(a==="reset"){ui.etat=ui.mode==="programme"?"programme":null;ui.destId=null;ui.libre="";ui.libreGeo=null;ui.filtre="";ui.pecFiltre="";ui.pec={q:"",etab:""};ui.leg=1;ui.dep=null;ui.depEdit=false;ui.route=null;keepUi();render();window.scrollTo(0,0);}
  else if(a==="leg2"||a==="leg1"){ui.leg=a==="leg2"?2:1;keepUi();paintFeuille();var lg=document.getElementById(a==="leg2"?"leg2":"leg1");if(lg)lg.scrollIntoView({behavior:"smooth",block:"start"});}
  else if(a==="newEtab"){ui.form={kind:"etab"};ui.confirm=null;render();}
  else if(a==="editEtab"){ui.form={kind:"etab",id:id};ui.confirm=null;render();window.scrollTo(0,0);}
@@ -1173,7 +1172,8 @@ document.addEventListener("input",function(ev){
  if(t.getAttribute&&t.getAttribute("data-ac"))acInput(t);
  if(t.name==="adresse"&&t.form&&t.form.getAttribute("data-f")==="etab"&&t.form.elements.lat){t.form.elements.lat.value="";t.form.elements.lon.value="";}
  if(t.id==="filtre"){ui.filtre=t.value;paintDest();return;}
- if(ev.target.id==="pec"){ui.pec={q:ev.target.value,etab:""};var ps=document.getElementById("pecEtab");if(ps)ps.value="";keepUi();paintFeuille();return;}
+ if(t.id==="pecFiltre"){ui.pecFiltre=t.value;var pl=document.getElementById("pecList");if(pl)pl.innerHTML=placeList("pec");return;}
+ if(ev.target.id==="pec"){var had=ui.pec.etab;ui.pec={q:ev.target.value,etab:""};if(had)paintDest();keepUi();paintFeuille();return;}
  if(ev.target.id==="libre"){ui.libre=ev.target.value;if(ui.libre.trim()&&ui.destId){ui.destId=null;paintDest();}keepUi();paintFeuille();}
 });
 document.addEventListener("submit",function(ev){
