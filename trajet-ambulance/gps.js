@@ -47,7 +47,7 @@ function manStreet(R,k){var m=R.man[k];if(!m)return"";var s=(m.street_names&&m.s
  if(m.type>=4&&m.type<=6)s=G.dest.nom||"";return s;}
 
 /* ---------- géométrie ---------- */
-function mkProj(lat0){var kx=111320*Math.cos(lat0*Math.PI/180),ky=110540;return{xy:function(p){return[p[1]*kx,p[0]*ky];}};}
+function mkProj(lat0){var kx=111320*Math.cos(lat0*Math.PI/180),ky=110540;return{xy:function(p){return[p[1]*kx,p[0]*ky];},ll:function(x,y){return[y/ky,x/kx];}};}
 function buildRoute(pts,man,summary,shape){
  var P=mkProj(pts[0][0]),xy=pts.map(P.xy),cum=[0];
  for(var i=1;i<xy.length;i++){var dx=xy[i][0]-xy[i-1][0],dy=xy[i][1]-xy[i-1][1];cum.push(cum[i-1]+Math.sqrt(dx*dx+dy*dy));}
@@ -121,6 +121,7 @@ var CSS='#gps{position:fixed;inset:0;z-index:3000;background:#1c1f25;color:#f1f3
 '#gps .gdest{display:flex;flex-direction:column;align-items:flex-end;gap:6px;min-width:0}#gps .gdest b{font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:210px}'+
 '#gps .gprof{display:flex;align-items:center;gap:6px;background:#13281d;color:#6fe0a3;border:1px solid #1f5a3a;padding:3px 10px;border-radius:999px;font-size:12.5px;font-weight:500;max-width:210px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}#gps .gprof i{width:8px;height:8px;border-radius:50%;background:#2fbf71;flex:0 0 auto}'+
 '#gps .gbtns{display:grid;grid-template-columns:2fr 1fr;gap:10px}#gps .gsig{min-height:56px;border-radius:14px;border:0;background:#f5a524;color:#17130a;display:flex;align-items:center;justify-content:center;gap:8px;font-size:19px;font-weight:900}'+
+'#gps .gabord{min-height:56px;border-radius:14px;border:0;background:#1f9d5a;color:#fff;display:flex;align-items:center;justify-content:center;gap:10px;padding:0 16px;font-size:17px;font-weight:900;box-shadow:0 4px 14px rgba(0,0,0,.35)}#gps .gabord i{width:26px;height:26px;border:2.5px solid #fff;border-radius:7px;display:flex;align-items:center;justify-content:center;flex:0 0 auto}#gps .gabord:disabled{opacity:.6}'+
 '#gps .gstop{min-height:56px;border-radius:14px;border:1px solid #5a2a2d;background:#2a1719;color:#ff9a9d;font-size:16px;font-weight:700}'+
 '#gps .gbig{min-height:64px;border-radius:16px;border:0;display:flex;align-items:center;justify-content:center;gap:10px;font-size:19px;font-weight:900}'+
 '#gps .gsec{min-height:48px;border-radius:14px;border:1px solid #2c313c;background:#0e1014;color:#f1f3f6;font-size:15px;font-weight:700}'+
@@ -212,13 +213,14 @@ function paintPill(){
 }
 function remTime(){var R=G.R,a=G.along,t=0;R.man.forEach(function(m){if(m.e<=a)return;if(m.d>=a)t+=m.time||0;else t+=(m.time||0)*(m.e-a)/m.lenM;});return t;}
 function paintPanel(force){
- var p=$("#gPan");if(!p)return;var mode=G.rec?"rec":(G.arrived?"arr":"nav"),h;
+ var p=$("#gPan");if(!p)return;var mode=G.rec?"rec":(G.arrived?(G.opts.pickup?"arrP":"arr"):"nav"),h;
  var rt=G.R?remTime():0,rd=G.R?Math.max(0,G.R.total-G.along):0,t1=G.R?hhmm(now()+rt*1000):"--:--",t2=G.R?Math.max(1,Math.round(rt/60))+" min · "+fmtDist(rd):"Calcul…";
  if(mode===G.panMode&&!force){var a=$("#gEtaT"),b=$("#gEtaM"),c=$("#gDestN");if(a&&a.textContent!==t1)a.textContent=t1;if(b&&b.textContent!==t2)b.textContent=t2;if(c&&c.textContent!==(G.dest.nom||"Destination"))c.textContent=G.dest.nom||"Destination";return;}
  G.panMode=mode;var attr='<div class="gattr">© OpenStreetMap · OpenFreeMap · Valhalla</div>';
  var sig='<div class="gbtns"><button type="button" class="gsig" data-g="sig">'+glyph("danger",22,"#17130a","#f5a524")+'<span>Signaler</span></button><button type="button" class="gstop" data-g="stop">Arrêter</button></div>';
  if(mode==="rec")h='<div style="font-size:14.5px;color:#9aa3b2;text-align:center">Touche quand la route redevient correcte.</div><button type="button" class="gbig" style="background:#f2c200;color:#2b2300" data-g="recEnd">'+svgI(IC.stop,22,"#2b2300",2.6)+'<span>Fin de la route dégradée</span></button><button type="button" class="gsec" data-g="recCancel">Annuler le signalement</button>';
  else if(mode==="arr")h='<button type="button" class="gbig" style="background:#00387B;color:#fff" data-g="finish">Terminer le guidage</button>'+sig;
+ else if(mode==="arrP")h='<div class="geta"><div><div class="t">Arrivé</div><div class="m">Prise en charge</div></div><button type="button" class="gabord" id="gAbord" data-g="abord"><i>'+svgI("M5 12.5l4.5 4.5L19 7.5",18,"#fff",3)+'</i><span>Patient à bord</span></button></div>'+sig;
  else h='<div class="geta"><div><div class="t" id="gEtaT">'+t1+'</div><div class="m" id="gEtaM">'+esc(t2)+'</div></div><div class="gdest"><b id="gDestN">'+esc(G.dest.nom||"Destination")+'</b>'+(G.opts.label?'<span class="gprof"><i></i><span>'+esc(G.opts.label)+'</span></span>':'')+'</div></div>'+sig;
  p.innerHTML=h+attr;
 }
@@ -258,13 +260,26 @@ function computeHazards(){
 var W_CAS=["interpolate",["exponential",1.5],["zoom"],12,8,15,13,17,21,19,38],W_FIL=["interpolate",["exponential",1.5],["zoom"],12,4.5,15,8,17,13,19,24],
  W_OC=["interpolate",["exponential",1.5],["zoom"],12,4,15,6.5,17,10,19,16],W_OF=["interpolate",["exponential",1.5],["zoom"],12,2,15,4,17,6.5,19,10],
  W_DOT=["interpolate",["exponential",1.5],["zoom"],12,2.5,15,4.2,17,6.8,19,12.5],W_DOTE=["interpolate",["exponential",1.5],["zoom"],12,3.8,15,6,17,9,19,15.5],W_ODOT=["interpolate",["exponential",1.5],["zoom"],12,1.5,15,2.6,17,4.2,19,6.8];
+var W_ARR=["interpolate",["exponential",1.5],["zoom"],12,2.6,15,4.8,17,7.8,19,14.4],W_ARRO=["interpolate",["exponential",1.5],["zoom"],12,2.2,15,3.2,17,5.2,19,9.6];
+var TURN={2:1,3:1,9:1,10:1,11:1,12:1,13:1,14:1,15:1,16:1,18:1,19:1,20:1,21:1,23:1,24:1,26:1,27:1,37:1,38:1};
+function manArrow(){
+ if(!G.mapReady)return;var R=G.R,k=G.next,m=R&&R.man[k],key=(R?R.total:0)+"|"+k+"|"+!!G.arrived+"|"+!!G.rerouting;if(key===G._manKey)return;G._manKey=key;
+ var Lf=[],Hf=[];
+ if(m&&!G.arrived&&!G.rerouting&&TURN[m.type]){
+  var a=Math.max(0,m.d-25),b=Math.min(R.total,m.d+((m.type===26||m.type===27)?28:14));
+  if(b-a>8){var sh=slice(R,a,b),P=mkProj(sh[0][0]),e=P.xy(pointAt(R,b)),f=P.xy(pointAt(R,Math.max(a,b-5))),dx=e[0]-f[0],dy=e[1]-f[1],L=Math.sqrt(dx*dx+dy*dy)||1,ux=dx/L,uy=dy/L,nx=-uy,ny=ux,hw=7.5,hl=10;
+   Lf.push(line(sh));
+   var ring=[[e[0]+nx*hw,e[1]+ny*hw],[e[0]+ux*hl,e[1]+uy*hl],[e[0]-nx*hw,e[1]-ny*hw],[e[0]+nx*hw,e[1]+ny*hw]].map(function(q){var g=P.ll(q[0],q[1]);return[g[1],g[0]];});
+   Hf.push({type:"Feature",properties:{},geometry:{type:"Polygon",coordinates:[ring]}});}}
+ src("gManL",fc(Lf));src("gManH",fc(Hf));
+}
 var KCOL=["match",["get","k"],"ralentissement","#ff8a1f","arret","#f03e3e","#8b95a6"];
 function fc(f){return{type:"FeatureCollection",features:f||[]};}
 function line(c,props){return{type:"Feature",properties:props||{},geometry:{type:"LineString",coordinates:c.map(function(p){return[p[1],p[0]];})}};}
 function addLayers(){
  var m=G.map,ly=m.getStyle().layers||[],before,last=-1;ly.forEach(function(l,i){if(l.type!=="symbol")last=i;});
  for(var i=last+1;i<ly.length;i++){if(ly[i].type==="symbol"){before=ly[i].id;break;}}
- ["gRoute","gOnA","gOffA","gOnD","gOffD","gRecD"].forEach(function(id){m.addSource(id,{type:"geojson",data:fc()});});
+ ["gRoute","gOnA","gOffA","gOnD","gOffD","gRecD","gManL","gManH"].forEach(function(id){m.addSource(id,{type:"geojson",data:fc()});});
  function L(o){m.addLayer(o,before);}
  var round={"line-cap":"round","line-join":"round"};
  L({id:"gOffAc",type:"line",source:"gOffA",layout:round,paint:{"line-color":"#121418","line-width":W_OC}});
@@ -279,6 +294,10 @@ function addLayers(){
  L({id:"gOnDd",type:"line",source:"gOnD",layout:round,paint:{"line-color":"#ffd43b","line-width":W_DOT,"line-dasharray":[0,2.2]}});
  L({id:"gRecE",type:"line",source:"gRecD",layout:round,paint:{"line-color":"#2b2300","line-width":W_DOTE,"line-dasharray":[0,1.6]}});
  L({id:"gRecDd",type:"line",source:"gRecD",layout:round,paint:{"line-color":"#ffd43b","line-width":W_DOT,"line-dasharray":[0,2.2]}});
+ L({id:"gManLc",type:"line",source:"gManL",layout:round,paint:{"line-color":"#0c2f73","line-width":W_FIL}});
+ L({id:"gManHo",type:"line",source:"gManH",layout:{"line-join":"round"},paint:{"line-color":"#0c2f73","line-width":W_ARRO}});
+ L({id:"gManLf",type:"line",source:"gManL",layout:round,paint:{"line-color":"#ffffff","line-width":W_ARR}});
+ L({id:"gManHf",type:"fill",source:"gManH",paint:{"fill-color":"#ffffff"}});
  m.addSource("gPins",{type:"geojson",data:fc()});
  m.addLayer({id:"gPinsL",type:"symbol",source:"gPins",layout:{"icon-image":["get","img"],"icon-anchor":"bottom","icon-allow-overlap":true,"icon-ignore-placement":true,"icon-pitch-alignment":"viewport","icon-rotation-alignment":"viewport","icon-size":["interpolate",["linear"],["zoom"],13,0.7,16,0.9,18,1]}});
  m.on("click","gPinsL",function(e){var f=e.features&&e.features[0],x=f&&G.pinData&&G.pinData[f.properties.id];if(x)infoCard(x);});
@@ -346,11 +365,17 @@ function onFix(c){
 }
 function update(){
  var R=G.R;if(!R)return;
- if(!G.arrived&&!G.rerouting){var rem=R.total-G.along,dd=G.pos?A.distM(G.pos,[G.dest.lat,G.dest.lon]):1e9;if((rem<25&&(G.prj&&G.prj.off<40))||dd<30){arrive();return;}}
+ if(!G.arrived&&!G.rerouting){var rem=R.total-G.along,dd=G.pos?A.distM(G.pos,[G.dest.lat,G.dest.lon]):1e9,pk=!!G.opts.pickup;if((rem<(pk?40:25)&&(G.prj&&G.prj.off<40))||dd<(pk?60:30)){arrive();return;}}
  var k=-1;for(var i=0;i<R.man.length;i++){var t=R.man[i].type;if(t>=1&&t<=3)continue;if(R.man[i].d>G.along+2){k=i;break;}}G.next=k;
- paintBanner();paintChip();paintSpeed();paintPill();paintPanel();setPad();setRouteData();voice();checkConfirm();
+ paintBanner();paintChip();paintSpeed();paintPill();paintPanel();setPad();setRouteData();manArrow();voice();checkConfirm();
 }
-function arrive(){G.arrived=true;say("Vous êtes arrivé à destination.",true);paintBanner();paintChip();paintPanel();}
+function arrive(){G.arrived=true;say(G.opts.pickup?"Vous êtes arrivé à la prise en charge. Touchez Patient à bord pour partir vers le rendez-vous.":"Vous êtes arrivé à destination.",true);paintBanner();paintChip();paintPanel();manArrow();}
+function patientAbord(){
+ var b=$("#gAbord");if(b){b.disabled=true;b.querySelector("span").textContent="Calcul du trajet…";}
+ A.nextLeg().then(function(t){if(!G)return;G.dest={lat:t.lat,lon:t.lon,nom:t.nom,addr:t.addr};G.opts.pickup=false;G.opts.destEtab=t.id;G.opts.label=t.label;G.opts.links=t.links;G.arrived=false;G.panMode=null;
+  say("Patient à bord. En route vers "+t.nom+".",true);paintPanel(true);reroute("leg2");},
+  function(e){if(!G)return;toast("Rendez-vous introuvable : "+(e&&e.message?e.message:"vérifie l'adresse."),3500);G.panMode=null;paintPanel(true);});
+}
 
 /* ---------- itinéraires ---------- */
 function vBody(x){return Object.assign({costing:"auto",language:"fr-FR",units:"kilometers",directions_options:{language:"fr-FR",units:"kilometers"}},x);}
@@ -375,7 +400,7 @@ function setRoute(R){
  computeHazards();refreshFeatures();setRouteData();update();vehMode();loadEdges(R);loadBumps(R);
 }
 function reroute(why){
- if(!G||!G.pos||G.rerouting)return;G.rerouting=true;G.lastReroute=now();paintBanner();
+ if(!G||!G.pos||G.rerouting)return;G.rerouting=true;G.lastReroute=now();paintBanner();manArrow();
  if(why==="off")say("Recalcul de l'itinéraire.",true);
  routeFrom(G.pos).then(function(R){if(!G)return;G.rerouting=false;setRoute(R);if(why==="jam")say("Bouchon signalé sur le trajet : nouvel itinéraire.",true);if(why==="dest")say("Nouvelle destination : "+(G.dest.nom||"")+".",true);},
   function(){if(!G)return;G.rerouting=false;G.offCount=0;paintBanner();toast("Recalcul impossible pour l'instant : réseau ou serveur indisponible.");});
@@ -540,6 +565,7 @@ function onClick(ev){
  else if(g==="destClose"){var d=$(".gfull");if(d)d.remove();}
  else if(g==="pickDest")pickDest(+b.getAttribute("data-i"));
  else if(g==="finish"){stop();A.onEnd("fin");}
+ else if(g==="abord")patientAbord();
  else if(g==="mute"){G.mute=!G.mute;try{localStorage.setItem("ambumaps-gps-muet",G.mute?"1":"");if(G.mute)speechSynthesis.cancel();}catch(e){}paintMute();}
  else if(g==="recenter")recenter();
  else if(g==="addr")showAddr();
@@ -586,7 +612,7 @@ function boot(){
    G.map.on("zoomstart",function(e){if(e.originalEvent){G.follow=false;paintRec();}});
    G.map.on("load",function(){if(!G)return;G.mapReady=true;addLayers();G._padTop=null;setPad();
     var ve=el('<div class="gveh">'+ARROW+'</div>');G.veh=new ml.Marker({element:ve,anchor:"center",rotationAlignment:"map",pitchAlignment:"viewport"}).setLngLat([c[1],c[0]]).addTo(G.map);
-    vehMode();loadPins().then(function(){if(G)refreshMarkers();});refreshFeatures();setRouteData();});
+    vehMode();loadPins().then(function(){if(G)refreshMarkers();});refreshFeatures();setRouteData();G._manKey=null;manArrow();});
   }
   setLoad("Calcul de l'itinéraire…");
   var p=G.opts.shape?traceRoute(G.opts.shape).catch(function(){return waitPos(12000).then(routeFrom);}):waitPos(12000).then(routeFrom);
