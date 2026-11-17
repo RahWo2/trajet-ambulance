@@ -229,7 +229,7 @@ function paintPanel(force){
  var sig='<div class="gbtns"><button type="button" class="gsig" data-g="sig">'+glyph("danger",22,"#17130a","#f5a524")+'<span>Signaler</span></button><button type="button" class="gstop" data-g="stop">Arrêter</button></div>';
  if(mode==="rec")h='<div style="font-size:14.5px;color:#9aa3b2;text-align:center">Touche quand la route redevient correcte.</div><button type="button" class="gbig" style="background:#f2c200;color:#2b2300" data-g="recEnd">'+svgI(IC.stop,22,"#2b2300",2.6)+'<span>Fin de la route dégradée</span></button><button type="button" class="gsec" data-g="recCancel">Annuler le signalement</button>';
  else if(mode==="arr")h='<button type="button" class="gbig" style="background:#00387B;color:#fff" data-g="finish">Terminer le guidage</button>'+sig;
- else if(mode==="arrP")h='<div class="geta"><div><div class="t">Arrivé</div><div class="m">Prise en charge</div></div><button type="button" class="gabord" id="gAbord" data-g="abord"><i>'+svgI("M5 12.5l4.5 4.5L19 7.5",18,"#fff",3)+'</i><span>Patient à bord</span></button></div>'+sig;
+ else if(mode==="arrP")h='<div class="geta"><div><div class="t">Arrivé</div><div class="m">'+(G.opts.urg?"Chez le patient":"Prise en charge")+'</div></div><button type="button" class="gabord" id="gAbord" data-g="abord"><i>'+svgI("M5 12.5l4.5 4.5L19 7.5",18,"#fff",3)+'</i><span>Patient à bord</span></button></div>'+sig;
  else h='<div class="geta"><div><div class="t" id="gEtaT">'+t1+'</div><div class="m" id="gEtaM">'+esc(t2)+'</div></div><div class="gdest"><b id="gDestN">'+esc(G.dest.nom||"Destination")+'</b>'+(G.opts.label?'<span class="gprof"><i></i><span>'+esc(G.opts.label)+'</span></span>':'')+'</div></div>'+sig;
  p.innerHTML=h+attr;
 }
@@ -385,8 +385,9 @@ function update(){
  var k=-1;for(var i=0;i<R.man.length;i++){var t=R.man[i].type;if(t>=1&&t<=3)continue;if(R.man[i].d>G.along+2){k=i;break;}}G.next=k;
  paintBanner();paintChip();paintSpeed();paintPill();paintPanel();setPad();setRouteData();manArrow();voice();checkConfirm();
 }
-function arrive(){G.arrived=true;say(G.opts.pickup?"Vous êtes arrivé à la prise en charge. Touchez Patient à bord pour partir vers le rendez-vous.":"Vous êtes arrivé à destination.",true);paintBanner();paintChip();paintPanel();manArrow();}
+function arrive(){G.arrived=true;say(G.opts.pickup?(G.opts.urg?"Vous êtes arrivé chez le patient. Touchez Patient à bord pour choisir l'état du patient et la destination.":"Vous êtes arrivé à la prise en charge. Touchez Patient à bord pour partir vers le rendez-vous."):"Vous êtes arrivé à destination.",true);paintBanner();paintChip();paintPanel();manArrow();}
 function patientAbord(){
+ if(G.opts.urg){stop();A.onEnd("abord");return;}
  var b=$("#gAbord");if(b){b.disabled=true;b.querySelector("span").textContent="Calcul du trajet…";}
  A.nextLeg().then(function(t){if(!G)return;G.dest={lat:t.lat,lon:t.lon,nom:t.nom,addr:t.addr};G.opts.pickup=false;G.opts.destEtab=t.id;G.opts.label=t.label;G.opts.links=t.links;G.arrived=false;G.panMode=null;
   say("Patient à bord. En route vers "+t.nom+".",true);paintPanel(true);reroute("leg2");},
@@ -636,7 +637,7 @@ function boot(){
   return p.then(function(R){if(!G)return;setLoad(null);
    if(G.sim&&!G.pos){G.pos=R.pts[0];}
    G.quiet=true;setRoute(R);G.quiet=false;var m0=R.man.filter(function(m){return m.type<1||m.type>3;})[0];
-   var d0=m0?m0.d-G.along:1e9;say("Guidage démarré."+(d0>=200&&d0<1500?" Dans "+sayDist(d0)+", "+lcFirst(m0.verbal_transition_alert_instruction||m0.instruction):""),true);
+   var d0=m0?m0.d-G.along:1e9;if(!G.arrived)say("Guidage démarré."+(d0>=200&&d0<1500?" Dans "+sayDist(d0)+", "+lcFirst(m0.verbal_transition_alert_instruction||m0.instruction):""),true);
    if(m0&&d0<1500)m0._far=1;voice();
    if(G.sim&&!G.simT)G.simT=setInterval(simTick,1000);
   });
