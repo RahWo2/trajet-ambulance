@@ -15,6 +15,7 @@ main{max-width:720px;margin:0 auto;padding:14px 14px 60px}
 h2{font-size:15px;text-transform:uppercase;letter-spacing:.6px;color:var(--mut);margin:22px 0 10px}
 h2:first-child{margin-top:4px}
 section[data-k]>h2:first-child{margin-top:22px}
+main>section[data-k]:first-child>h2:first-child{margin-top:4px}
 .tiles{display:grid;gap:10px}
 .tile{display:flex;align-items:center;gap:14px;width:100%;min-height:74px;padding:12px 14px;background:var(--card);border:2px solid var(--line);border-left:8px solid var(--c,#555);border-radius:14px;color:var(--txt);font:inherit;text-align:left;cursor:pointer}
 .tile .ic{font-size:28px;width:34px;text-align:center}
@@ -1123,7 +1124,9 @@ function goBack(){
   if(ui.editFrom){ui.edit=ui.editFrom.e||null;ui.editFrom=null;}
   else{var cs=curStep();
    if(cs===3&&ui.mode==="programme"&&ui.leg===2)ui.leg=1;
+   else if(cs===3&&u1())ui.edit=1;
    else if(cs>1)ui.edit=cs-1;
+   else if(ui.mode==="urgence"&&ui.leg===2){ui.leg=1;ui.edit=null;}
    else{ui.mode=null;ui.edit=null;}}
   keepUi();
  }else{try{history.back();}catch(e){}return;}
@@ -1182,8 +1185,11 @@ function vEquipe(){
 }
 function teamAction(p){ui.teamErr="";p.then(function(){return sync();},function(e){ui.teamErr=netErr(e)?"Pas de connexion internet : réessaie plus tard.":(/23505|duplicate/i.test(e.message)?"Cette adresse est déjà dans l'équipe.":e.message);render();});}
 
+function u1(){return ui.mode==="urgence"&&ui.leg!==2;}
+function pecDone(){return !!(ui.pec.etab&&etab(ui.pec.etab))||!!(ui.pec.ok&&(ui.pec.q||"").trim());}
 function stepDone(k){
- if(k===1){if(ui.mode==="programme")return !!(ui.pec.etab&&etab(ui.pec.etab))||!!(ui.pec.ok&&(ui.pec.q||"").trim());return !!(ui.etat&&ui.etat!=="programme");}
+ if(k===1)return (ui.mode==="programme"||u1())?pecDone():!!(ui.etat&&ui.etat!=="programme");
+ if(u1())return true;
  return !!(ui.destId&&etab(ui.destId))||!!(ui.libreOk&&ui.libre.trim());}
 function searchRow(id,ph,val){return '<div class="row nowrap"><div class="acw" style="flex:1 1 auto"><input id="'+id+'" data-ac="'+id+'" type="text" placeholder="'+esc(ph)+'" value="'+esc(val)+'" autocomplete="off" enterkeyhint="done"></div><button class="btn pri" data-a="'+id+'Ok">OK</button></div>';}
 function curStep(){if(ui.edit===1||ui.edit===2)return ui.edit;return !stepDone(1)?1:(!stepDone(2)?2:3);}
@@ -1191,8 +1197,9 @@ function doneRow(k,label,val){return '<div class="done" data-k="d'+k+'"><span cl
 function goStep(){ui.edit=null;ui.editFrom=null;keepUi();render();scrollStep();}
 function scrollStep(){window.scrollTo({top:0,behavior:"smooth"});}
 function vTrajet(){
- var md=ui.mode,prog=md==="programme";
- var h='<h2 data-k="tt">Type de transport</h2><div class="modes'+(md?" picked":"")+'" data-k="modes">'+
+ var md=ui.mode,prog=md==="programme",ua=md==="urgence"&&!u1(),ub=md==="urgence"&&!ua,pec=prog||ub;
+ // ua : urgence, patient à bord (même menu que l'urgence, sans le choix du type de transport)
+ var h=ua?'':'<h2 data-k="tt">Type de transport</h2><div class="modes'+(md?" picked":"")+'" data-k="modes">'+
   '<button class="mode'+(md==="urgence"?" on":"")+'" style="--c:#d93a3f" data-a="mode" data-id="urgence"><span class="ic">🚨</span><b>Urgence</b></button>'+
   '<button class="mode'+(prog?" on":"")+'" style="--c:#2f9e6a" data-a="mode" data-id="programme"><span class="ic">📋</span><b>Transport programmé</b></button></div>';
  if(!md)return h;
@@ -1200,16 +1207,17 @@ function vTrajet(){
  // Étapes validées : regroupées dans un seul encadré
  if(cs>1){
   var g="",gc="";
-  if(prog){var pk=pecInfo();g+=doneRow(1,"Prise en charge",pk.label||pk.addr);}
+  if(pec){var pk=pecInfo();g+=doneRow(1,prog?"Prise en charge":"Adresse du patient",pk.label||pk.addr);if(ub)gc="#d93a3f";}
   else{var e=curEtat();g+=doneRow(1,"État du patient",e.ic+" "+e.label);gc=PROFILS[e.p].c;}
-  if(cs>2){var d=ui.destId?etab(ui.destId):null;g+=doneRow(2,prog?"Rendez-vous":"Destination",d?d.nom:ui.libre.trim());}
-  h+='<div class="donegrp" data-k="done"'+(gc?' style="--c:'+gc+'"':'')+'>'+g+'</div>';
+  if(cs>2&&!ub){var d=ui.destId?etab(ui.destId):null;g+=doneRow(2,prog?"Rendez-vous":"Destination",d?d.nom:ui.libre.trim());}
+  h+='<div class="donegrp" data-k="done'+(ua?"2":"")+'"'+(gc?' style="--c:'+gc+'"':'')+'>'+g+'</div>';
  }
+ var sk=md+(ua?"2":"");
  // Étape en cours
  if(cs===1){
-  h+='<section data-k="s1'+md+'">';
-  if(prog){
-   h+='<h2 id="stepCur">1 · Prise en charge du patient</h2>'+searchRow("pec",n?"🔍 Adresse du patient ou lieu enregistré":"🔍 Adresse du patient",ui.pec.etab?"":ui.pec.q)+
+  h+='<section data-k="s1'+sk+'">';
+  if(pec){
+   h+='<h2 id="stepCur">1 · '+(prog?"Prise en charge du patient":"Adresse du patient")+'</h2>'+searchRow("pec",n?"🔍 Adresse du patient ou lieu enregistré":"🔍 Adresse du patient",ui.pec.etab?"":ui.pec.q)+
     '<div class="hint">L\'adresse du patient reste sur ce téléphone, jamais dans la base de l\'équipe.</div>';
    if(n)h+='<div id="pecList" style="margin-top:12px">'+placeList("pec")+'</div>';
   }else{
@@ -1221,15 +1229,27 @@ function vTrajet(){
   return h+'</section>';
  }
  if(cs===2){
-  h+='<section data-k="s2'+md+'"><h2 id="stepCur">2 · '+(prog?"Lieu du rendez-vous":"Destination")+'</h2>'+searchRow("libre",n?"🔍 Lieu enregistré ou adresse":"🔍 Adresse",ui.destId?"":ui.libre);
+  h+='<section data-k="s2'+sk+'"><h2 id="stepCur">2 · '+(prog?"Lieu du rendez-vous":"Destination")+'</h2>'+searchRow("libre",n?"🔍 Lieu enregistré ou adresse":"🔍 Adresse",ui.destId?"":ui.libre);
   if(!n)h+='<div class="empty" style="margin-top:12px">Aucun établissement enregistré.<button class="btn pri wide" style="margin-top:10px" data-a="searchStart">📍 Rechercher autour de moi</button></div>';
   else h+='<div id="destList" style="margin-top:12px">'+destList()+'</div>';
   return h+'</section>';
  }
- return h+'<section data-k="s3'+md+'"><h2 id="stepCur">3 · '+(prog?"Feuille de mission":"Feuille de route")+'</h2><div id="feuille"></div></section>';
+ return h+'<section data-k="s3'+sk+'"><h2 id="stepCur">'+(prog?"3 · Feuille de mission":(ub?"2 · Feuille d'intervention":"3 · Feuille de route"))+'</h2><div id="feuille"></div></section>';
+}
+function paintUrgence(el){
+ var pk=pecInfo();
+ if(!pk.addr){clearRouteMap();el.innerHTML='<div class="empty">Indique l\'adresse du patient.</div>';return;}
+ var L1=links(pk.addr,"",pk.lat,pk.lon);
+ var h='<div class="sheet"><div class="band" style="--c:#d93a3f"><b>🚨 Urgence</b></div>'+
+  '<div class="blk cur" id="leg1" data-k="u1"><h3><span class="step-n">1</span>Aller chez le patient</h3><div class="dest">'+esc(pk.label)+'</div>'+(pk.label!==pk.addr?'<div class="addr">'+esc(pk.addr)+'</div>':'')+(pk.infos?'<div class="infos">📍 '+esc(pk.infos)+'</div>':'')+
+  gpsBtns(L1,1)+'</div>'+
+  '<div class="blk next"><span class="step-n">2</span>Patient à bord : état du patient et destination · <a href="#" data-a="leg2" style="color:var(--acc);white-space:nowrap">passer à l\'étape 2</a></div></div>';
+ h+='<button class="btn reset" data-a="reset">Fin d\'intervention</button>';
+ clearRouteMap();el.innerHTML=h;
 }
 function paintFeuille(){
  var el=document.getElementById("feuille");if(!el)return;
+ if(u1()){paintUrgence(el);return;}
  var e=null;ETATS.forEach(function(x){if(x.id===ui.etat)e=x;});
  var d=ui.destId?etab(ui.destId):null;
  var addr=d?d.adresse:ui.libre.trim();
@@ -1335,7 +1355,7 @@ function fZone(z){
 
 function resetMission(){ui.edit=null;ui.editFrom=null;ui.etat=ui.mode==="programme"?"programme":null;ui.destId=null;ui.libre="";ui.libreGeo=null;ui.libreOk=false;ui.filtre="";ui.pecFiltre="";ui.pec={q:"",etab:""};ui.leg=1;ui.dep=null;ui.depEdit=false;ui.route=null;keepUi();}
 /* ===== GPS intégré (module gps.js chargé à la demande) ===== */
-var GPS_V="7",gpsP=null;
+var GPS_V="8",gpsP=null;
 function loadGps(){if(window.AmbuGPS)return Promise.resolve();if(gpsP)return gpsP;
  gpsP=new Promise(function(res,rej){var sc=document.createElement("script");sc.src="gps.js?v="+GPS_V;
   sc.onload=function(){if(window.AmbuGPS)res();else{gpsP=null;rej(new Error("GPS indisponible."));}};
@@ -1343,16 +1363,16 @@ function loadGps(){if(window.AmbuGPS)return Promise.resolve();if(gpsP)return gps
  return gpsP;}
 function startGps(leg){
  try{if(window.speechSynthesis){var su=new SpeechSynthesisUtterance(" ");su.volume=0;speechSynthesis.speak(su);}}catch(e){}
- var e=curEtat();if(!e)return;var prog=ui.etat==="programme",pickup=prog&&leg===1;
+ var ug=u1()&&leg===1,e=ug?null:curEtat();if(!e&&!ug)return;var prog=ui.etat==="programme",pickup=ug||(prog&&leg===1);
  var d=ui.destId?etab(ui.destId):null,addr=d?d.adresse:ui.libre.trim();
- var R=(!pickup&&ui.route&&ui.route.key===routeKey()&&ui.route.status==="done")?ui.route:null,cand=R?R.cands[R.sel]:null,p=PROFILS[e.p];
+ var R=(!pickup&&ui.route&&ui.route.key===routeKey()&&ui.route.status==="done")?ui.route:null,cand=R?R.cands[R.sel]:null,p=PROFILS[e?e.p:"rapide"];
  var target=pickup?pecCoords().then(function(g){var pk=pecInfo();return{lat:g.lat,lon:g.lon,nom:pk.label||g.label,addr:pk.addr,id:pk.etab?pk.etab.id:""};})
   :resolveDest(d,addr).then(function(x){return{lat:x.lat,lon:x.lon,nom:x.nom||addr,addr:addr,id:x.id||""};});
  var btn=document.querySelector('[data-a="gps"]'),msg=document.getElementById("gpsMsg");if(btn){btn.disabled=true;btn.textContent="Ouverture du GPS…";}
  Promise.all([target,loadGps()]).then(function(r){var t=r[0];
   if(btn){btn.disabled=false;paintFeuille();}
-  window.AmbuGPS.start({dest:t,shape:cand?cand.shape:null,start:cand?[R.dep.lat,R.dep.lon]:(ui.lastPos||null),zoneTypes:p.zones,destEtab:t.id,pickup:pickup,
-   label:(pickup?"Prise en charge":({vitale:"Urgence vitale",rachis:"Trauma immobilisé",enceinte:"Femme enceinte",fragile:"Patient fragile",programme:"Transport programmé"}[e.id]||e.label))+(cand?" · trajet confort":""),links:links(t.addr,"",t.lat,t.lon),sim:/[?&]sim\b/.test(location.search)});
+  window.AmbuGPS.start({dest:t,shape:cand?cand.shape:null,start:cand?[R.dep.lat,R.dep.lon]:(ui.lastPos||null),zoneTypes:p.zones,destEtab:t.id,pickup:pickup,urg:ug,
+   label:(ug?"Urgence · aller au patient":pickup?"Prise en charge":({vitale:"Urgence vitale",rachis:"Trauma immobilisé",enceinte:"Femme enceinte",fragile:"Patient fragile",programme:"Transport programmé"}[e.id]||e.label))+(cand?" · trajet confort":""),links:links(t.addr,"",t.lat,t.lon),sim:/[?&]sim\b/.test(location.search)});
  },function(err){if(btn){btn.disabled=false;btn.textContent="▶ Démarrer le guidage";}if(msg)msg.textContent=netErr(err)?"Pas de connexion internet : utilise Waze ou Google Maps en secours.":err.message;});
 }
 window.AMB={get state(){return state;},ui:ui,api:api,isCloud:isCloud,netErr:netErr,valhalla:valhalla,decode6:decode6,distM:distM,linePolys:linePolys,circlePoly:circlePoly,
@@ -1366,7 +1386,7 @@ window.AMB={get state(){return state;},ui:ui,api:api,isCloud:isCloud,netErr:netE
  nextLeg:function(){ui.leg=2;keepUi();var d=ui.destId?etab(ui.destId):null,addr=d?d.adresse:ui.libre.trim();
   if(!addr)return Promise.reject(new Error("aucun lieu de rendez-vous."));
   return resolveDest(d,addr).then(function(x){return{lat:x.lat,lon:x.lon,nom:x.nom||addr,addr:addr,id:x.id||"",label:"Transport programmé",links:links(addr,"",x.lat,x.lon)};});},
- onEnd:function(kind){if(kind==="nouvelle"){resetMission();ui.mode=null;ui.etat=null;keepUi();if(location.hash!=="#trajet"&&location.hash!==""){location.hash="#trajet";return;}}render();window.scrollTo(0,0);}
+ onEnd:function(kind){if(kind==="abord"){ui.leg=2;ui.edit=null;ui.editFrom=null;keepUi();}if(kind==="nouvelle"){resetMission();ui.mode=null;ui.etat=null;keepUi();if(location.hash!=="#trajet"&&location.hash!==""){location.hash="#trajet";return;}}render();window.scrollTo(0,0);}
 };
 document.addEventListener("click",function(ev){
  var b=ev.target.closest("[data-a]");if(!b)return;
@@ -1429,7 +1449,7 @@ document.addEventListener("click",function(ev){
  else if(a==="dropBackup"){delete state.localBackup;save();render();}
  else if(a==="reset"){resetMission();render();window.scrollTo(0,0);}
  else if(a==="gps"){startGps(+(b.getAttribute("data-leg")||0));}
- else if(a==="leg2"||a==="leg1"){ev.preventDefault();ui.leg=a==="leg2"?2:1;keepUi();render();var lg=document.getElementById(a==="leg2"?"leg2":"leg1");if(lg)lg.scrollIntoView({behavior:"smooth",block:"start"});}
+ else if(a==="leg2"||a==="leg1"){ev.preventDefault();ui.leg=a==="leg2"?2:1;ui.edit=null;ui.editFrom=null;keepUi();render();if(ui.mode==="urgence"){window.scrollTo(0,0);return;}var lg=document.getElementById(a==="leg2"?"leg2":"leg1");if(lg)lg.scrollIntoView({behavior:"smooth",block:"start"});}
  else if(a==="newEtab"){ui.form={kind:"etab"};ui.confirm=null;render();}
  else if(a==="editEtab"){ui.form={kind:"etab",id:id};ui.confirm=null;render();window.scrollTo(0,0);}
  else if(a==="newZone"){ui.form={kind:"zone"};ui.confirm=null;render();}
