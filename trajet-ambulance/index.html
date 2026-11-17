@@ -1420,6 +1420,13 @@ document.addEventListener("visibilitychange",function(){if(document.visibilitySt
 window.addEventListener("online",function(){if(isCloud())sync();});
 render();
 if(isCloud())sync();
-if("serviceWorker" in navigator&&location.protocol==="https:"){try{navigator.serviceWorker.register("sw.js");}catch(e){}}
+/* Mises à jour : on vérifie à chaque ouverture et on recharge tout seul (jamais pendant le guidage ni pendant une saisie) */
+if("serviceWorker" in navigator&&location.protocol==="https:"){try{
+ var hadSW=!!navigator.serviceWorker.controller,swReg=null,swReload=false;
+ var tryReload=function(){if(swReload&&!(window.AmbuGPS&&window.AmbuGPS.active())&&!ui.form&&!ui.invite){swReload=false;location.reload();}};
+ navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(function(r){swReg=r;try{r.update();}catch(e){}}).catch(function(){});
+ navigator.serviceWorker.addEventListener("controllerchange",function(){if(!hadSW){hadSW=true;return;}swReload=true;tryReload();});
+ document.addEventListener("visibilitychange",function(){if(document.visibilityState==="visible"){if(swReg)swReg.update().catch(function(){});tryReload();}});
+}catch(e){}}
 })();
 </script></body></html>
