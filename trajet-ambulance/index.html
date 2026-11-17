@@ -238,6 +238,8 @@ function goBtns(L,reco,wl,gl){
 }
 function navBtns(L,reco,gl){var t=L.app?'':' target="_blank" rel="noopener"';
  return '<div class="nav2"><a class="btn'+(reco==="waze"?" pri":"")+'" href="'+L.waze+'"'+t+'>Waze</a><a class="btn'+(reco==="gmaps"?" pri":"")+'" href="'+L.gmaps+'"'+t+'>'+(gl||"Google Maps")+'</a></div>';}
+function secours(L){var t=L.app?'':' target="_blank" rel="noopener"';return '<div class="hint" style="margin-top:8px">En secours : <a href="'+L.waze+'"'+t+' style="color:var(--acc)">Waze</a> · <a href="'+L.gmaps+'"'+t+' style="color:var(--acc)">Google Maps</a></div>';}
+function gpsBtns(L,leg,confort){return '<div class="go"><button class="btn pri" data-a="gps" data-leg="'+leg+'">▶ Démarrer le guidage</button></div><div class="hint" id="gpsMsg">'+(confort?"Le GPS suit le trajet confort choisi ci-dessus.":"")+'</div>'+secours(L);}
 function vComfortMini(R){
  if(!R)return '<button class="btn small" style="margin-top:12px" data-a="calcRoute">🗺️ Calculer un trajet confort</button>';
  if(R.status==="loading")return '<div class="spin" style="margin:14px auto 8px;width:30px;height:30px"></div><p class="center" id="rtStep">'+esc(R.step||"Calcul…")+'</p>';
@@ -260,7 +262,7 @@ function paintMission(el,e,d,addr){
  if(leg===1){
   var L1=links(pk.addr,"",pk.lat,pk.lon);
   h+='<div class="blk cur" id="leg1"><h3><span class="step-n">1</span>Aller chercher le patient</h3><div class="dest">'+esc(pk.label)+'</div>'+(pk.label!==pk.addr?'<div class="addr">'+esc(pk.addr)+'</div>':'')+(pk.infos?'<div class="infos">📍 '+esc(pk.infos)+'</div>':'')+
-   navBtns(L1,"waze")+'<button class="check" data-a="leg2"><span class="box"></span><span><b>Patient à bord</b><small>À cocher en revenant dans l\'appli</small></span></button></div>'+
+   gpsBtns(L1,1)+'<button class="check" data-a="leg2"><span class="box"></span><span><b>Patient à bord</b><small>À cocher en revenant dans l\'appli</small></span></button></div>'+
    '<div class="blk next"><span class="step-n">2</span>Rendez-vous : <b>'+esc(d?d.nom:addr)+'</b></div></div>';
  }else{
   var R=(ui.route&&ui.route.key===routeKey())?ui.route:null,RD=(R&&R.status==="done")?R:null,sel=RD?RD.cands[RD.sel]:null;
@@ -271,7 +273,7 @@ function paintMission(el,e,d,addr){
   h+='<div class="blk" id="leg1"><button class="check on" style="margin-top:0" data-a="leg1"><span class="box">✓</span><span><b>Patient à bord</b></span></button></div>';
   h+='<div class="blk cur" id="leg2"><h3><span class="step-n">2</span>Conduire au rendez-vous</h3><div class="dest">'+esc(d?d.nom:"Rendez-vous")+'</div><div class="addr">'+esc(addr)+'</div>'+(d&&d.infos?'<div class="infos">📍 '+esc(d.infos)+'</div>':'');
   if(zs.length){h+='<div style="margin-top:10px">';zs.forEach(function(z){h+='<div class="zone"><span class="tag">'+esc(ZTYPES[z.type]||z.type)+'</span><div><b>'+esc(z.nom)+'</b>'+(z.note?'<div class="addr">'+esc(z.note)+'</div>':"")+'</div></div>';});h+='</div>';}
-  h+=vComfortMini(R)+navBtns(L2,RD?"gmaps":p.reco,RD?"Google Maps · confort":"Google Maps")+'</div></div>';
+  h+=vComfortMini(R)+gpsBtns(L2,2,!!RD)+'</div></div>';
  }
  h+='<button class="btn reset" data-a="reset">Fin de mission</button>';
  clearRouteMap();el.innerHTML=h;
@@ -1184,15 +1186,11 @@ function paintFeuille(){
  p.consignes.forEach(function(c){h+="<li>"+esc(c)+"</li>";});
  h+='</ul></div></div>';
  if(e.p!=="rapide")h+=vComfort(R);
- var reco=RD?"gmaps":p.reco,gl=RD?"Lancer Google Maps · trajet confort":"Lancer Google Maps",wl=RD?"Waze (le plus rapide, sans le confort)":"Lancer Waze";
- var bW='<a class="btn '+(reco==="waze"?"pri":"")+'" href="'+L.waze+'"'+(L.app?'':' target="_blank" rel="noopener"')+'>'+wl+(reco==="waze"?" <small>Recommandé</small>":"")+'</a>';
- var bG='<a class="btn '+(reco==="gmaps"?"pri":"")+'" href="'+L.gmaps+'"'+(L.app?'':' target="_blank" rel="noopener"')+'>'+gl+(reco==="gmaps"?" <small>Recommandé</small>":"")+'</a>';
- var why=RD?(wps.length?"Google Maps suivra le trajet choisi grâce à "+wps.length+" point"+(wps.length>1?"s":"")+" de passage. Il peut "+(wps.length>1?"les annoncer comme des étapes":"l'annoncer comme une étape")+" : continue simplement.":"Ce trajet est aussi celui que Google Maps choisit naturellement : aucun point de passage nécessaire."):(p.pourquoi+(via&&p.reco!=="gmaps"?" Le passage conseillé n'est transmis qu'à Google Maps.":""));
- h+='<div class="go">'+(reco==="waze"?bW+bG:bG+bW)+'</div><div class="hint">'+esc(why)+'</div>';
- if(L.app)h+='<div class="hint" style="margin-top:8px">L\'appli ne s\'ouvre pas ? Version web : <a href="'+L.wazeWeb+'" target="_blank" rel="noopener" style="color:var(--acc)">Waze</a> · <a href="'+L.gmapsWeb+'" target="_blank" rel="noopener" style="color:var(--acc)">Google Maps</a></div>';
+ var why=RD?"Le GPS suit le trajet confort choisi ci-dessus.":(e.p==="rapide"?"Itinéraire le plus rapide, en évitant les bouchons signalés par l'équipe.":"Calcule le trajet confort ci-dessus pour que le GPS le suive, ou démarre directement.");
+ h+='<div class="go"><button class="btn pri" data-a="gps" data-leg="0">▶ Démarrer le guidage</button></div><div class="hint" id="gpsMsg">'+esc(why)+'</div>'+secours(L);
  h+='<button class="btn reset" data-a="copy" data-addr="'+esc(addr)+'">📋 Copier l\'adresse</button><div class="hint" id="copyMsg"></div>';
  h+='<button class="btn reset" data-a="reset">Fin d\'intervention</button>';
- h+='<div class="foot">Prépare le trajet avant de démarrer : ne manipule pas le téléphone en roulant. Le trafic, les accidents et les fermetures de routes sont gérés par Waze ou Google Maps. Itinéraires calculés avec Valhalla et les données © contributeurs OpenStreetMap. L\'appli ne remplace ni la régulation ni le code de la route.</div>';
+ h+='<div class="foot">Prépare le trajet avant de démarrer : ne manipule pas le téléphone en roulant. Les bouchons, accidents et dangers affichés dans le GPS viennent des signalements de l\'équipe. Itinéraires calculés avec Valhalla et les données © contributeurs OpenStreetMap. L\'appli ne remplace ni la régulation ni le code de la route.</div>';
  clearRouteMap();el.innerHTML=h;
  if(RD)initRouteMap();
 }
@@ -1267,6 +1265,38 @@ function fZone(z){
  '<div class="row" style="margin-top:14px"><button class="btn pri" type="submit">Enregistrer</button><button class="btn" type="button" data-a="cancel">Annuler</button></div></form>';
 }
 
+function resetMission(){ui.edit=null;ui.etat=ui.mode==="programme"?"programme":null;ui.destId=null;ui.libre="";ui.libreGeo=null;ui.libreOk=false;ui.filtre="";ui.pecFiltre="";ui.pec={q:"",etab:""};ui.leg=1;ui.dep=null;ui.depEdit=false;ui.route=null;keepUi();}
+/* ===== GPS intégré (module gps.js chargé à la demande) ===== */
+var GPS_V="1",gpsP=null;
+function loadGps(){if(window.AmbuGPS)return Promise.resolve();if(gpsP)return gpsP;
+ gpsP=new Promise(function(res,rej){var sc=document.createElement("script");sc.src="gps.js?v="+GPS_V;
+  sc.onload=function(){if(window.AmbuGPS)res();else{gpsP=null;rej(new Error("GPS indisponible."));}};
+  sc.onerror=function(){gpsP=null;sc.remove();rej(new Error("GPS indisponible : pas de connexion internet ?"));};document.head.appendChild(sc);});
+ return gpsP;}
+function startGps(leg){
+ try{if(window.speechSynthesis){var su=new SpeechSynthesisUtterance(" ");su.volume=0;speechSynthesis.speak(su);}}catch(e){}
+ var e=curEtat();if(!e)return;var prog=ui.etat==="programme",pickup=prog&&leg===1;
+ var d=ui.destId?etab(ui.destId):null,addr=d?d.adresse:ui.libre.trim();
+ var R=(!pickup&&ui.route&&ui.route.key===routeKey()&&ui.route.status==="done")?ui.route:null,cand=R?R.cands[R.sel]:null,p=PROFILS[e.p];
+ var target=pickup?pecCoords().then(function(g){var pk=pecInfo();return{lat:g.lat,lon:g.lon,nom:pk.label||g.label,addr:pk.addr,id:pk.etab?pk.etab.id:""};})
+  :resolveDest(d,addr).then(function(x){return{lat:x.lat,lon:x.lon,nom:x.nom||addr,addr:addr,id:x.id||""};});
+ var btn=document.querySelector('[data-a="gps"]'),msg=document.getElementById("gpsMsg");if(btn){btn.disabled=true;btn.textContent="Ouverture du GPS…";}
+ Promise.all([target,loadGps()]).then(function(r){var t=r[0];
+  if(btn){btn.disabled=false;paintFeuille();}
+  window.AmbuGPS.start({dest:t,shape:cand?cand.shape:null,start:cand?[R.dep.lat,R.dep.lon]:(ui.lastPos||null),zoneTypes:p.zones,destEtab:t.id,pickup:pickup,
+   label:(pickup?"Prise en charge":({vitale:"Urgence vitale",rachis:"Trauma immobilisé",enceinte:"Femme enceinte",fragile:"Patient fragile",programme:"Transport programmé"}[e.id]||e.label))+(cand?" · trajet confort":""),links:links(t.addr,"",t.lat,t.lon),sim:/[?&]sim\b/.test(location.search)});
+ },function(err){if(btn){btn.disabled=false;btn.textContent="▶ Démarrer le guidage";}if(msg)msg.textContent=netErr(err)?"Pas de connexion internet : utilise Waze ou Google Maps en secours.":err.message;});
+}
+window.AMB={get state(){return state;},ui:ui,api:api,isCloud:isCloud,netErr:netErr,valhalla:valhalla,decode6:decode6,distM:distM,linePolys:linePolys,circlePoly:circlePoly,
+ zGeom:zGeom,zoneRow:zoneRow,enqueue:enqueue,save:save,uid:uid,esc:esc,nameOf:nameOf,me:function(){return sess?sess.email:"";},getBumps:getBumps,acFetch:acFetch,
+ matchEtabs:matchEtabs,isFav:isFav,etab:etab,geocode:geocode,GEO:GEO,
+ setDest:function(x,pickup){
+  if(pickup){if(x.etab)ui.pec={q:"",etab:x.etab};else ui.pec={q:x.label,etab:"",gq:x.label,glat:x.lat,glon:x.lon,glabel:x.label,ok:true};}
+  else if(x.etab){ui.destId=x.etab;ui.libre="";ui.libreGeo=null;ui.libreOk=false;}
+  else{ui.libre=x.label;ui.libreGeo={q:x.label,lat:x.lat,lon:x.lon};ui.libreOk=true;ui.destId=null;}
+  ui.route=null;keepUi();},
+ onEnd:function(kind){if(kind==="nouvelle"){resetMission();ui.mode=null;ui.etat=null;keepUi();if(location.hash!=="#trajet"&&location.hash!==""){location.hash="#trajet";return;}}render();window.scrollTo(0,0);}
+};
 document.addEventListener("click",function(ev){
  var b=ev.target.closest("[data-a]");if(!b)return;
  var a=b.getAttribute("data-a"),id=b.getAttribute("data-id");
@@ -1326,7 +1356,8 @@ document.addEventListener("click",function(ev){
   state.etabs=state.etabs.concat(newE);state.zones=state.zones.concat(newZ);delete state.localBackup;save();
   if(newE.length)enqueue({t:"putE",rows:newE.map(etabRow)});if(newZ.length)enqueue({t:"putZ",rows:newZ.map(zoneRow)});render();}
  else if(a==="dropBackup"){delete state.localBackup;save();render();}
- else if(a==="reset"){ui.edit=null;ui.etat=ui.mode==="programme"?"programme":null;ui.destId=null;ui.libre="";ui.libreGeo=null;ui.libreOk=false;ui.filtre="";ui.pecFiltre="";ui.pec={q:"",etab:""};ui.leg=1;ui.dep=null;ui.depEdit=false;ui.route=null;keepUi();render();window.scrollTo(0,0);}
+ else if(a==="reset"){resetMission();render();window.scrollTo(0,0);}
+ else if(a==="gps"){startGps(+(b.getAttribute("data-leg")||0));}
  else if(a==="leg2"||a==="leg1"){ui.leg=a==="leg2"?2:1;keepUi();paintFeuille();var lg=document.getElementById(a==="leg2"?"leg2":"leg1");if(lg)lg.scrollIntoView({behavior:"smooth",block:"start"});}
  else if(a==="newEtab"){ui.form={kind:"etab"};ui.confirm=null;render();}
  else if(a==="editEtab"){ui.form={kind:"etab",id:id};ui.confirm=null;render();window.scrollTo(0,0);}
