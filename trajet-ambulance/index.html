@@ -1129,9 +1129,9 @@ function scrollStep(){window.scrollTo({top:0,behavior:"smooth"});}
 function vTrajet(){
  var md=ui.mode,prog=md==="programme";
  var h='<h2>Type de transport</h2><div class="modes'+(md?" picked":"")+'">'+
-  '<button class="mode'+(md==="urgence"?" on":"")+'" style="--c:#d93a3f" data-a="mode" data-id="urgence"><span class="ic">🚨</span><b>Urgence</b><small>Appel du 15, garde, détresse</small></button>'+
-  '<button class="mode'+(prog?" on":"")+'" style="--c:#2f9e6a" data-a="mode" data-id="programme"><span class="ic">📋</span><b>Transport programmé</b><small>Dialyse, consultation, retour domicile</small></button></div>';
- if(!md)return h+'<div class="hint" style="margin-top:10px">Choisis le type de transport pour commencer.</div>';
+  '<button class="mode'+(md==="urgence"?" on":"")+'" style="--c:#d93a3f" data-a="mode" data-id="urgence"><span class="ic">🚨</span><b>Urgence</b></button>'+
+  '<button class="mode'+(prog?" on":"")+'" style="--c:#2f9e6a" data-a="mode" data-id="programme"><span class="ic">📋</span><b>Transport programmé</b></button></div>';
+ if(!md)return h;
  var cs=curStep(),n=state.etabs.length;
  // Étape 1
  if(cs>1){
