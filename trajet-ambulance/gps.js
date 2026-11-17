@@ -147,6 +147,13 @@ var CSS='#gps{position:fixed;inset:0;z-index:3000;background:#1c1f25;color:#f1f3
 '#gps .gwait{color:#9aa3b2;font-size:14.5px;padding:14px 4px}'+
 '#gps .gerr{position:absolute;inset:0;z-index:40;background:#121418;display:flex;flex-direction:column;justify-content:center;gap:12px;padding:24px}#gps .gerr h3{margin:0;font-size:22px}#gps .gerr p{margin:0;color:#9aa3b2}#gps .gerr a,#gps .gerr button{min-height:54px;border-radius:14px;border:1px solid #2c313c;background:#20242d;display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:700;color:#f1f3f6;text-decoration:none}#gps .gerr .pri{background:#00387B;border-color:#00387B}'+
 '#gps .gload{position:absolute;inset:0;z-index:35;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;background:#1c1f25;color:#9aa3b2}#gps .gload i{width:38px;height:38px;border:4px solid #2c313c;border-top-color:#4f8cff;border-radius:50%;animation:gsp 1s linear infinite}@keyframes gsp{to{transform:rotate(360deg)}}'+
+'#gps{animation:gfade .25s ease-out}#gps.gout{animation:gfadeo .2s ease-in forwards}'+
+'#gps button{transition:transform .12s ease,opacity .2s ease,background-color .2s ease}#gps button:active{transform:scale(.97)}'+
+'#gps .gscrim{animation:gfade .2s ease-out}#gps .gscrim .gsheet{animation:gup .26s cubic-bezier(.2,.8,.2,1)}#gps .gscrim.gout{animation:gfadeo .18s ease-in forwards}#gps .gscrim.gout .gsheet{animation:gdown .18s ease-in forwards}'+
+'#gps .gcard{animation:gup .26s cubic-bezier(.2,.8,.2,1)}#gps .gcard.gout{animation:gdown .18s ease-in forwards}'+
+'#gps .gfull{animation:gin .24s cubic-bezier(.2,.8,.2,1)}#gps .gfull.gout{animation:gfadeo .18s ease-in forwards}#gps .gtoast{animation:gfade .2s ease-out}#gps .gchip>div{animation:gfade .25s ease-out}'+
+'@keyframes gfade{from{opacity:0}to{opacity:1}}@keyframes gfadeo{from{opacity:1}to{opacity:0}}@keyframes gup{from{transform:translateY(100%)}to{transform:none}}@keyframes gdown{from{transform:none}to{transform:translateY(100%)}}@keyframes gin{from{opacity:0;transform:translateX(24px)}to{opacity:1;transform:none}}'+
+'@media (prefers-reduced-motion:reduce){#gps *,#gps{animation:none!important;transition:none!important}}'+
 '#gps .gvfix{position:absolute;z-index:4;width:54px;height:54px;line-height:0;pointer-events:none}#gps .gvfix[hidden]{display:none}#gps .gveh{line-height:0;pointer-events:none}#gps .maplibregl-ctrl-bottom-left,#gps .maplibregl-ctrl-bottom-right{display:none}';
 
 function el(html){var d=document.createElement("div");d.innerHTML=html;return d.firstElementChild;}
@@ -472,7 +479,8 @@ function checkConfirm(){
 }
 
 /* ---------- fenêtres ---------- */
-function closeCard(){var c=$(".gcard");if(c)c.remove();G.card=null;if(G.cardT){clearInterval(G.cardT);G.cardT=null;}}
+function fadeOut(e){if(!e)return;e.classList.add("gout");setTimeout(function(){if(e.parentNode)e.remove();},190);}
+function closeCard(){fadeOut($(".gcard:not(.gout)"));G.card=null;if(G.cardT){clearInterval(G.cardT);G.cardT=null;}}
 function cardHead(k,t1,t2){return'<div class="hd"><div class="ci" style="background:'+COL[k][0]+'">'+glyph(k,30)+'</div><div style="min-width:0"><b>'+esc(t1)+'</b><small>'+esc(t2)+'</small></div></div>';}
 function who(al){return(al.par?(al.par===A.me()?"toi":A.nameOf(al.par)):"l'équipe")+", "+ago(al.cree);}
 function confirmCard(al,d,tap){
@@ -491,7 +499,7 @@ function infoCard(x){
  {var z=x.z||(x.h&&x.h.z);h=cardHead(x.k,x.k==="bump"?"Ralentisseur":"Route dégradée",z?(z.nom+(z.majPar?" · enregistré par "+A.nameOf(z.majPar):"")):"Données OpenStreetMap")+'<button type="button" class="gsec" data-g="cClose">Fermer</button>';}
  var c=el('<div class="gcard" role="dialog">'+h+'</div>');G.root.appendChild(c);G.card={al:al};
 }
-function closeScrim(){var s=$(".gscrim");if(s)s.remove();}
+function closeScrim(){fadeOut($(".gscrim:not(.gout)"));}
 function tile(g,k,label,sub,wide){return'<button type="button" class="gtile'+(wide?" w":"")+'" data-g="rep" data-k="'+g+'"><span class="ti" style="background:'+COL[k][0]+'">'+glyph(k,26)+'</span><span><b>'+esc(label)+'</b>'+(sub?'<small>'+esc(sub)+'</small>':'')+'</span></button>';}
 function openSignal(){
  closeCard();closeScrim();G.rp=reportPos();
@@ -555,21 +563,21 @@ function pickDest(i){
  var box=document.getElementById("gDestL");if(box)box.innerHTML='<div class="gwait">Recherche de l\'adresse…</div>';
  p.then(function(g){if(!G)return;G.dest={lat:g.lat,lon:g.lon,nom:it.main||it.label,addr:x?x.adresse:it.label};G.opts.destEtab=it.etab||"";G.arrived=false;
   try{A.setDest(it.etab?{etab:it.etab}:{label:it.label,lat:g.lat,lon:g.lon},G.opts.pickup);}catch(e){}
-  var d=$(".gfull");if(d)d.remove();paintPanel();reroute("dest");},
+  fadeOut($(".gfull:not(.gout)"));paintPanel();reroute("dest");},
   function(e){if(box)box.innerHTML='<div class="gwait">'+esc(e.message||"Adresse introuvable.")+'</div>';});
 }
 
 /* ---------- clics ---------- */
 function onClick(ev){
  var b=ev.target.closest("[data-g]");if(!b||!G)return;var g=b.getAttribute("data-g");
- if(g==="scrim"){if(ev.target===b)closeScrim();return;}
+ if(g==="scrim"){if(ev.target===b&&!b.classList.contains("gout"))closeScrim();return;}
  if(g==="scrimClose")closeScrim();
  else if(g==="sig")openSignal();
  else if(g==="rep")report(b.getAttribute("data-k"));
  else if(g==="stop")openStop();
  else if(g==="newMission"){stop();A.onEnd("nouvelle");}
  else if(g==="changeDest")openDest();
- else if(g==="destClose"){var d=$(".gfull");if(d)d.remove();}
+ else if(g==="destClose")fadeOut($(".gfull:not(.gout)"));
  else if(g==="pickDest")pickDest(+b.getAttribute("data-i"));
  else if(g==="finish"){stop();A.onEnd("fin");}
  else if(g==="abord")patientAbord();
@@ -613,7 +621,7 @@ function boot(){
  loadML().then(function(ml){setLoad("Chargement de la carte…");return fetch(STYLE_URL).then(function(r){if(!r.ok)throw new Error("style "+r.status);return r.json();}).then(function(s){return[ml,prepStyle(s)];},function(){return[ml,JSON.parse(JSON.stringify(RASTER))];});}).then(function(x){
   if(!G)return;var ml=x[0],c=G.pos||G.opts.start||[G.dest.lat,G.dest.lon];
   if(!G.map){
-   G.map=new ml.Map({container:"gmap",style:x[1],center:[c[1],c[0]],zoom:17,pitch:50,bearing:0,attributionControl:false,dragRotate:false,touchPitch:false,pitchWithRotate:false,maxPitch:60});
+   G.map=new ml.Map({container:G.root.querySelector(".gmap"),style:x[1],center:[c[1],c[0]],zoom:17,pitch:50,bearing:0,attributionControl:false,dragRotate:false,touchPitch:false,pitchWithRotate:false,maxPitch:60});
    G.map.touchZoomRotate.disableRotation();
    G.map.on("dragstart",function(e){if(e.originalEvent){G.follow=false;paintRec();}});
    G.map.on("zoomstart",function(e){if(e.originalEvent){G.follow=false;paintRec();}});
@@ -638,7 +646,7 @@ function stop(){
  clearInterval(g.simT);clearInterval(g.pollT);clearInterval(g.tickT);clearInterval(g.cardT);if(g.raf)cancelAnimationFrame(g.raf);
  try{if(g.lock)g.lock.release();}catch(e){}try{speechSynthesis.cancel();}catch(e){}
  try{if(g.map)g.map.remove();}catch(e){}
- if(g.root)g.root.remove();document.body.style.overflow="";
+ if(g.root){var rt=g.root;rt.classList.add("gout");setTimeout(function(){rt.remove();},210);}document.body.style.overflow="";
  document.removeEventListener("visibilitychange",onVis);window.removeEventListener("popstate",onPop);window.removeEventListener("resize",onResize);
  try{if(history.state&&history.state.gps)history.back();}catch(e){}
 }
