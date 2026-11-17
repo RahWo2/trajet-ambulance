@@ -146,7 +146,7 @@ var CSS='#gps{position:fixed;inset:0;z-index:3000;background:#1c1f25;color:#f1f3
 '#gps .gwait{color:#9aa3b2;font-size:14.5px;padding:14px 4px}'+
 '#gps .gerr{position:absolute;inset:0;z-index:40;background:#121418;display:flex;flex-direction:column;justify-content:center;gap:12px;padding:24px}#gps .gerr h3{margin:0;font-size:22px}#gps .gerr p{margin:0;color:#9aa3b2}#gps .gerr a,#gps .gerr button{min-height:54px;border-radius:14px;border:1px solid #2c313c;background:#20242d;display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:700;color:#f1f3f6;text-decoration:none}#gps .gerr .pri{background:#00387B;border-color:#00387B}'+
 '#gps .gload{position:absolute;inset:0;z-index:35;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;background:#1c1f25;color:#9aa3b2}#gps .gload i{width:38px;height:38px;border:4px solid #2c313c;border-top-color:#4f8cff;border-radius:50%;animation:gsp 1s linear infinite}@keyframes gsp{to{transform:rotate(360deg)}}'+
-'#gps .gmk{cursor:pointer;line-height:0}#gps .gveh{line-height:0;pointer-events:none}#gps .maplibregl-ctrl-bottom-left,#gps .maplibregl-ctrl-bottom-right{display:none}';
+'#gps .gvfix{position:absolute;z-index:4;width:54px;height:54px;line-height:0;pointer-events:none}#gps .gvfix[hidden]{display:none}#gps .gveh{line-height:0;pointer-events:none}#gps .maplibregl-ctrl-bottom-left,#gps .maplibregl-ctrl-bottom-right{display:none}';
 
 function el(html){var d=document.createElement("div");d.innerHTML=html;return d.firstElementChild;}
 function toast(t,ms){var o=$(".gtoast");if(o)o.remove();var d=el('<div class="gtoast" role="status">'+esc(t)+'</div>');G.root.appendChild(d);setTimeout(function(){if(d.parentNode)d.remove();},ms||2800);}
@@ -154,7 +154,7 @@ function toast(t,ms){var o=$(".gtoast");if(o)o.remove();var d=el('<div class="gt
 function buildUi(){
  if(!document.getElementById("gpsCss")){var s=document.createElement("style");s.id="gpsCss";s.textContent=CSS;document.head.appendChild(s);}
  var r=el('<div id="gps" role="application" aria-label="Guidage GPS">'+
-  '<div class="gmap" id="gmap"></div>'+
+  '<div class="gmap" id="gmap"></div><div class="gvfix" id="gVeh" hidden>'+ARROW+'</div>'+
   '<div class="gtop"><div class="gban" id="gBan"></div><div id="gChip"></div></div>'+
   '<div class="gbot"><div class="grow"><div class="grnd"><button type="button" data-g="mute" aria-label="Couper ou remettre la voix" id="gMute"></button><button type="button" data-g="recenter" aria-label="Recentrer sur ma position" id="gRec">'+svgI(IC.target,22,"#f1f3f6")+'</button></div>'+
   '<div class="gspd" id="gSpd"><b>--</b><small>km/h</small><span class="glim">--</span></div><button type="button" class="gpill" data-g="addr" id="gPill"><b>…</b></button><div></div></div>'+
@@ -173,7 +173,8 @@ function showErr(msg){
  var o=$(".gerr");if(o)o.remove();setLoad(null);G.root.appendChild(d);
 }
 function paintMute(){var b=$("#gMute");if(b){b.innerHTML=svgI(G.mute?IC.mute:IC.vol,22,G.mute?"#ff9a9d":"#f1f3f6");b.classList.toggle("on",!!G.mute);}}
-function paintRec(){var b=$("#gRec");if(b)b.classList.toggle("on",!G.follow);}
+function paintRec(){var b=$("#gRec");if(b)b.classList.toggle("on",!G.follow);vehMode();}
+function vehMode(){var fx=$("#gVeh"),on=!!(G.follow&&G.mapReady&&G.R);if(fx)fx.hidden=!on;if(G.veh){if(!on&&G.disp){G.veh.setLngLat([G.disp[1],G.disp[0]]);G.veh.setRotation(G.dispH||0);}var e=G.veh.getElement();if(e)e.style.visibility=on||!G.R?"hidden":"visible";}}
 
 function paintBanner(){
  var b=$("#gBan");if(!b||!G.R)return;var R=G.R,k=G.next,h;
@@ -261,7 +262,8 @@ var KCOL=["match",["get","k"],"ralentissement","#ff8a1f","arret","#f03e3e","#8b9
 function fc(f){return{type:"FeatureCollection",features:f||[]};}
 function line(c,props){return{type:"Feature",properties:props||{},geometry:{type:"LineString",coordinates:c.map(function(p){return[p[1],p[0]];})}};}
 function addLayers(){
- var m=G.map,st=m.getStyle(),before;st.layers.some(function(l){if(l.type==="symbol"){before=l.id;return true;}return false;});
+ var m=G.map,ly=m.getStyle().layers||[],before,last=-1;ly.forEach(function(l,i){if(l.type!=="symbol")last=i;});
+ for(var i=last+1;i<ly.length;i++){if(ly[i].type==="symbol"){before=ly[i].id;break;}}
  ["gRoute","gOnA","gOffA","gOnD","gOffD","gRecD"].forEach(function(id){m.addSource(id,{type:"geojson",data:fc()});});
  function L(o){m.addLayer(o,before);}
  var round={"line-cap":"round","line-join":"round"};
@@ -277,6 +279,10 @@ function addLayers(){
  L({id:"gOnDd",type:"line",source:"gOnD",layout:round,paint:{"line-color":"#ffd43b","line-width":W_DOT,"line-dasharray":[0,2.2]}});
  L({id:"gRecE",type:"line",source:"gRecD",layout:round,paint:{"line-color":"#2b2300","line-width":W_DOTE,"line-dasharray":[0,1.6]}});
  L({id:"gRecDd",type:"line",source:"gRecD",layout:round,paint:{"line-color":"#ffd43b","line-width":W_DOT,"line-dasharray":[0,2.2]}});
+ m.addSource("gPins",{type:"geojson",data:fc()});
+ m.addLayer({id:"gPinsL",type:"symbol",source:"gPins",layout:{"icon-image":["get","img"],"icon-anchor":"bottom","icon-allow-overlap":true,"icon-ignore-placement":true,"icon-pitch-alignment":"viewport","icon-rotation-alignment":"viewport","icon-size":["interpolate",["linear"],["zoom"],13,0.7,16,0.9,18,1]}});
+ m.on("click","gPinsL",function(e){var f=e.features&&e.features[0],x=f&&G.pinData&&G.pinData[f.properties.id];if(x)infoCard(x);});
+ m.on("mouseenter","gPinsL",function(){m.getCanvas().style.cursor="pointer";});m.on("mouseleave","gPinsL",function(){m.getCanvas().style.cursor="";});
 }
 function src(id,data){if(!G.map||!G.mapReady)return;var s=G.map.getSource(id);if(s)s.setData(data);}
 function setRouteData(){var R=G.R;if(!R)return;src("gRoute",fc([line(slice(R,Math.max(0,G.along-25),R.total))]));}
@@ -291,33 +297,35 @@ function refreshFeatures(){
  src("gOnA",fc(onA));src("gOffA",fc(offA));src("gOnD",fc(onD));src("gOffD",fc(offD));
  refreshMarkers();
 }
+function loadPins(){
+ return Promise.all(Object.keys(COL).map(function(k){return new Promise(function(res){
+  var img=new Image(80,100);img.onload=function(){try{if(G&&G.map&&!G.map.hasImage("pin-"+k))G.map.addImage("pin-"+k,img,{pixelRatio:2});}catch(e){}res();};img.onerror=function(){res();};
+  img.src="data:image/svg+xml;charset=utf-8,"+encodeURIComponent(pinSvg(k).replace('<svg width="40" height="50"','<svg xmlns="http://www.w3.org/2000/svg" width="80" height="100"'));});}));}
 function refreshMarkers(){
- if(!G.mapReady)return;var ml=window.maplibregl,want={},list=[];
- (G.haz||[]).forEach(function(h){if(h.t==="degradee"||h.al)return;want[h.id]=1;list.push({id:h.id,k:"bump",p:h.p,h:h});});
- teamZones().forEach(function(z){var g=A.zGeom(z);if(g&&g.k==="line"&&g.c.length>1){var id="zl"+z.id;want[id]=1;list.push({id:id,k:"pothole",p:g.c[Math.floor(g.c.length/2)],z:z});}});
- (G.alerts||[]).forEach(function(al){var id="a"+al.id,p=al.trace&&al.trace.length>1?al.trace[Math.floor(al.trace.length/2)]:[al.lat,al.lon];want[id]=1;list.push({id:id,k:KIND[al.type],p:p,al:al});});
- Object.keys(G.mk).forEach(function(id){if(!want[id]||G.mk[id].k!==(list.filter(function(x){return x.id===id;})[0]||{}).k){G.mk[id].m.remove();delete G.mk[id];}});
- list.forEach(function(x){if(G.mk[x.id]){G.mk[x.id].m.setLngLat([x.p[1],x.p[0]]);G.mk[x.id].x=x;return;}
-  var e=el('<div class="gmk" role="button" aria-label="'+esc(x.al?NOM[x.al.type]:(x.k==="bump"?"Ralentisseur":"Route dégradée"))+'">'+pinSvg(x.k)+'</div>');
-  var rec={k:x.k,x:x};e.addEventListener("click",function(ev){ev.stopPropagation();infoCard(rec.x);});
-  rec.m=new ml.Marker({element:e,anchor:"bottom",pitchAlignment:"viewport",rotationAlignment:"viewport"}).setLngLat([x.p[1],x.p[0]]).addTo(G.map);G.mk[x.id]=rec;});
+ if(!G.mapReady)return;var F=[];G.pinData={};
+ function add(id,k,p,x){G.pinData[id]=x;F.push({type:"Feature",properties:{id:id,img:"pin-"+k},geometry:{type:"Point",coordinates:[p[1],p[0]]}});}
+ (G.haz||[]).forEach(function(h){if(h.t==="degradee"||h.al)return;add(h.id,"bump",h.p,{k:"bump",h:h,z:h.z});});
+ teamZones().forEach(function(z){var g=A.zGeom(z);if(g&&g.k==="line"&&g.c.length>1)add("zl"+z.id,"pothole",g.c[Math.floor(g.c.length/2)],{k:"pothole",z:z});});
+ (G.alerts||[]).forEach(function(al){var p=al.trace&&al.trace.length>1?al.trace[Math.floor(al.trace.length/2)]:[al.lat,al.lon];add("a"+al.id,KIND[al.type],p,{k:KIND[al.type],al:al});});
+ src("gPins",fc(F));
 }
 function setRecData(){src("gRecD",fc(G.rec&&G.rec.pts.length>1?[line(G.rec.pts)]:[]));}
 
 /* ---------- caméra et position ---------- */
 function zoomFor(kmh){kmh=kmh||0;return kmh<30?17.6:(kmh<60?17:(kmh<90?16.2:15.5));}
 function setPad(){if(!G||!G.map)return;var h=G.root.clientHeight||window.innerHeight,gb=G.root.querySelector(".gbot"),bh=gb?gb.offsetHeight:230,target=Math.max(h*0.45,h-bh-60),top=Math.max(0,Math.round(2*target-h));
+ var w=G.root.clientWidth||window.innerWidth,fx=$("#gVeh");if(fx){fx.style.left=Math.round(w/2-27)+"px";fx.style.top=Math.round(target-27)+"px";}
  if(top===G._padTop)return;G._padTop=top;try{G.map.setPadding({top:top,bottom:0,left:0,right:0});}catch(e){}}
-function animateTo(p,h){var t=now(),cur=G.disp||p,ch=G.dispH==null?h:G.dispH;G.anim={f:cur,t:p,hf:ch,ht:h,t0:t,dur:G.lastAnimT?Math.min(1300,Math.max(400,t-G.lastAnimT)):600};G.lastAnimT=t;if(!G.raf)G.raf=requestAnimationFrame(frame);}
+function animateTo(p,h){var t=now(),cur=G.disp||p,ch=G.dispH==null?h:G.dispH;G.anim={f:cur,t:p,hf:ch,ht:h,t0:t,dur:G.lastAnimT?Math.min(1600,Math.max(500,(t-G.lastAnimT)*1.1)):700};G.lastAnimT=t;if(!G.raf)G.raf=requestAnimationFrame(frame);}
 function frame(){
  if(!G){return;}G.raf=null;var a=G.anim;if(!a)return;var k=Math.min(1,(now()-a.t0)/a.dur);
  var p=[a.f[0]+(a.t[0]-a.f[0])*k,a.f[1]+(a.t[1]-a.f[1])*k],h=(a.hf+angDiff(a.hf,a.ht)*k+360)%360;G.disp=p;G.dispH=h;
  G.zoom=G.zoom==null?zoomFor(G.speed):G.zoom+(zoomFor(G.speed)-G.zoom)*0.03;
- if(G.veh){G.veh.setLngLat([p[1],p[0]]);G.veh.setRotation(h);}
  if(G.follow&&G.map){try{G.map.jumpTo({center:[p[1],p[0]],bearing:h,zoom:G.zoom,pitch:50});}catch(e){}}
+ else if(G.veh){G.veh.setLngLat([p[1],p[0]]);G.veh.setRotation(h);}
  if(k<1)G.raf=requestAnimationFrame(frame);
 }
-function recenter(){G.follow=true;paintRec();if(!G.raf)G.raf=requestAnimationFrame(frame);}
+function recenter(){G.follow=true;paintRec();if(G.anim)G.anim.t0=now()-G.anim.dur;if(!G.raf)G.raf=requestAnimationFrame(frame);}
 
 function onFix(c){
  if(!G)return;var p=[c.lat,c.lon],t=c.t||now();
@@ -327,10 +335,12 @@ function onFix(c){
  G.acc=c.acc||0;G.lastFixT=now();G.last={p:p,t:t};G.pos=p;try{A.ui.lastPos=p;}catch(e){}
  if(!G.R){G.disp=G.disp||p;return;}
  var R=G.R,pr=project(R,p,G.prj?G.prj.i:null),tol=Math.max(30,Math.min(60,(c.acc||0)*1.3)),on=pr.off<=tol;G.prj=pr;
- if(on){G.offCount=0;G.along=pr.along;}
+ if(on){G.offCount=0;var na=pr.along;if(na<G.along&&G.along-na<15)na=G.along;if((sp==null||sp<0.8)&&Math.abs(na-G.along)<10)na=G.along;G.along=na;}
  else{G.offCount=(G.offCount||0)+1;if(G.offCount>=3&&!G.rerouting&&now()-(G.lastReroute||0)>12000&&!G.arrived)reroute("off");}
- var hd=(c.heading!=null&&!isNaN(c.heading)&&(sp||0)>2)?c.heading:(on?bearingAt(R,G.along):(G.heading||0));G.heading=hd;
- animateTo(on?pr.q:p,hd);
+ var gh=(c.heading!=null&&!isNaN(c.heading)&&(sp||0)>3)?c.heading:null,hd;
+ if(on)hd=bearingAt(R,G.along);else if(gh!=null)hd=G.heading==null?gh:(G.heading+angDiff(G.heading,gh)*0.5+360)%360;else hd=G.heading||0;G.heading=hd;
+ if(!on&&(sp==null||sp<0.8)&&G.disp&&A.distM(G.disp,p)<10)p=G.disp;
+ animateTo(on?pointAt(R,G.along):p,hd);
  if(G.rec){var lp=G.rec.pts[G.rec.pts.length-1],q=on?pr.q:p;if(!lp||A.distM(lp,q)>5){G.rec.pts.push(q);setRecData();}}
  update();
 }
@@ -362,7 +372,7 @@ function setRoute(R){
  G.R=R;G.prj=null;G.next=-1;G.offCount=0;
  if(G.pos){var pr=project(R,G.pos,null);G.prj=pr;G.along=pr.along;}else G.along=0;
  if(G.sim)G.simAlong=G.along;
- computeHazards();refreshFeatures();setRouteData();update();loadEdges(R);loadBumps(R);
+ computeHazards();refreshFeatures();setRouteData();update();vehMode();loadEdges(R);loadBumps(R);
 }
 function reroute(why){
  if(!G||!G.pos||G.rerouting)return;G.rerouting=true;G.lastReroute=now();paintBanner();
@@ -574,9 +584,9 @@ function boot(){
    G.map.touchZoomRotate.disableRotation();
    G.map.on("dragstart",function(e){if(e.originalEvent){G.follow=false;paintRec();}});
    G.map.on("zoomstart",function(e){if(e.originalEvent){G.follow=false;paintRec();}});
-   G.map.on("load",function(){if(!G)return;G.mapReady=true;addLayers();setPad();
+   G.map.on("load",function(){if(!G)return;G.mapReady=true;addLayers();G._padTop=null;setPad();
     var ve=el('<div class="gveh">'+ARROW+'</div>');G.veh=new ml.Marker({element:ve,anchor:"center",rotationAlignment:"map",pitchAlignment:"viewport"}).setLngLat([c[1],c[0]]).addTo(G.map);
-    refreshFeatures();setRouteData();});
+    vehMode();loadPins().then(function(){if(G)refreshMarkers();});refreshFeatures();setRouteData();});
   }
   setLoad("Calcul de l'itinéraire…");
   var p=G.opts.shape?traceRoute(G.opts.shape).catch(function(){return waitPos(12000).then(routeFrom);}):waitPos(12000).then(routeFrom);
