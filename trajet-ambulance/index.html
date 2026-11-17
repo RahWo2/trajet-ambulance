@@ -262,8 +262,8 @@ function paintMission(el,e,d,addr){
  if(leg===1){
   var L1=links(pk.addr,"",pk.lat,pk.lon);
   h+='<div class="blk cur" id="leg1"><h3><span class="step-n">1</span>Aller chercher le patient</h3><div class="dest">'+esc(pk.label)+'</div>'+(pk.label!==pk.addr?'<div class="addr">'+esc(pk.addr)+'</div>':'')+(pk.infos?'<div class="infos">📍 '+esc(pk.infos)+'</div>':'')+
-   gpsBtns(L1,1)+'<button class="check" data-a="leg2"><span class="box"></span><span><b>Patient à bord</b><small>À cocher en revenant dans l\'appli</small></span></button></div>'+
-   '<div class="blk next"><span class="step-n">2</span>Rendez-vous : <b>'+esc(d?d.nom:addr)+'</b></div></div>';
+   gpsBtns(L1,1)+'</div>'+
+   '<div class="blk next"><span class="step-n">2</span>Rendez-vous : <b>'+esc(d?d.nom:addr)+'</b> · <a href="#" data-a="leg2" style="color:var(--acc);white-space:nowrap">passer à l\'étape 2</a></div></div>';
  }else{
   var R=(ui.route&&ui.route.key===routeKey())?ui.route:null,RD=(R&&R.status==="done")?R:null,sel=RD?RD.cands[RD.sel]:null;
   var wps=sel?routeWaypoints(sel,RD.baseline):[],via=(d&&d.via)?d.via:"";
@@ -1267,7 +1267,7 @@ function fZone(z){
 
 function resetMission(){ui.edit=null;ui.etat=ui.mode==="programme"?"programme":null;ui.destId=null;ui.libre="";ui.libreGeo=null;ui.libreOk=false;ui.filtre="";ui.pecFiltre="";ui.pec={q:"",etab:""};ui.leg=1;ui.dep=null;ui.depEdit=false;ui.route=null;keepUi();}
 /* ===== GPS intégré (module gps.js chargé à la demande) ===== */
-var GPS_V="3",gpsP=null;
+var GPS_V="4",gpsP=null;
 function loadGps(){if(window.AmbuGPS)return Promise.resolve();if(gpsP)return gpsP;
  gpsP=new Promise(function(res,rej){var sc=document.createElement("script");sc.src="gps.js?v="+GPS_V;
   sc.onload=function(){if(window.AmbuGPS)res();else{gpsP=null;rej(new Error("GPS indisponible."));}};
@@ -1295,6 +1295,9 @@ window.AMB={get state(){return state;},ui:ui,api:api,isCloud:isCloud,netErr:netE
   else if(x.etab){ui.destId=x.etab;ui.libre="";ui.libreGeo=null;ui.libreOk=false;}
   else{ui.libre=x.label;ui.libreGeo={q:x.label,lat:x.lat,lon:x.lon};ui.libreOk=true;ui.destId=null;}
   ui.route=null;keepUi();},
+ nextLeg:function(){ui.leg=2;keepUi();var d=ui.destId?etab(ui.destId):null,addr=d?d.adresse:ui.libre.trim();
+  if(!addr)return Promise.reject(new Error("aucun lieu de rendez-vous."));
+  return resolveDest(d,addr).then(function(x){return{lat:x.lat,lon:x.lon,nom:x.nom||addr,addr:addr,id:x.id||"",label:"Transport programmé",links:links(addr,"",x.lat,x.lon)};});},
  onEnd:function(kind){if(kind==="nouvelle"){resetMission();ui.mode=null;ui.etat=null;keepUi();if(location.hash!=="#trajet"&&location.hash!==""){location.hash="#trajet";return;}}render();window.scrollTo(0,0);}
 };
 document.addEventListener("click",function(ev){
@@ -1358,7 +1361,7 @@ document.addEventListener("click",function(ev){
  else if(a==="dropBackup"){delete state.localBackup;save();render();}
  else if(a==="reset"){resetMission();render();window.scrollTo(0,0);}
  else if(a==="gps"){startGps(+(b.getAttribute("data-leg")||0));}
- else if(a==="leg2"||a==="leg1"){ui.leg=a==="leg2"?2:1;keepUi();paintFeuille();var lg=document.getElementById(a==="leg2"?"leg2":"leg1");if(lg)lg.scrollIntoView({behavior:"smooth",block:"start"});}
+ else if(a==="leg2"||a==="leg1"){ev.preventDefault();ui.leg=a==="leg2"?2:1;keepUi();paintFeuille();var lg=document.getElementById(a==="leg2"?"leg2":"leg1");if(lg)lg.scrollIntoView({behavior:"smooth",block:"start"});}
  else if(a==="newEtab"){ui.form={kind:"etab"};ui.confirm=null;render();}
  else if(a==="editEtab"){ui.form={kind:"etab",id:id};ui.confirm=null;render();window.scrollTo(0,0);}
  else if(a==="newZone"){ui.form={kind:"zone"};ui.confirm=null;render();}
