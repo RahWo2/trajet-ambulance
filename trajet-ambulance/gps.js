@@ -262,14 +262,21 @@ var W_CAS=["interpolate",["exponential",1.5],["zoom"],12,8,15,13,17,21,19,38],W_
  W_DOT=["interpolate",["exponential",1.5],["zoom"],12,2.5,15,4.2,17,6.8,19,12.5],W_DOTE=["interpolate",["exponential",1.5],["zoom"],12,3.8,15,6,17,9,19,15.5],W_ODOT=["interpolate",["exponential",1.5],["zoom"],12,1.5,15,2.6,17,4.2,19,6.8];
 var W_ARR=["interpolate",["exponential",1.5],["zoom"],12,2.6,15,4.8,17,7.8,19,14.4],W_ARRO=["interpolate",["exponential",1.5],["zoom"],12,2.2,15,3.2,17,5.2,19,9.6];
 var TURN={2:1,3:1,9:1,10:1,11:1,12:1,13:1,14:1,15:1,16:1,18:1,19:1,20:1,21:1,23:1,24:1,26:1,27:1,37:1,38:1};
+function roundRing(P,pts,rs,n){var out=[];
+ for(var i=0;i<pts.length;i++){var p=pts[i],p0=pts[(i+pts.length-1)%pts.length],p1=pts[(i+1)%pts.length];
+  function tw(q,d){var dx=q[0]-p[0],dy=q[1]-p[1],l=Math.sqrt(dx*dx+dy*dy)||1;d=Math.min(d,l*0.45);return[p[0]+dx/l*d,p[1]+dy/l*d];}
+  var a=tw(p0,rs[i]),b=tw(p1,rs[i]);for(var j=0;j<=n;j++){var t=j/n,u=1-t;out.push([u*u*a[0]+2*u*t*p[0]+t*t*b[0],u*u*a[1]+2*u*t*p[1]+t*t*b[1]]);}}
+ out.push(out[0]);return out.map(function(q){var g=P.ll(q[0],q[1]);return[g[1],g[0]];});}
 function manArrow(){
- if(!G.mapReady)return;var R=G.R,k=G.next,m=R&&R.man[k],key=(R?R.total:0)+"|"+k+"|"+!!G.arrived+"|"+!!G.rerouting;if(key===G._manKey)return;G._manKey=key;
+ if(!G.mapReady)return;var R=G.R,k=G.next,m=R&&R.man[k],zb=Math.round((G.zoom||17)*4)/4,key=(R?R.total:0)+"|"+k+"|"+!!G.arrived+"|"+!!G.rerouting+"|"+zb;if(key===G._manKey)return;G._manKey=key;
  var Lf=[],Hf=[];
  if(m&&!G.arrived&&!G.rerouting&&TURN[m.type]){
   var a=Math.max(0,m.d-25),b=Math.min(R.total,m.d+((m.type===26||m.type===27)?28:14));
-  if(b-a>8){var sh=slice(R,a,b),P=mkProj(sh[0][0]),e=P.xy(pointAt(R,b)),f=P.xy(pointAt(R,Math.max(a,b-5))),dx=e[0]-f[0],dy=e[1]-f[1],L=Math.sqrt(dx*dx+dy*dy)||1,ux=dx/L,uy=dy/L,nx=-uy,ny=ux,hw=7.5,hl=10;
+  if(b-a>8){var sh=slice(R,a,b),P=mkProj(sh[0][0]),e=P.xy(pointAt(R,b)),f=P.xy(pointAt(R,Math.max(a,b-5))),dx=e[0]-f[0],dy=e[1]-f[1],L=Math.sqrt(dx*dx+dy*dy)||1,ux=dx/L,uy=dy/L,nx=-uy,ny=ux;
+   /* tête aussi large à l'écran que la flèche de position (≈30 px), coins arrondis */
+   var mpp=40075016*Math.cos(sh[0][0]*Math.PI/180)/(512*Math.pow(2,zb)),hw=Math.max(2,15*mpp),hl=hw*1.6;
    Lf.push(line(sh));
-   var ring=[[e[0]+nx*hw,e[1]+ny*hw],[e[0]+ux*hl,e[1]+uy*hl],[e[0]-nx*hw,e[1]-ny*hw],[e[0]+nx*hw,e[1]+ny*hw]].map(function(q){var g=P.ll(q[0],q[1]);return[g[1],g[0]];});
+   var ring=roundRing(P,[[e[0]+nx*hw,e[1]+ny*hw],[e[0]+ux*hl,e[1]+uy*hl],[e[0]-nx*hw,e[1]-ny*hw]],[hw*0.45,hw*0.55,hw*0.45],6);
    Hf.push({type:"Feature",properties:{},geometry:{type:"Polygon",coordinates:[ring]}});}}
  src("gManL",fc(Lf));src("gManH",fc(Hf));
 }
