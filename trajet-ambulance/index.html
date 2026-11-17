@@ -14,6 +14,7 @@ nav a.on{color:var(--txt);border-color:var(--acc)}
 main{max-width:720px;margin:0 auto;padding:14px 14px 60px}
 h2{font-size:15px;text-transform:uppercase;letter-spacing:.6px;color:var(--mut);margin:22px 0 10px}
 h2:first-child{margin-top:4px}
+section[data-k]>h2:first-child{margin-top:22px}
 .tiles{display:grid;gap:10px}
 .tile{display:flex;align-items:center;gap:14px;width:100%;min-height:74px;padding:12px 14px;background:var(--card);border:2px solid var(--line);border-left:8px solid var(--c,#555);border-radius:14px;color:var(--txt);font:inherit;text-align:left;cursor:pointer}
 .tile .ic{font-size:28px;width:34px;text-align:center}
@@ -133,6 +134,9 @@ details summary{cursor:pointer;color:var(--acc)}
 .modes.picked .mode small{display:none}
 .done{display:flex;align-items:center;gap:10px;margin-top:12px;padding:10px 10px 10px 12px;background:var(--card);border:1px solid var(--line);border-left:5px solid var(--c,var(--ok));border-radius:12px}
 .done .step-n{background:var(--ok);margin:0}
+.donegrp{margin-top:12px;background:var(--card);border:1px solid var(--line);border-left:5px solid var(--c,var(--ok));border-radius:12px;overflow:hidden}
+.donegrp .done{margin:0;border:0;border-radius:0;background:none;padding:10px 10px 10px 12px}
+.donegrp .done+.done{border-top:1px solid var(--line)}
 .done .k{flex:1;min-width:0}
 .done small{display:block;color:var(--mut);font-size:12px;text-transform:uppercase;letter-spacing:.5px}
 .done b{display:block;font-size:16.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -145,8 +149,11 @@ details summary{cursor:pointer;color:var(--acc)}
 .blk.next b{color:var(--txt)}
 button,.btn,.tile,.mode,.chip,.opt,.check{transition:transform .12s ease,background-color .2s ease,border-color .2s ease,box-shadow .2s ease,opacity .2s ease}
 button:active,.btn:active,.tile:active,.mode:active,.chip:active,.opt:active,.check:active{transform:scale(.97)}
-main.enter{animation:enter .24s ease-out}
-@keyframes enter{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+/* Animations : seul ce qui apparaît bouge, le reste ne clignote pas */
+.in{animation:in .22s ease-out both}
+@keyframes in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+main.pg{animation:pg .16s ease-out}
+@keyframes pg{from{opacity:.4}to{opacity:1}}
 .ac:not([hidden]){animation:acin .15s ease-out}@keyframes acin{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
 </style></head><body><div id="app"></div><script id="state" type="application/json">{"rev":0,"etabs":[],"zones":[],"setupDone":false}</script><script id="main">
@@ -267,7 +274,7 @@ function paintMission(el,e,d,addr){
  var h='<div class="sheet"><div class="band" style="--c:'+p.c+'"><b>📋 Transport programmé</b></div>';
  if(leg===1){
   var L1=links(pk.addr,"",pk.lat,pk.lon);
-  h+='<div class="blk cur" id="leg1"><h3><span class="step-n">1</span>Aller chercher le patient</h3><div class="dest">'+esc(pk.label)+'</div>'+(pk.label!==pk.addr?'<div class="addr">'+esc(pk.addr)+'</div>':'')+(pk.infos?'<div class="infos">📍 '+esc(pk.infos)+'</div>':'')+
+  h+='<div class="blk cur" id="leg1" data-k="leg1"><h3><span class="step-n">1</span>Aller chercher le patient</h3><div class="dest">'+esc(pk.label)+'</div>'+(pk.label!==pk.addr?'<div class="addr">'+esc(pk.addr)+'</div>':'')+(pk.infos?'<div class="infos">📍 '+esc(pk.infos)+'</div>':'')+
    gpsBtns(L1,1)+'</div>'+
    '<div class="blk next"><span class="step-n">2</span>Rendez-vous : <b>'+esc(d?d.nom:addr)+'</b> · <a href="#" data-a="leg2" style="color:var(--acc);white-space:nowrap">passer à l\'étape 2</a></div></div>';
  }else{
@@ -277,7 +284,7 @@ function paintMission(el,e,d,addr){
   var L2=links(addr,RD?"":via,dl&&dl.lat,dl&&dl.lon,{wps:wps,origin:RD?[RD.dep.lat,RD.dep.lon]:null,dest:RD?[RD.dest.lat,RD.dest.lon]:null});
   var zs=state.zones.filter(function(z){return p.zones.indexOf(z.type)>=0&&(!z.etab||(d&&z.etab===d.id));});
   h+='<div class="blk" id="leg1"><button class="check on" style="margin-top:0" data-a="leg1"><span class="box">✓</span><span><b>Patient à bord</b></span></button></div>';
-  h+='<div class="blk cur" id="leg2"><h3><span class="step-n">2</span>Conduire au rendez-vous</h3><div class="dest">'+esc(d?d.nom:"Rendez-vous")+'</div><div class="addr">'+esc(addr)+'</div>'+(d&&d.infos?'<div class="infos">📍 '+esc(d.infos)+'</div>':'');
+  h+='<div class="blk cur" id="leg2" data-k="leg2"><h3><span class="step-n">2</span>Conduire au rendez-vous</h3><div class="dest">'+esc(d?d.nom:"Rendez-vous")+'</div><div class="addr">'+esc(addr)+'</div>'+(d&&d.infos?'<div class="infos">📍 '+esc(d.infos)+'</div>':'');
   if(zs.length){h+='<div style="margin-top:10px">';zs.forEach(function(z){h+='<div class="zone"><span class="tag">'+esc(ZTYPES[z.type]||z.type)+'</span><div><b>'+esc(z.nom)+'</b>'+(z.note?'<div class="addr">'+esc(z.note)+'</div>':"")+'</div></div>';});h+='</div>';}
   h+=vComfortMini(R)+gpsBtns(L2,2,!!RD)+'</div></div>';
  }
@@ -1057,16 +1064,16 @@ function headerHtml(nav){
  return '<header><div class="top"'+(nav?'':' style="padding-bottom:10px"')+'><h1>🚑 Ambumaps</h1><div class="hr"><div id="status" class="status"></div>'+(isCloud()&&!ui.auth?'<button class="sync" data-a="sync" aria-label="Synchroniser">↻</button>':'')+'</div></div>'+(nav||'')+'</header>';
 }
 function tabLink(k,l){return '<a href="#'+k+'" class="'+(ui.tab===k?"on":"")+'">'+l+'</a>';}
-function render(){
+function render0(){
  var h=location.hash.replace("#","");
  ui.tab=(h==="etablissements"||h==="zones"||(h==="equipe"&&isCloud()))?h:"trajet";
  var app=document.getElementById("app");
  clearMaps();
  if((!state.mode||(state.mode==="cloud"&&!sess))&&!ui.auth)ui.auth={step:state.mode==="cloud"?"login":"choice"};
- var mo=ui.anim?'<main class="enter">':'<main>';ui.anim=false;
- if(ui.auth){app.innerHTML=headerHtml("")+mo+vAuth()+'</main>';paintStatus();return;}
+ var mo='<main>';
+ if(ui.auth){app.innerHTML=headerHtml("")+mo+'<div data-k="au-'+ui.auth.step+'">'+vAuth()+'</div></main>';paintStatus();return;}
  if(!ui.search&&state.mode==="local"&&!state.setupDone)ui.search={step:"start",radius:20};
- if(ui.search){app.innerHTML=headerHtml("")+mo+vSearch()+'</main>';paintStatus();if(ui.search.step==="review")syncGroups();return;}
+ if(ui.search){app.innerHTML=headerHtml("")+mo+'<div data-k="se-'+ui.search.step+'">'+vSearch()+'</div></main>';paintStatus();if(ui.search.step==="review")syncGroups();return;}
  var nav='<nav>'+tabLink("trajet","Trajet")+tabLink("etablissements","Établissements")+tabLink("zones","Zones ("+state.zones.length+")")+(isCloud()?tabLink("equipe","Équipe"):"")+'</nav>';
  var html=headerHtml(nav)+mo;
  if(isCloud()&&cloud.status==="notmember")html+='<div class="warnbox" style="margin:0 0 12px">Ton compte n\'est pas (ou plus) dans l\'équipe. Demande à ton responsable de t\'ajouter, ou déconnecte-toi depuis l\'onglet Équipe.</div>';
@@ -1078,6 +1085,56 @@ function render(){
  else if(ui.tab==="zones"&&ui.form&&ui.form.kind==="zone")initZoneMap();
  document.body.style.overflow=(ui.tab==="zones"&&ui.zfull)?"hidden":"";
 }
+var RTAB=null,TRAP={on:false,href:""};
+try{history.scrollRestoration="manual";}catch(e){}
+function render(){
+ var app=document.getElementById("app"),prev={},first=RTAB===null,oldTab=ui.tab;
+ var keyOf=function(x){return x.getAttribute("data-k");};
+ Array.prototype.forEach.call(app.querySelectorAll("[data-k]"),function(x){prev[keyOf(x)]=1;});
+ render0();
+ Array.prototype.forEach.call(app.querySelectorAll(".confirm:not([data-k])"),function(x){x.setAttribute("data-k","cf-"+ui.confirm);});
+ Array.prototype.forEach.call(app.querySelectorAll("form.form:not([data-k])"),function(x){x.setAttribute("data-k","fm-"+x.getAttribute("data-f")+(ui.form&&ui.form.id||""));});
+ var mn=app.querySelector("main");
+ if(!first&&mn){
+  if(oldTab!==ui.tab)mn.classList.add("pg");
+  else Array.prototype.forEach.call(app.querySelectorAll("[data-k]"),function(x){if(!prev[keyOf(x)]&&!(x.parentElement&&x.parentElement.closest(".in")))x.classList.add("in");});
+ }
+ RTAB=ui.tab;ensureTrap();
+}
+/* Bouton retour du téléphone : revient d'une étape au lieu de quitter l'appli */
+function canBack(){
+ if(ui.auth||ui.search)return false;
+ if(ui.form||ui.invite||ui.confirm)return true;
+ if(ui.tab==="zones"&&ui.zfull)return true;
+ return ui.tab==="trajet"&&!!ui.mode;
+}
+function ensureTrap(){
+ if(window.AmbuGPS&&window.AmbuGPS.active())return;
+ if(!canBack()||(history.state&&(history.state.ambTrap||history.state.gps)))return;
+ try{history.pushState({ambTrap:1},"",location.href);TRAP.on=true;TRAP.href=location.href;}catch(e){}
+}
+function goBack(){
+ acHide();
+ if(ui.confirm)ui.confirm=null;
+ else if(ui.form)ui.form=null;
+ else if(ui.invite)ui.invite=false;
+ else if(ui.tab==="zones"&&ui.zfull)ui.zfull=false;
+ else if(ui.tab==="trajet"&&ui.mode){
+  if(ui.editFrom){ui.edit=ui.editFrom.e||null;ui.editFrom=null;}
+  else{var cs=curStep();
+   if(cs===3&&ui.mode==="programme"&&ui.leg===2)ui.leg=1;
+   else if(cs>1)ui.edit=cs-1;
+   else{ui.mode=null;ui.edit=null;}}
+  keepUi();
+ }else{try{history.back();}catch(e){}return;}
+ render();window.scrollTo(0,0);
+}
+window.addEventListener("popstate",function(e){
+ var st=e.state||{},was=TRAP.on,wh=TRAP.href;
+ TRAP.on=!!st.ambTrap;TRAP.href=TRAP.on?location.href:"";
+ if(st.gps||(window.AmbuGPS&&window.AmbuGPS.active()))return;
+ if(was&&!st.ambTrap&&location.href===wh)goBack();
+});
 function vAuth(){
  var a=ui.auth,h="";
  if(a.step==="choice"){
@@ -1130,42 +1187,46 @@ function stepDone(k){
  return !!(ui.destId&&etab(ui.destId))||!!(ui.libreOk&&ui.libre.trim());}
 function searchRow(id,ph,val){return '<div class="row nowrap"><div class="acw" style="flex:1 1 auto"><input id="'+id+'" data-ac="'+id+'" type="text" placeholder="'+esc(ph)+'" value="'+esc(val)+'" autocomplete="off" enterkeyhint="done"></div><button class="btn pri" data-a="'+id+'Ok">OK</button></div>';}
 function curStep(){if(ui.edit===1||ui.edit===2)return ui.edit;return !stepDone(1)?1:(!stepDone(2)?2:3);}
-function doneRow(k,label,val,c){return '<div class="done"'+(c?' style="--c:'+c+'"':'')+'><span class="step-n">✓</span><div class="k"><small>'+esc(label)+'</small><b>'+esc(val)+'</b></div><button class="btn small" data-a="editStep" data-id="'+k+'">Modifier</button></div>';}
-function goStep(){ui.edit=null;keepUi();render();scrollStep();}
+function doneRow(k,label,val){return '<div class="done" data-k="d'+k+'"><span class="step-n">✓</span><div class="k"><small>'+esc(label)+'</small><b>'+esc(val)+'</b></div><button class="btn small" data-a="editStep" data-id="'+k+'">Modifier</button></div>';}
+function goStep(){ui.edit=null;ui.editFrom=null;keepUi();render();scrollStep();}
 function scrollStep(){window.scrollTo({top:0,behavior:"smooth"});}
 function vTrajet(){
  var md=ui.mode,prog=md==="programme";
- var h='<h2>Type de transport</h2><div class="modes'+(md?" picked":"")+'">'+
+ var h='<h2 data-k="tt">Type de transport</h2><div class="modes'+(md?" picked":"")+'" data-k="modes">'+
   '<button class="mode'+(md==="urgence"?" on":"")+'" style="--c:#d93a3f" data-a="mode" data-id="urgence"><span class="ic">🚨</span><b>Urgence</b></button>'+
   '<button class="mode'+(prog?" on":"")+'" style="--c:#2f9e6a" data-a="mode" data-id="programme"><span class="ic">📋</span><b>Transport programmé</b></button></div>';
  if(!md)return h;
  var cs=curStep(),n=state.etabs.length;
- // Étape 1
+ // Étapes validées : regroupées dans un seul encadré
  if(cs>1){
-  if(prog){var pk=pecInfo();h+=doneRow(1,"Prise en charge",pk.label||pk.addr);}
-  else{var e=curEtat();h+=doneRow(1,"État du patient",e.ic+" "+e.label,PROFILS[e.p].c);}
- }else if(prog){
-  h+='<h2 id="stepCur">1 · Prise en charge du patient</h2>'+searchRow("pec",n?"🔍 Adresse du patient ou lieu enregistré":"🔍 Adresse du patient",ui.pec.etab?"":ui.pec.q)+
-   '<div class="hint">L\'adresse du patient reste sur ce téléphone, jamais dans la base de l\'équipe.</div>';
-  if(n)h+='<div id="pecList" style="margin-top:12px">'+placeList("pec")+'</div>';
- }else{
-  h+='<h2 id="stepCur">1 · État du patient</h2><div class="tiles">';
-  ETATS.forEach(function(e){if(e.id==="programme")return;var p=PROFILS[e.p];
-   h+='<button class="tile'+(ui.etat===e.id?" on":"")+'" style="--c:'+p.c+'" data-a="etat" data-id="'+e.id+'"><span class="ic">'+e.ic+'</span><span><b>'+esc(e.label)+'</b><small>'+esc(e.sous)+'</small></span></button>';});
-  h+='</div>';
+  var g="",gc="";
+  if(prog){var pk=pecInfo();g+=doneRow(1,"Prise en charge",pk.label||pk.addr);}
+  else{var e=curEtat();g+=doneRow(1,"État du patient",e.ic+" "+e.label);gc=PROFILS[e.p].c;}
+  if(cs>2){var d=ui.destId?etab(ui.destId):null;g+=doneRow(2,prog?"Rendez-vous":"Destination",d?d.nom:ui.libre.trim());}
+  h+='<div class="donegrp" data-k="done"'+(gc?' style="--c:'+gc+'"':'')+'>'+g+'</div>';
  }
- if(cs<2)return h;
- // Étape 2
- if(cs>2){var d=ui.destId?etab(ui.destId):null;h+=doneRow(2,prog?"Rendez-vous":"Destination",d?d.nom:ui.libre.trim());}
- else{
-  h+='<h2 id="stepCur">2 · '+(prog?"Lieu du rendez-vous":"Destination")+'</h2>'+searchRow("libre",n?"🔍 Lieu enregistré ou adresse":"🔍 Adresse",ui.destId?"":ui.libre);
+ // Étape en cours
+ if(cs===1){
+  h+='<section data-k="s1'+md+'">';
+  if(prog){
+   h+='<h2 id="stepCur">1 · Prise en charge du patient</h2>'+searchRow("pec",n?"🔍 Adresse du patient ou lieu enregistré":"🔍 Adresse du patient",ui.pec.etab?"":ui.pec.q)+
+    '<div class="hint">L\'adresse du patient reste sur ce téléphone, jamais dans la base de l\'équipe.</div>';
+   if(n)h+='<div id="pecList" style="margin-top:12px">'+placeList("pec")+'</div>';
+  }else{
+   h+='<h2 id="stepCur">1 · État du patient</h2><div class="tiles">';
+   ETATS.forEach(function(e){if(e.id==="programme")return;var p=PROFILS[e.p];
+    h+='<button class="tile'+(ui.etat===e.id?" on":"")+'" style="--c:'+p.c+'" data-a="etat" data-id="'+e.id+'"><span class="ic">'+e.ic+'</span><span><b>'+esc(e.label)+'</b><small>'+esc(e.sous)+'</small></span></button>';});
+   h+='</div>';
+  }
+  return h+'</section>';
+ }
+ if(cs===2){
+  h+='<section data-k="s2'+md+'"><h2 id="stepCur">2 · '+(prog?"Lieu du rendez-vous":"Destination")+'</h2>'+searchRow("libre",n?"🔍 Lieu enregistré ou adresse":"🔍 Adresse",ui.destId?"":ui.libre);
   if(!n)h+='<div class="empty" style="margin-top:12px">Aucun établissement enregistré.<button class="btn pri wide" style="margin-top:10px" data-a="searchStart">📍 Rechercher autour de moi</button></div>';
   else h+='<div id="destList" style="margin-top:12px">'+destList()+'</div>';
-  return h;
+  return h+'</section>';
  }
- // Étape 3
- h+='<h2 id="stepCur">3 · '+(prog?"Feuille de mission":"Feuille de route")+'</h2><div id="feuille"></div>';
- return h;
+ return h+'<section data-k="s3'+md+'"><h2 id="stepCur">3 · '+(prog?"Feuille de mission":"Feuille de route")+'</h2><div id="feuille"></div></section>';
 }
 function paintFeuille(){
  var el=document.getElementById("feuille");if(!el)return;
@@ -1272,9 +1333,9 @@ function fZone(z){
  '<div class="row" style="margin-top:14px"><button class="btn pri" type="submit">Enregistrer</button><button class="btn" type="button" data-a="cancel">Annuler</button></div></form>';
 }
 
-function resetMission(){ui.edit=null;ui.etat=ui.mode==="programme"?"programme":null;ui.destId=null;ui.libre="";ui.libreGeo=null;ui.libreOk=false;ui.filtre="";ui.pecFiltre="";ui.pec={q:"",etab:""};ui.leg=1;ui.dep=null;ui.depEdit=false;ui.route=null;keepUi();}
+function resetMission(){ui.edit=null;ui.editFrom=null;ui.etat=ui.mode==="programme"?"programme":null;ui.destId=null;ui.libre="";ui.libreGeo=null;ui.libreOk=false;ui.filtre="";ui.pecFiltre="";ui.pec={q:"",etab:""};ui.leg=1;ui.dep=null;ui.depEdit=false;ui.route=null;keepUi();}
 /* ===== GPS intégré (module gps.js chargé à la demande) ===== */
-var GPS_V="6",gpsP=null;
+var GPS_V="7",gpsP=null;
 function loadGps(){if(window.AmbuGPS)return Promise.resolve();if(gpsP)return gpsP;
  gpsP=new Promise(function(res,rej){var sc=document.createElement("script");sc.src="gps.js?v="+GPS_V;
   sc.onload=function(){if(window.AmbuGPS)res();else{gpsP=null;rej(new Error("GPS indisponible."));}};
@@ -1309,15 +1370,14 @@ window.AMB={get state(){return state;},ui:ui,api:api,isCloud:isCloud,netErr:netE
 };
 document.addEventListener("click",function(ev){
  var b=ev.target.closest("[data-a]");if(!b)return;
- ui.anim=true;setTimeout(function(){ui.anim=false;},0);
  var a=b.getAttribute("data-a"),id=b.getAttribute("data-id");
- if(a==="mode"){if(ui.mode!==id){ui.edit=null;ui.mode=id;ui.route=null;ui.dep=null;ui.depEdit=false;ui.leg=1;ui.etat=id==="programme"?"programme":(ui.etat==="programme"?null:ui.etat);keepUi();render();}}
+ if(a==="mode"){if(ui.mode!==id){ui.edit=null;ui.editFrom=null;ui.mode=id;ui.route=null;ui.dep=null;ui.depEdit=false;ui.leg=1;ui.etat=id==="programme"?"programme":(ui.etat==="programme"?null:ui.etat);keepUi();render();}}
  else if(a==="etat"){ui.etat=id;goStep();}
  else if(a==="dest"){ui.destId=id;ui.libre="";ui.libreGeo=null;ui.libreOk=false;ui.filtre="";goStep();}
  else if(a==="pecPick"){ui.pec={q:"",etab:id};ui.pecFiltre="";goStep();}
  else if(a==="pecOk"){var pv=document.getElementById("pec");if(!(ui.pec.q||"").trim()||(ui.pec.q||"").trim().length<3){if(pv)pv.focus();return;}ui.pec.ok=true;acHide();goStep();}
  else if(a==="libreOk"){var lv=document.getElementById("libre");if(ui.libre.trim().length<3){if(lv)lv.focus();return;}ui.libreOk=true;ui.destId=null;acHide();goStep();}
- else if(a==="editStep"){ui.edit=+id;acHide();render();scrollStep();}
+ else if(a==="editStep"){ui.editFrom={e:ui.edit};ui.edit=+id;acHide();render();scrollStep();}
  else if(a==="fav"){toggleFav(id);if(document.getElementById("destList"))paintDest();else render();}
  else if(a==="acPick"){acPick(+b.getAttribute("data-i"));}
  else if(a==="acFav"){var ai=AC.items[+b.getAttribute("data-i")];if(ai&&ai.etab){toggleFav(ai.etab);ai.fav=isFav(ai.etab);if(AC.input)acPaint(AC.input,AC.items,"");paintDest();}}
@@ -1369,7 +1429,7 @@ document.addEventListener("click",function(ev){
  else if(a==="dropBackup"){delete state.localBackup;save();render();}
  else if(a==="reset"){resetMission();render();window.scrollTo(0,0);}
  else if(a==="gps"){startGps(+(b.getAttribute("data-leg")||0));}
- else if(a==="leg2"||a==="leg1"){ev.preventDefault();ui.leg=a==="leg2"?2:1;keepUi();paintFeuille();var lg=document.getElementById(a==="leg2"?"leg2":"leg1");if(lg)lg.scrollIntoView({behavior:"smooth",block:"start"});}
+ else if(a==="leg2"||a==="leg1"){ev.preventDefault();ui.leg=a==="leg2"?2:1;keepUi();render();var lg=document.getElementById(a==="leg2"?"leg2":"leg1");if(lg)lg.scrollIntoView({behavior:"smooth",block:"start"});}
  else if(a==="newEtab"){ui.form={kind:"etab"};ui.confirm=null;render();}
  else if(a==="editEtab"){ui.form={kind:"etab",id:id};ui.confirm=null;render();window.scrollTo(0,0);}
  else if(a==="newZone"){ui.form={kind:"zone"};ui.confirm=null;render();}
@@ -1421,7 +1481,7 @@ document.addEventListener("submit",function(ev){
  if(chZ)enqueue({t:"putZ",rows:[zoneRow(chZ)]});
  render();
 });
-window.addEventListener("hashchange",function(){ui.anim=true;ui.form=null;ui.confirm=null;if(ui.search&&ui.search.step==="adding")return;render();window.scrollTo(0,0);});
+window.addEventListener("hashchange",function(){ui.form=null;ui.confirm=null;if(ui.search&&ui.search.step==="adding")return;render();window.scrollTo(0,0);});
 if(state.team&&state.team.members)cloud.members=state.team.members;
 if(sess)cloud.members.forEach(function(m){if(m.email===sess.email)cloud.me=m;});
 document.addEventListener("visibilitychange",function(){if(document.visibilityState==="visible"&&isCloud())sync();});
