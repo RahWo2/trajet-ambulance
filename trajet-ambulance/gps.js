@@ -254,9 +254,9 @@ function computeHazards(){
 }
 
 /* ---------- carte : couches et repères ---------- */
-var W_CAS=["interpolate",["exponential",1.5],["zoom"],12,6,15,10,17,16,19,30],W_FIL=["interpolate",["exponential",1.5],["zoom"],12,3.5,15,6,17,10,19,19],
- W_OC=["interpolate",["exponential",1.5],["zoom"],12,3,15,5,17,8,19,13],W_OF=["interpolate",["exponential",1.5],["zoom"],12,1.6,15,3,17,5,19,8],
- W_DOT=["interpolate",["exponential",1.5],["zoom"],12,2,15,3.2,17,5.2,19,9.5],W_DOTE=["interpolate",["exponential",1.5],["zoom"],12,3,15,4.6,17,7,19,12],W_ODOT=["interpolate",["exponential",1.5],["zoom"],12,1.2,15,2,17,3.3,19,5.4];
+var W_CAS=["interpolate",["exponential",1.5],["zoom"],12,8,15,13,17,21,19,38],W_FIL=["interpolate",["exponential",1.5],["zoom"],12,4.5,15,8,17,13,19,24],
+ W_OC=["interpolate",["exponential",1.5],["zoom"],12,4,15,6.5,17,10,19,16],W_OF=["interpolate",["exponential",1.5],["zoom"],12,2,15,4,17,6.5,19,10],
+ W_DOT=["interpolate",["exponential",1.5],["zoom"],12,2.5,15,4.2,17,6.8,19,12.5],W_DOTE=["interpolate",["exponential",1.5],["zoom"],12,3.8,15,6,17,9,19,15.5],W_ODOT=["interpolate",["exponential",1.5],["zoom"],12,1.5,15,2.6,17,4.2,19,6.8];
 var KCOL=["match",["get","k"],"ralentissement","#ff8a1f","arret","#f03e3e","#8b95a6"];
 function fc(f){return{type:"FeatureCollection",features:f||[]};}
 function line(c,props){return{type:"Feature",properties:props||{},geometry:{type:"LineString",coordinates:c.map(function(p){return[p[1],p[0]];})}};}
@@ -306,7 +306,8 @@ function setRecData(){src("gRecD",fc(G.rec&&G.rec.pts.length>1?[line(G.rec.pts)]
 
 /* ---------- caméra et position ---------- */
 function zoomFor(kmh){kmh=kmh||0;return kmh<30?17.6:(kmh<60?17:(kmh<90?16.2:15.5));}
-function setPad(){if(!G.map)return;var h=G.root.clientHeight||window.innerHeight;try{G.map.setPadding({top:Math.round(h*0.42),bottom:0,left:0,right:0});}catch(e){}}
+function setPad(){if(!G||!G.map)return;var h=G.root.clientHeight||window.innerHeight,gb=G.root.querySelector(".gbot"),bh=gb?gb.offsetHeight:230,target=Math.max(h*0.45,h-bh-60),top=Math.max(0,Math.round(2*target-h));
+ if(top===G._padTop)return;G._padTop=top;try{G.map.setPadding({top:top,bottom:0,left:0,right:0});}catch(e){}}
 function animateTo(p,h){var t=now(),cur=G.disp||p,ch=G.dispH==null?h:G.dispH;G.anim={f:cur,t:p,hf:ch,ht:h,t0:t,dur:G.lastAnimT?Math.min(1300,Math.max(400,t-G.lastAnimT)):600};G.lastAnimT=t;if(!G.raf)G.raf=requestAnimationFrame(frame);}
 function frame(){
  if(!G){return;}G.raf=null;var a=G.anim;if(!a)return;var k=Math.min(1,(now()-a.t0)/a.dur);
@@ -337,7 +338,7 @@ function update(){
  var R=G.R;if(!R)return;
  if(!G.arrived&&!G.rerouting){var rem=R.total-G.along,dd=G.pos?A.distM(G.pos,[G.dest.lat,G.dest.lon]):1e9;if((rem<25&&(G.prj&&G.prj.off<40))||dd<30){arrive();return;}}
  var k=-1;for(var i=0;i<R.man.length;i++){var t=R.man[i].type;if(t>=1&&t<=3)continue;if(R.man[i].d>G.along+2){k=i;break;}}G.next=k;
- paintBanner();paintChip();paintSpeed();paintPill();paintPanel();setRouteData();voice();checkConfirm();
+ paintBanner();paintChip();paintSpeed();paintPill();paintPanel();setPad();setRouteData();voice();checkConfirm();
 }
 function arrive(){G.arrived=true;say("Vous êtes arrivé à destination.",true);paintBanner();paintChip();paintPanel();}
 
@@ -582,8 +583,8 @@ function boot(){
   return p.then(function(R){if(!G)return;setLoad(null);
    if(G.sim&&!G.pos){G.pos=R.pts[0];}
    G.quiet=true;setRoute(R);G.quiet=false;var m0=R.man.filter(function(m){return m.type<1||m.type>3;})[0];
-   say("Guidage démarré."+(m0&&m0.d-G.along<1500?" Dans "+sayDist(Math.max(10,m0.d-G.along))+", "+lcFirst(m0.verbal_transition_alert_instruction||m0.instruction):""),true);
-   if(m0&&m0.d-G.along<1500)m0._far=1;voice();
+   var d0=m0?m0.d-G.along:1e9;say("Guidage démarré."+(d0>=200&&d0<1500?" Dans "+sayDist(d0)+", "+lcFirst(m0.verbal_transition_alert_instruction||m0.instruction):""),true);
+   if(m0&&d0<1500)m0._far=1;voice();
    if(G.sim&&!G.simT)G.simT=setInterval(simTick,1000);
   });
  }).catch(function(e){if(!G)return;showErr(A.netErr(e)?"Pas de connexion internet, ou serveur de calcul indisponible.":(e.message||"Erreur inconnue."));});
