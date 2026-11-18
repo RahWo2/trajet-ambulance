@@ -397,13 +397,29 @@ function zoomFor(kmh){kmh=kmh||0;return kmh<30?17.6:(kmh<60?17:(kmh<90?16.2:15.5
 function setPad(){if(!G||!G.map)return;var h=G.root.clientHeight||window.innerHeight,gb=G.root.querySelector(".gbot"),bh=gb?gb.offsetHeight:230,target=Math.max(h*0.45,h-bh-60),top=Math.max(0,Math.round(2*target-h));
  var w=G.root.clientWidth||window.innerWidth,fx=$("#gVeh");if(fx){fx.style.left=Math.round(w/2-27)+"px";fx.style.top=Math.round(target-27)+"px";}
  if(top===G._padTop)return;G._padTop=top;try{G.map.setPadding({top:top,bottom:0,left:0,right:0});}catch(e){}}
-function animateTo(p,h,al){var t=now(),cur=G.disp||p,ch=G.dispH==null?h:G.dispH;G.anim={f:cur,t:p,hf:ch,ht:h,af:al==null?null:(G.dispAlong!=null?G.dispAlong:al),at:al,t0:t,dur:G.lastAnimT?Math.min(1600,Math.max(500,(t-G.lastAnimT)*1.1)):700};G.lastAnimT=t;if(!G.raf)G.raf=requestAnimationFrame(frame);}
+function animateTo(p,h,al){var t=now(),cur=G.disp||p,ch=G.dispH==null?h:G.dispH,onPrev=!!(G.anim&&G.anim.at!=null)||!!G._onRt;
+ /* sur l'itinéraire : on avance le long du tracé (pas en ligne droite) ; au retour sur le tracé, une transition en ligne droite d'abord */
+ var alEnd=null;if(al!=null&&!(onPrev&&G.dispAlong!=null)){G._onRt=true;alEnd=al;al=null;}else if(al==null)G._onRt=false;
+ G.anim={f:cur,t:p,hf:ch,ht:h,af:al==null?null:G.dispAlong,at:al,alEnd:alEnd,t0:t,dur:G.lastAnimT?Math.min(1600,Math.max(500,(t-G.lastAnimT)*1.1)):700};G.lastAnimT=t;if(!G.raf)G.raf=requestAnimationFrame(frame);}
+var TIP_PX=20;
+function tipM(){if(G._tipM)return G._tipM;var lat=G.disp?G.disp[0]:43.3,z=G.zoom||17;return TIP_PX*40075016*Math.cos(lat*Math.PI/180)/(512*Math.pow(2,z))/Math.cos(50*Math.PI/180);}
+/* cap de la flèche : sa pointe tombe exactement sur le tracé, même dans les virages */
+function tipHeading(R,d){
+ var c=pointAt(R,d),t=tipM(),hi=Math.min(R.total,d+t*4+5);
+ if(A.distM(c,pointAt(R,hi))<t)return hi-d>1?brg(c,pointAt(R,hi)):bearingAt(R,d);
+ var lo=d;for(var i=0;i<16;i++){var mid=(lo+hi)/2;if(A.distM(c,pointAt(R,mid))<t)lo=mid;else hi=mid;}
+ return brg(c,pointAt(R,hi));}
 function frame(){
  if(!G){return;}G.raf=null;var a=G.anim;if(!a)return;var k=Math.min(1,(now()-a.t0)/a.dur);
- var p=[a.f[0]+(a.t[0]-a.f[0])*k,a.f[1]+(a.t[1]-a.f[1])*k],h=(a.hf+angDiff(a.hf,a.ht)*k+360)%360;G.disp=p;G.dispH=h;
- if(a.at!=null){G.dispAlong=a.af+(a.at-a.af)*k;if(k>=1||now()-(G._cutT||0)>120)setRouteData();}
+ var p=[a.f[0]+(a.t[0]-a.f[0])*k,a.f[1]+(a.t[1]-a.f[1])*k],h=(a.hf+angDiff(a.hf,a.ht)*k+360)%360;
+ if(a.at!=null&&G.R){G.dispAlong=a.af+(a.at-a.af)*k;p=pointAt(G.R,G.dispAlong);h=tipHeading(G.R,G.dispAlong);}
+ G.disp=p;G.dispH=h;
+ if(k>=1&&a.alEnd!=null&&G.R){G.dispAlong=a.alEnd;a.alEnd=null;setRouteData();}
+ if(a.at!=null&&(k>=1||now()-(G._cutT||0)>120))setRouteData();
  G.zoom=G.zoom==null?zoomFor(G.speed):G.zoom+(zoomFor(G.speed)-G.zoom)*0.03;
- if(G.follow&&G.map){try{G.map.jumpTo({center:[p[1],p[0]],bearing:h,zoom:G.zoom,pitch:50});}catch(e){}}
+ if(G.follow&&G.map){try{G.map.jumpTo({center:[p[1],p[0]],bearing:h,zoom:G.zoom,pitch:50});
+  /* distance au sol entre le centre de la flèche et sa pointe (20 px plus haut à l'écran) */
+  if(G.map.project&&G.map.unproject&&now()-(G._tipT||0)>400){G._tipT=now();var sp=G.map.project([p[1],p[0]]),u=G.map.unproject([sp.x,sp.y-TIP_PX]),tm=A.distM(p,[u.lat,u.lng]);if(tm>0.3&&tm<150)G._tipM=tm;}}catch(e){}}
  else if(G.veh){G.veh.setLngLat([p[1],p[0]]);G.veh.setRotation(h);}
  if(k<1)G.raf=requestAnimationFrame(frame);
 }
@@ -463,7 +479,7 @@ function traceRoute(shape){return A.valhalla("trace_route",vBody({encoded_polyli
 function setRoute(R){
  G.R=R;G.prj=null;G.next=-1;G.offCount=0;G._farA=null;G._cut=null;G._onC=null;
  if(G.pos){var pr=project(R,G.pos,null);G.prj=pr;G.along=pr.along;}else G.along=0;
- G.dispAlong=G.along;if(G.anim){G.anim.af=G.anim.at=null;}
+ G.dispAlong=G.along;G._onRt=false;if(G.anim){G.anim.af=G.anim.at=G.anim.alEnd=null;}
  if(G.sim)G.simAlong=G.along;
  computeHazards();refreshFeatures();setRouteData(true);update();vehMode();loadEdges(R);loadBumps(R);
 }
