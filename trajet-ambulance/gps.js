@@ -403,16 +403,23 @@ function animateTo(p,h,al){var t=now(),cur=G.disp||p,ch=G.dispH==null?h:G.dispH,
  G.anim={f:cur,t:p,hf:ch,ht:h,af:al==null?null:G.dispAlong,at:al,alEnd:alEnd,t0:t,dur:G.lastAnimT?Math.min(1600,Math.max(500,(t-G.lastAnimT)*1.1)):700};G.lastAnimT=t;if(!G.raf)G.raf=requestAnimationFrame(frame);}
 var TIP_PX=20;
 function tipM(){if(G._tipM)return G._tipM;var lat=G.disp?G.disp[0]:43.3,z=G.zoom||17;return TIP_PX*40075016*Math.cos(lat*Math.PI/180)/(512*Math.pow(2,z))/Math.cos(50*Math.PI/180);}
-/* cap de la flèche : sa pointe tombe exactement sur le tracé, même dans les virages */
+/* cap visé : la pointe de la flèche sur le tracé (premier point du tracé, en avançant, à la distance de la pointe) */
 function tipHeading(R,d){
- var c=pointAt(R,d),t=tipM(),hi=Math.min(R.total,d+t*4+5);
- if(A.distM(c,pointAt(R,hi))<t)return hi-d>1?brg(c,pointAt(R,hi)):bearingAt(R,d);
- var lo=d;for(var i=0;i<16;i++){var mid=(lo+hi)/2;if(A.distM(c,pointAt(R,mid))<t)lo=mid;else hi=mid;}
- return brg(c,pointAt(R,hi));}
+ var t=tipM(),xy=R.xy,cum=R.cum,L=xy.length-1;if(L<1)return 0;
+ var i=Math.min(idxAt(R,d),L-1),sg=cum[i+1]-cum[i],f=sg?(d-cum[i])/sg:0,cx=xy[i][0]+(xy[i+1][0]-xy[i][0])*f,cy=xy[i][1]+(xy[i+1][1]-xy[i][1])*f,ax=0,ay=0,lx=0,ly=0;
+ for(var j=i+1;j<=L&&cum[j]-d<t*8+30;j++){
+  var bx=xy[j][0]-cx,by=xy[j][1]-cy;
+  if(bx*bx+by*by>=t*t){var dx=bx-ax,dy=by-ay,A2=dx*dx+dy*dy,B=ax*dx+ay*dy,C=ax*ax+ay*ay-t*t,u=A2?(-B+Math.sqrt(Math.max(0,B*B-A2*C)))/A2:1;
+   u=Math.max(0,Math.min(1,u));return(Math.atan2(ax+dx*u,ay+dy*u)*180/Math.PI+360)%360;}
+  ax=bx;ay=by;if(bx*bx+by*by>0.25){lx=bx;ly=by;}}
+ return(lx||ly)?(Math.atan2(lx,ly)*180/Math.PI+360)%360:bearingAt(R,d);}
+/* rotation adoucie : dans les virages serrés la pointe peut quitter le tracé un instant, mais le virage ne saute pas */
+var H_TAU=0.22,H_MAX=80;
+function smoothHeading(cur,target,dt){if(cur==null)return target;var df=angDiff(cur,target),st=df*(1-Math.exp(-dt/H_TAU)),lim=H_MAX*dt;st=Math.max(-lim,Math.min(lim,st));return(cur+st+360)%360;}
 function frame(){
- if(!G){return;}G.raf=null;var a=G.anim;if(!a)return;var k=Math.min(1,(now()-a.t0)/a.dur);
+ if(!G){return;}G.raf=null;var a=G.anim;if(!a)return;var tn=now(),k=Math.min(1,(tn-a.t0)/a.dur),dt=Math.min(0.1,Math.max(0,(tn-(G._fT||tn))/1000)),more=false;G._fT=tn;
  var p=[a.f[0]+(a.t[0]-a.f[0])*k,a.f[1]+(a.t[1]-a.f[1])*k],h=(a.hf+angDiff(a.hf,a.ht)*k+360)%360;
- if(a.at!=null&&G.R){G.dispAlong=a.af+(a.at-a.af)*k;p=pointAt(G.R,G.dispAlong);h=tipHeading(G.R,G.dispAlong);}
+ if(a.at!=null&&G.R){G.dispAlong=a.af+(a.at-a.af)*k;p=pointAt(G.R,G.dispAlong);var ht=tipHeading(G.R,G.dispAlong);h=smoothHeading(G.dispH,ht,dt);more=Math.abs(angDiff(h,ht))>0.3;}
  G.disp=p;G.dispH=h;
  if(k>=1&&a.alEnd!=null&&G.R){G.dispAlong=a.alEnd;a.alEnd=null;setRouteData();}
  if(a.at!=null&&(k>=1||now()-(G._cutT||0)>120))setRouteData();
@@ -421,7 +428,7 @@ function frame(){
   /* distance au sol entre le centre de la flèche et sa pointe (20 px plus haut à l'écran) */
   if(G.map.project&&G.map.unproject&&now()-(G._tipT||0)>400){G._tipT=now();var sp=G.map.project([p[1],p[0]]),u=G.map.unproject([sp.x,sp.y-TIP_PX]),tm=A.distM(p,[u.lat,u.lng]);if(tm>0.3&&tm<150)G._tipM=tm;}}catch(e){}}
  else if(G.veh){G.veh.setLngLat([p[1],p[0]]);G.veh.setRotation(h);}
- if(k<1)G.raf=requestAnimationFrame(frame);
+ if(k<1||more)G.raf=requestAnimationFrame(frame);else G._fT=0;
 }
 function recenter(){G.follow=true;paintRec();if(G.anim)G.anim.t0=now()-G.anim.dur;if(!G.raf)G.raf=requestAnimationFrame(frame);}
 
