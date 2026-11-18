@@ -1195,7 +1195,6 @@ function vParams(){
  var h='<h2 data-k="pd">Dépôt</h2>';
  if(depot&&!ui.depotEdit){
   h+='<div class="donegrp" data-k="dep1"><div class="done"><span class="step-n">✓</span><div class="k"><small>Adresse du dépôt</small><b>'+esc(depot.nom&&depot.nom!==depot.addr?depot.nom+" · "+depot.addr:depot.addr)+'</b></div><button class="btn small" data-a="depotEdit">Modifier</button></div></div>'+
-   '<button class="btn pri wide" style="margin-top:12px" data-a="depotGo">🏠 Retour au dépôt</button>'+
    '<button class="btn small danger" style="margin-top:12px" data-a="depotDel">Supprimer l\'adresse du dépôt</button>';
  }else{
   h+='<section data-k="dep2">'+(ui.depotThen==="go"?'<div class="infos" style="margin-bottom:10px;white-space:normal">Indique l\'adresse du dépôt une seule fois : le GPS partira juste après.</div>':'')+
