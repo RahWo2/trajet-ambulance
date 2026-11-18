@@ -480,8 +480,20 @@ function routeFrom(start){
  var ex=exclusions(),np={costing_options:NOUNPAVED};
  /* ordre : zones évitées + routes goudronnées, puis goudronnées seules, puis (vraiment aucun autre choix) chemins autorisés */
  var tries=(ex.length?[Object.assign({},base,np,{exclude_polygons:ex})]:[]).concat([Object.assign({},base,np)],ex.length?[Object.assign({},base,{exclude_polygons:ex})]:[],[base]);
- var p=tries.slice(1).reduce(function(pr,b){return pr.catch(function(){return A.valhalla("route",b);});},A.valhalla("route",tries[0]));
- return p.then(tripToRoute);}
+ function tryAt(i){return A.valhalla("route",tries[i]).then(function(j){return{R:tripToRoute(j),b:tries[i]};}).catch(function(e){if(i+1<tries.length)return tryAt(i+1);throw e;});}
+ return tryAt(0).then(function(o){return avoidChemins(o.R,o.b,0);});}
+/* même règle pour les chemins (pistes, accès privés, ruelles, allées de parking) : évités au milieu du trajet, sauf s'il n'y a aucun autre choix */
+function edgeAttrs(R){if(!R._attrP)R._attrP=A.valhalla("trace_attributes",{encoded_polyline:R.shape,shape_match:"edge_walk",costing:"auto",filters:{attributes:["edge.speed_limit","edge.names","edge.begin_shape_index","edge.end_shape_index","edge.use","edge.length","shape"],action:"include"}});return R._attrP;}
+function avoidChemins(R,body,depth){
+ if(!A.midChemins)return Promise.resolve(R);
+ return edgeAttrs(R).then(function(t){
+  var mc=A.midChemins(t);R._chem=mc.reduce(function(s,e){return s+(e.length||0)*1000;},0);
+  if(!mc.length||depth>=2)return R;
+  var sp=A.decode6(t.shape||"");if(!sp.length)sp=R.pts;
+  var polys=(body.exclude_polygons||[]).concat(mc.map(function(e){return A.edgeMid(sp,e);}).filter(Boolean).slice(0,60).map(function(q){return A.circlePoly(q[0],q[1],4);}));
+  var b2=Object.assign({},body,{exclude_polygons:polys});
+  return A.valhalla("route",b2).then(tripToRoute).then(function(R2){return avoidChemins(R2,b2,depth+1).then(function(R3){return(R3._chem||0)<R._chem?R3:R;});},function(){return R;});
+ },function(){return R;});}
 function traceRoute(shape){return A.valhalla("trace_route",vBody({encoded_polyline:shape,shape_match:"edge_walk"})).then(tripToRoute);}
 function setRoute(R){
  G.R=R;G.prj=null;G.next=-1;G.offCount=0;G._farA=null;G._cut=null;G._onC=null;
@@ -497,7 +509,7 @@ function reroute(why){
   function(){if(!G)return;G.rerouting=false;G.offCount=0;paintBanner();toast("Recalcul impossible pour l'instant : réseau ou serveur indisponible.");});
 }
 function loadEdges(R){
- A.valhalla("trace_attributes",{encoded_polyline:R.shape,shape_match:"edge_walk",costing:"auto",filters:{attributes:["edge.speed_limit","edge.names","edge.begin_shape_index","edge.end_shape_index","shape"],action:"include"}}).then(function(t){
+ edgeAttrs(R).then(function(t){
   if(!G||G.R!==R)return;var sp=A.decode6(t.shape||""),out=[],hint=null;if(!sp.length)sp=R.pts;
   (t.edges||[]).forEach(function(e){var pa=sp[e.begin_shape_index],pb=sp[e.end_shape_index];if(!pa||!pb)return;var a=project(R,pa,hint);hint=a.i;var b=project(R,pb,hint);hint=b.i;
    var l=(typeof e.speed_limit==="number"&&e.speed_limit>=5&&e.speed_limit<=150)?Math.round(e.speed_limit):null;
