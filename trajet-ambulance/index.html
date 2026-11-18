@@ -75,6 +75,8 @@ ul{margin:0;padding-left:20px}li{margin:4px 0}
 .btn.wide{width:100%}
 .radius .chip{min-width:70px;text-align:center}
 .hr{display:flex;align-items:center;gap:8px}
+.gear{display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--line);border-radius:10px;width:40px;height:36px;font-size:18px;text-decoration:none;color:var(--txt)}.gear.on{border-color:var(--acc);background:rgba(76,141,255,.12)}
+.depotb{margin-top:14px}
 .sync{background:none;border:1px solid var(--line);color:var(--txt);border-radius:10px;width:40px;height:36px;font-size:19px;cursor:pointer}
 details summary{cursor:pointer;color:var(--acc)}
 .map{height:300px;border-radius:12px;margin-top:6px;border:1px solid var(--line);background:#1d2129;overflow:hidden;position:relative;z-index:0}
@@ -176,7 +178,7 @@ var PROFILS={
   consignes:["Vitesse stable, évite les à-coups.","Ralentisseurs au pas, virages en douceur.","Préfère les axes larges aux raccourcis sinueux.","Reste en contact avec le DEA sur l'évolution du patient."]},
  standard:{nom:"Standard",c:"#2f9e6a",resume:"Trajet habituel en conduite souple.",
   zones:["degradee","travaux"],reco:"waze",
-  pourquoi:"Waze pour éviter les bouchons sur un transport programmé.",
+  pourquoi:"Waze pour éviter les bouchons.",
   consignes:["Conduite souple, trajet habituel.","Évite les routes dégradées que tu connais.","Pense aux infos d'accès de l'établissement (entrée, parking, code)."]}
 };
 var ETATS=[
@@ -184,6 +186,7 @@ var ETATS=[
  {id:"rachis",ic:"🦴",label:"Trauma rachis / bassin / fracture",sous:"Patient immobilisé, matelas coquille",p:"confort"},
  {id:"enceinte",ic:"🤰",label:"Femme enceinte",sous:"Contractions, fin de grossesse",p:"regulier"},
  {id:"fragile",ic:"🤕",label:"Douleur, nausées, patient fragile",sous:"Personne âgée, post-op, malaise",p:"regulier"},
+ {id:"peu",ic:"🟢",label:"Peu urgent",sous:"Itinéraire classique, sans contrainte",p:"standard"},
  {id:"programme",ic:"📋",label:"Transport programmé",sous:"Dialyse, consultation, retour domicile",p:"standard"}
 ];
 var ZTYPES={paves:"Pavés",ralentisseurs:"Ralentisseurs / dos-d'âne",degradee:"Route dégradée / nids-de-poule",virages:"Virages serrés / route sinueuse",travaux:"Travaux / bouchon récurrent"};
@@ -205,6 +208,9 @@ if(!loaded){try{var o=JSON.parse(localStorage.getItem(OLDKEY)||"null");if(o&&Arr
 var ui={tab:"trajet",etat:null,destId:null,libre:"",form:null,confirm:null,search:null,pec:{q:"",etab:""},leg:1};
 try{var u=JSON.parse(sessionStorage.getItem(KEY+"-ui")||"null");if(u){ui.etat=u.etat;ui.destId=u.destId;ui.libre=u.libre||"";ui.libreGeo=u.libreGeo||null;ui.libreOk=!!u.libreOk;ui.pec=u.pec||{q:"",etab:""};ui.leg=u.leg===2?2:1;ui.mode=u.mode||(u.etat==="programme"?"programme":(u.etat?"urgence":null));}}catch(e){}
 var FAVKEY="ambumaps-favoris",favs={};
+var DEPKEY="ambumaps-depot",depot=null;
+try{depot=JSON.parse(localStorage.getItem(DEPKEY)||"null");if(depot&&(typeof depot.lat!=="number"||typeof depot.lon!=="number"))depot=null;}catch(e){depot=null;}
+function saveDepot(x){depot=x||null;try{if(x)localStorage.setItem(DEPKEY,JSON.stringify(x));else localStorage.removeItem(DEPKEY);}catch(e){}}
 try{favs=JSON.parse(localStorage.getItem(FAVKEY)||"{}")||{};}catch(e){favs={};}
 function isFav(id){return !!favs[id];}
 function toggleFav(id){if(favs[id])delete favs[id];else favs[id]=1;try{localStorage.setItem(FAVKEY,JSON.stringify(favs));}catch(e){}}
@@ -922,6 +928,10 @@ function acPick(i){
   ui.dep=x?{mode:"addr",q:x.adresse,label:x.nom}:{mode:"addr",q:it.label,lat:it.lat,lon:it.lon,label:it.label};
   if(x&&typeof x.lat==="number"){ui.dep.lat=x.lat;ui.dep.lon=x.lon;}
   ui.depEdit=false;paintFeuille();}
+ else if(f==="depot"){inp.blur();var dx=it.etab?etab(it.etab):null;
+  if(dx&&typeof dx.lat==="number")setDepot({addr:dx.adresse,nom:dx.nom,lat:dx.lat,lon:dx.lon});
+  else if(dx)geocode(dx.adresse).then(function(g){setDepot({addr:dx.adresse,nom:dx.nom,lat:g.lat,lon:g.lon});},function(err){ui.depotMsg=err.message;render();});
+  else setDepot({addr:it.label,lat:it.lat,lon:it.lon});}
  else if(f==="etab"){var fm=inp.form;inp.value=it.label;if(fm&&fm.elements.lat){fm.elements.lat.value=it.lat.toFixed(6);fm.elements.lon.value=it.lon.toFixed(6);}}
 }
 document.addEventListener("mousedown",function(ev){if(ev.target.closest&&ev.target.closest(".ac"))ev.preventDefault();});
@@ -1078,12 +1088,12 @@ function sync(first){
 function inviteMsg(email){return "Salut ! Je t'ai ajouté dans l'appli Ambumaps de l'équipe. Ouvre ce lien sur ton téléphone avec Chrome : "+APP_URL+" puis choisis « Première connexion » avec l'adresse "+email+" et crée ton mot de passe. Ensuite, menu ⋮ ▸ « Installer l'application ».";}
 
 function headerHtml(nav){
- return '<header><div class="top"'+(nav?'':' style="padding-bottom:10px"')+'><h1>🚑 Ambumaps</h1><div class="hr"><div id="status" class="status"></div>'+(isCloud()&&!ui.auth?'<button class="sync" data-a="sync" aria-label="Synchroniser">↻</button>':'')+'</div></div>'+(nav||'')+'</header>';
+ return '<header><div class="top"'+(nav?'':' style="padding-bottom:10px"')+'><h1>🚑 Ambumaps</h1><div class="hr"><div id="status" class="status"></div>'+(nav?'<a href="#parametres" class="gear'+(ui.tab==="parametres"?" on":"")+'" aria-label="Paramètres">⚙️</a>':'')+(isCloud()&&!ui.auth?'<button class="sync" data-a="sync" aria-label="Synchroniser">↻</button>':'')+'</div></div>'+(nav||'')+'</header>';
 }
 function tabLink(k,l){return '<a href="#'+k+'" class="'+(ui.tab===k?"on":"")+'">'+l+'</a>';}
 function render0(){
  var h=location.hash.replace("#","");
- ui.tab=(h==="etablissements"||h==="zones"||(h==="equipe"&&isCloud()))?h:"trajet";
+ ui.tab=(h==="etablissements"||h==="zones"||h==="parametres"||(h==="equipe"&&isCloud()))?h:"trajet";
  var app=document.getElementById("app");
  clearMaps();
  if((!state.mode||(state.mode==="cloud"&&!sess))&&!ui.auth)ui.auth={step:state.mode==="cloud"?"login":"choice"};
@@ -1091,13 +1101,15 @@ function render0(){
  if(ui.auth){app.innerHTML=headerHtml("")+mo+'<div data-k="au-'+ui.auth.step+'">'+vAuth()+'</div></main>';paintStatus();return;}
  if(!ui.search&&state.mode==="local"&&!state.setupDone)ui.search={step:"start",radius:20};
  if(ui.search){app.innerHTML=headerHtml("")+mo+'<div data-k="se-'+ui.search.step+'">'+vSearch()+'</div></main>';paintStatus();if(ui.search.step==="review")syncGroups();return;}
- var nav='<nav>'+tabLink("trajet","Trajet")+tabLink("etablissements","Établissements")+tabLink("zones","Zones ("+state.zones.length+")")+(isCloud()?tabLink("equipe","Équipe"):"")+'</nav>';
+ var nav='<nav>'+tabLink("trajet","Trajet")+tabLink("etablissements","Établissements")+tabLink("zones","Zones")+(isCloud()?tabLink("equipe","Équipe"):"")+'</nav>';
  var html=headerHtml(nav)+mo;
  if(isCloud()&&cloud.status==="notmember")html+='<div class="warnbox" style="margin:0 0 12px">Ton compte n\'est pas (ou plus) dans l\'équipe. Demande à ton responsable de t\'ajouter, ou déconnecte-toi depuis l\'onglet Équipe.</div>';
- if(ui.tab==="trajet")html+=vTrajet();else if(ui.tab==="etablissements")html+=vEtabs();else if(ui.tab==="zones")html+=vZones();else html+=vEquipe();
+ if(ui.tab==="trajet")html+=vTrajet();else if(ui.tab==="etablissements")html+=vEtabs();else if(ui.tab==="zones")html+=vZones();else if(ui.tab==="parametres")html+=vParams();else html+=vEquipe();
  html+="</main>";
  app.innerHTML=html;paintStatus();
  if(ui.tab==="trajet")paintFeuille();
+ if(ui.tab==="etablissements")filterEtabs();
+ if(ui.tab==="parametres"&&ui.depotEdit&&ui.depotFocus){ui.depotFocus=false;var dq=document.getElementById("depot");if(dq)dq.focus();}
  if(ui.tab==="zones"&&ui.zfull)initFullMap();
  else if(ui.tab==="zones"&&ui.form&&ui.form.kind==="zone")initZoneMap();
  document.body.style.overflow=(ui.tab==="zones"&&ui.zfull)?"hidden":"";
@@ -1179,6 +1191,33 @@ function vAuth(){
  else h+='<button class="btn wide" style="margin-top:18px" data-a="logout">Utiliser sans compte</button>';
  return h;
 }
+function vParams(){
+ var h='<h2 data-k="pd">Dépôt</h2>';
+ if(depot&&!ui.depotEdit){
+  h+='<div class="donegrp" data-k="dep1"><div class="done"><span class="step-n">✓</span><div class="k"><small>Adresse du dépôt</small><b>'+esc(depot.nom&&depot.nom!==depot.addr?depot.nom+" · "+depot.addr:depot.addr)+'</b></div><button class="btn small" data-a="depotEdit">Modifier</button></div></div>'+
+   '<button class="btn pri wide" style="margin-top:12px" data-a="depotGo">🏠 Retour au dépôt</button>'+
+   '<button class="btn small danger" style="margin-top:12px" data-a="depotDel">Supprimer l\'adresse du dépôt</button>';
+ }else{
+  h+='<section data-k="dep2">'+(ui.depotThen==="go"?'<div class="infos" style="margin-bottom:10px;white-space:normal">Indique l\'adresse du dépôt une seule fois : le GPS partira juste après.</div>':'')+
+   searchRow("depot","🔍 Adresse du dépôt",ui.depotQ||"")+(depot?'<button class="btn small" style="margin-top:10px" data-a="depotCancel">Annuler</button>':'')+'</section>';
+ }
+ if(ui.depotMsg)h+='<div class="warnbox" style="margin-top:10px">'+esc(ui.depotMsg)+'</div>';
+ h+='<div class="hint">Enregistrée sur ce téléphone, tu ne la tapes qu\'une fois. Le bouton « 🏠 Retour au dépôt » de l\'onglet Trajet lance directement le GPS.</div>';
+ return h;}
+function setDepot(x){saveDepot(x);ui.depotEdit=false;ui.depotQ="";ui.depotMsg="";acHide();
+ if(ui.depotThen==="go"){ui.depotThen=null;if(location.hash!=="#trajet"){location.hash="#trajet";}else render();startDepotGps();return;}
+ render();}
+function depotFromText(q){ui.depotMsg="";return geocode(q).then(function(g){setDepot({addr:g.label,lat:g.lat,lon:g.lon});},function(err){ui.depotMsg=netErr(err)?"Pas de connexion internet : réessaie dans un instant.":err.message;render();});}
+function startDepotGps(){
+ if(!depot){ui.depotEdit=true;ui.depotThen="go";ui.depotFocus=true;location.hash="#parametres";return;}
+ try{if(window.speechSynthesis){var su=new SpeechSynthesisUtterance(" ");su.volume=0;speechSynthesis.speak(su);}}catch(e){}
+ var bs=document.querySelectorAll('[data-a="depotGo"]');Array.prototype.forEach.call(bs,function(b){b.disabled=true;b.textContent="Ouverture du GPS…";});
+ var reset=function(){Array.prototype.forEach.call(document.querySelectorAll('[data-a="depotGo"]'),function(b){b.disabled=false;b.textContent="🏠 Retour au dépôt";});};
+ loadGps().then(function(){reset();
+  window.AmbuGPS.start({dest:{lat:depot.lat,lon:depot.lon,nom:depot.nom||"Dépôt",addr:depot.addr,id:""},shape:null,start:ui.lastPos||null,zoneTypes:PROFILS.standard.zones,destEtab:"",pickup:false,urg:false,
+   label:"Retour au dépôt",links:links(depot.addr,"",depot.lat,depot.lon),sim:/[?&]sim\b/.test(location.search)});
+ },function(err){reset();alert(netErr(err)?"Pas de connexion internet : utilise Waze ou Google Maps.":"Le GPS n'a pas pu s'ouvrir.");});
+}
 function vEquipe(){
  var me=cloud.me,adm=isAdmin(),h="",np=(state.pending||[]).length;
  h+='<h2>Mon compte</h2><div class="item"><div class="t">'+esc((me&&me.nom)||sess.email)+(me?' <span class="tag blue">'+(adm?"Responsable":"Membre")+'</span>':'')+'</div><div class="m">'+esc(sess.email)+'</div>'+
@@ -1218,7 +1257,8 @@ function vTrajet(){
  var h=ua?'':'<h2 data-k="tt">Type de transport</h2><div class="modes'+(md?" picked":"")+'" data-k="modes">'+
   '<button class="mode'+(md==="urgence"?" on":"")+'" style="--c:#d93a3f" data-a="mode" data-id="urgence"><span class="ic">🚨</span><b>Urgence</b></button>'+
   '<button class="mode'+(prog?" on":"")+'" style="--c:#2f9e6a" data-a="mode" data-id="programme"><span class="ic">📋</span><b>Transport programmé</b></button></div>';
- if(!md)return h;
+ var depB='<button class="btn wide depotb" data-k="depb" data-a="depotGo">🏠 Retour au dépôt</button>';
+ if(!md)return h+depB;
  var cs=curStep(),n=state.etabs.length;
  // Étapes validées : regroupées dans un seul encadré
  if(cs>1){
@@ -1236,6 +1276,7 @@ function vTrajet(){
    h+='<h2 id="stepCur">1 · '+(prog?"Prise en charge du patient":"Adresse du patient")+'</h2>'+searchRow("pec",n?"🔍 Adresse du patient ou lieu enregistré":"🔍 Adresse du patient",ui.pec.etab?"":ui.pec.q)+
     '<div class="hint">L\'adresse du patient reste sur ce téléphone, jamais dans la base de l\'équipe.</div>';
    if(n)h+='<div id="pecList" style="margin-top:12px">'+placeList("pec")+'</div>';
+   if(!ui.edit)h+=depB;
   }else{
    h+='<h2 id="stepCur">1 · État du patient</h2><div class="tiles">';
    ETATS.forEach(function(e){if(e.id==="programme")return;var p=PROFILS[e.p];
@@ -1271,8 +1312,8 @@ function paintFeuille(){
  var addr=d?d.adresse:ui.libre.trim();
  if(e&&e.id==="programme"){paintMission(el,e,d,addr);return;}
  if(!e||!addr){el.innerHTML='<div class="empty">Choisis l\'état du patient et la destination pour obtenir le trajet conseillé.</div>';return;}
- var p=PROFILS[e.p];
- var via=(d&&d.via&&e.p!=="rapide")?d.via:"";
+ var p=PROFILS[e.p],classic=e.p==="rapide"||e.id==="peu";
+ var via=(d&&d.via&&!classic)?d.via:"";
  var R=(ui.route&&ui.route.key===routeKey())?ui.route:null,RD=(R&&R.status==="done")?R:null,sel=RD?RD.cands[RD.sel]:null;
  var wps=sel?routeWaypoints(sel,RD.baseline):[];
  var dl=d||libreLL(addr);
@@ -1289,8 +1330,8 @@ function paintFeuille(){
  h+='</div><div class="blk"><h3>Consignes de conduite</h3><ul>';
  p.consignes.forEach(function(c){h+="<li>"+esc(c)+"</li>";});
  h+='</ul></div></div>';
- if(e.p!=="rapide")h+=vComfort(R);
- var why=RD?"Le GPS suit le trajet confort choisi ci-dessus.":(e.p==="rapide"?"Itinéraire le plus rapide, en évitant les bouchons signalés par l'équipe.":"Calcule le trajet confort ci-dessus pour que le GPS le suive, ou démarre directement.");
+ if(!classic)h+=vComfort(R);
+ var why=RD&&!classic?"Le GPS suit le trajet confort choisi ci-dessus.":(e.p==="rapide"?"Itinéraire le plus rapide, en évitant les bouchons signalés par l'équipe.":e.id==="peu"?"Itinéraire classique, en évitant les bouchons signalés par l'équipe.":"Calcule le trajet confort ci-dessus pour que le GPS le suive, ou démarre directement.");
  h+='<div class="go"><button class="btn pri" data-a="gps" data-leg="0">▶ Démarrer le guidage</button></div><div class="hint" id="gpsMsg">'+esc(why)+'</div>'+secours(L);
  h+='<button class="btn reset" data-a="copy" data-addr="'+esc(addr)+'">📋 Copier l\'adresse</button><div class="hint" id="copyMsg"></div>';
  h+='<button class="btn reset" data-a="reset">Fin d\'intervention</button>';
@@ -1299,15 +1340,19 @@ function paintFeuille(){
  if(RD)initRouteMap();
 }
 
+function filterEtabs(){var q=norm(ui.etabQ||""),w=q?q.split(" "):[],shown=0,all=document.querySelectorAll(".item[data-q]");
+ Array.prototype.forEach.call(all,function(it){var ok=w.every(function(k){return it.getAttribute("data-q").indexOf(k)>=0;});it.hidden=!ok;if(ok)shown++;});
+ var none=document.getElementById("etabNone");if(none)none.hidden=!(all.length&&!shown);}
 function vEtabs(){
  var h="";
  if(ui.form&&ui.form.kind==="etab")h+=fEtab(ui.form.id?etab(ui.form.id):null);
  else h+='<button class="btn pri wide" style="margin-bottom:10px" data-a="searchStart">📍 Rechercher autour de moi</button><button class="btn wide" style="margin-bottom:14px" data-a="newEtab">＋ Ajouter un établissement à la main</button>';
  if(!state.etabs.length&&!ui.form)h+='<div class="empty">Aucun établissement. Lance une recherche autour de toi ou ajoute-les à la main. Pense ensuite à noter l\'entrée à prendre, le code du portail ou le parking : ils s\'afficheront sur la feuille de route.</div>';
  var n=state.etabs.length;
+ if(n&&!ui.form)h+='<div class="acw" style="margin-bottom:12px"><input id="etabQ" type="search" placeholder="🔍 Rechercher un établissement" value="'+esc(ui.etabQ||"")+'" autocomplete="off" enterkeyhint="search"></div><div class="empty" id="etabNone" hidden>Aucun établissement ne correspond à ta recherche.</div>';
  if(isCloud()&&isAdmin()&&state.localBackup&&state.localBackup.etabs&&state.localBackup.etabs.length)h+='<div class="infos" style="margin-bottom:12px;white-space:normal">Tu avais '+state.localBackup.etabs.length+' établissement(s) sur ce téléphone avant de te connecter.<div class="row" style="margin-top:8px"><button class="btn small pri" data-a="pushBackup">Les envoyer à l\'équipe</button><button class="btn small" data-a="dropBackup">Ignorer</button></div></div>';
  state.etabs.forEach(function(x,i){
-  h+='<div class="item"><div class="t"><span style="color:var(--mut)">'+(i+1)+'.</span> '+esc(x.nom)+' <span class="tag blue">'+esc(x.type)+'</span></div><div class="m">'+esc(x.adresse)+'</div>'+
+  h+='<div class="item" data-q="'+esc(norm(x.nom+" "+x.type+" "+x.adresse+" "+(x.infos||"")))+'"><div class="t"><span style="color:var(--mut)">'+(i+1)+'.</span> '+esc(x.nom)+' <span class="tag blue">'+esc(x.type)+'</span></div><div class="m">'+esc(x.adresse)+'</div>'+
    (x.infos?'<div class="x">📍 '+esc(x.infos)+'</div>':"")+(x.via?'<div class="m">Passage confort : via '+esc(x.via)+'</div>':"")+(isCloud()&&x.majPar?'<div class="m" style="font-size:12.5px">Modifié par '+esc(nameOf(x.majPar))+'</div>':"")+
    '<div class="row"><button class="btn small favb'+(isFav(x.id)?" on":"")+'" data-a="fav" data-id="'+x.id+'">'+(isFav(x.id)?"★ Favori":"☆ Favori")+'</button>'+(i>0?'<button class="btn small" data-a="up" data-id="'+x.id+'" aria-label="Monter">▲</button>':"")+(i<n-1?'<button class="btn small" data-a="down" data-id="'+x.id+'" aria-label="Descendre">▼</button>':"")+'<button class="btn small" data-a="editEtab" data-id="'+x.id+'">Modifier</button><button class="btn small danger" data-a="askDel" data-k="etab" data-id="'+x.id+'">Supprimer</button></div>'+
    (ui.confirm===x.id?'<div class="confirm">Supprimer « '+esc(x.nom)+' » ?<div class="row"><button class="btn small danger" data-a="delEtab" data-id="'+x.id+'">Oui, supprimer</button><button class="btn small" data-a="noDel">Annuler</button></div></div>':"")+'</div>';});
@@ -1381,14 +1426,14 @@ function startGps(leg){
  try{if(window.speechSynthesis){var su=new SpeechSynthesisUtterance(" ");su.volume=0;speechSynthesis.speak(su);}}catch(e){}
  var ug=u1()&&leg===1,e=ug?null:curEtat();if(!e&&!ug)return;var prog=ui.etat==="programme",pickup=ug||(prog&&leg===1);
  var d=ui.destId?etab(ui.destId):null,addr=d?d.adresse:ui.libre.trim();
- var R=(!pickup&&ui.route&&ui.route.key===routeKey()&&ui.route.status==="done")?ui.route:null,cand=R?R.cands[R.sel]:null,p=PROFILS[e?e.p:"rapide"];
+ var R=(!pickup&&!(e&&e.id==="peu")&&ui.route&&ui.route.key===routeKey()&&ui.route.status==="done")?ui.route:null,cand=R?R.cands[R.sel]:null,p=PROFILS[e?e.p:"rapide"];
  var target=pickup?pecCoords().then(function(g){var pk=pecInfo();return{lat:g.lat,lon:g.lon,nom:pk.label||g.label,addr:pk.addr,id:pk.etab?pk.etab.id:""};})
   :resolveDest(d,addr).then(function(x){return{lat:x.lat,lon:x.lon,nom:x.nom||addr,addr:addr,id:x.id||""};});
  var btn=document.querySelector('[data-a="gps"]'),msg=document.getElementById("gpsMsg");if(btn){btn.disabled=true;btn.textContent="Ouverture du GPS…";}
  Promise.all([target,loadGps()]).then(function(r){var t=r[0];
   if(btn){btn.disabled=false;paintFeuille();}
   window.AmbuGPS.start({dest:t,shape:cand?cand.shape:null,start:cand?[R.dep.lat,R.dep.lon]:(ui.lastPos||null),zoneTypes:p.zones,destEtab:t.id,pickup:pickup,urg:ug,
-   label:(ug?"Urgence · aller au patient":pickup?"Prise en charge":({vitale:"Urgence vitale",rachis:"Trauma immobilisé",enceinte:"Femme enceinte",fragile:"Patient fragile",programme:"Transport programmé"}[e.id]||e.label))+(cand?" · trajet confort":""),links:links(t.addr,"",t.lat,t.lon),sim:/[?&]sim\b/.test(location.search)});
+   label:(ug?"Urgence · aller au patient":pickup?"Prise en charge":({vitale:"Urgence vitale",rachis:"Trauma immobilisé",enceinte:"Femme enceinte",fragile:"Patient fragile",peu:"Peu urgent",programme:"Transport programmé"}[e.id]||e.label))+(cand?" · trajet confort":""),links:links(t.addr,"",t.lat,t.lon),sim:/[?&]sim\b/.test(location.search)});
  },function(err){if(btn){btn.disabled=false;btn.textContent="▶ Démarrer le guidage";}if(msg)msg.textContent=netErr(err)?"Pas de connexion internet : utilise Waze ou Google Maps en secours.":err.message;});
 }
 window.AMB={get state(){return state;},ui:ui,api:api,isCloud:isCloud,netErr:netErr,valhalla:valhalla,decode6:decode6,distM:distM,linePolys:linePolys,circlePoly:circlePoly,midChemins:midChemins,edgeMid:edgeMid,
@@ -1411,6 +1456,11 @@ document.addEventListener("click",function(ev){
  else if(a==="etat"){ui.etat=id;goStep();}
  else if(a==="dest"){ui.destId=id;ui.libre="";ui.libreGeo=null;ui.libreOk=false;ui.filtre="";goStep();}
  else if(a==="pecPick"){ui.pec={q:"",etab:id};ui.pecFiltre="";goStep();}
+ else if(a==="depotGo"){startDepotGps();}
+ else if(a==="depotOk"){var dv=document.getElementById("depot"),dq=(ui.depotQ||"").trim();if(dq.length<3){if(dv)dv.focus();return;}acHide();depotFromText(dq);}
+ else if(a==="depotEdit"){ui.depotEdit=true;ui.depotQ="";ui.depotMsg="";ui.depotFocus=true;render();}
+ else if(a==="depotCancel"){ui.depotEdit=false;ui.depotThen=null;ui.depotQ="";ui.depotMsg="";render();}
+ else if(a==="depotDel"){saveDepot(null);ui.depotEdit=false;render();}
  else if(a==="pecOk"){var pv=document.getElementById("pec");if(!(ui.pec.q||"").trim()||(ui.pec.q||"").trim().length<3){if(pv)pv.focus();return;}ui.pec.ok=true;acHide();goStep();}
  else if(a==="libreOk"){var lv=document.getElementById("libre");if(ui.libre.trim().length<3){if(lv)lv.focus();return;}ui.libreOk=true;ui.destId=null;acHide();goStep();}
  else if(a==="editStep"){ui.editFrom={e:ui.edit};ui.edit=+id;acHide();render();scrollStep();}
@@ -1481,6 +1531,8 @@ document.addEventListener("input",function(ev){
  var t=ev.target;
  if(t.getAttribute&&t.getAttribute("data-ac"))acInput(t);
  if(t.name==="adresse"&&t.form&&t.form.getAttribute("data-f")==="etab"&&t.form.elements.lat){t.form.elements.lat.value="";t.form.elements.lon.value="";}
+ if(ev.target.id==="etabQ"){ui.etabQ=ev.target.value;filterEtabs();return;}
+ if(ev.target.id==="depot"){ui.depotQ=ev.target.value;return;}
  if(ev.target.id==="pec"){var had=ui.pec.etab;ui.pec={q:ev.target.value,etab:""};if(had)paintDest();keepUi();return;}
  if(ev.target.id==="libre"){ui.libre=ev.target.value;ui.libreOk=false;if(ui.libre.trim()&&ui.destId){ui.destId=null;paintDest();}keepUi();}
 });
