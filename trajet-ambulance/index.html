@@ -590,7 +590,8 @@ function computeRoute(e,dest,dep,step){
  var zs=mine.filter(function(z){return zGeom(z).k!=="pts"&&PR.zones.indexOf(z.type)>=0;});
  var zonePolys=[];zs.forEach(function(z){var g=zGeom(z);if(g.k==="line")zonePolys=zonePolys.concat(linePolys(g.c,10));else zonePolys.push(circlePoly(g.lat,g.lon,g.r));});
  var P=projFn(dep.lat);
- var base={locations:[{lat:dep.lat,lon:dep.lon},{lat:dest.lat,lon:dest.lon}],costing:"auto",alternates:2,directions_type:"none"};
+ /* jamais de chemins non goudronnés, sauf s'il n'existe vraiment aucun autre trajet */
+ var base={locations:[{lat:dep.lat,lon:dep.lon},{lat:dest.lat,lon:dest.lon}],costing:"auto",costing_options:{auto:{exclude_unpaved:true,use_tracks:0}},alternates:2,directions_type:"none"};
  var cands=[],bumps={pts:[],ok:false};
  function add(j,tag){
   [j.trip].concat((j.alternates||[]).map(function(a){return a.trip;})).forEach(function(t,ix){
@@ -600,7 +601,7 @@ function computeRoute(e,dest,dep,step){
   });
  }
  step("Calcul des itinéraires possibles…");
- return valhalla("route",base).then(function(j){add(j,"base");
+ return valhalla("route",base).catch(function(){delete base.costing_options;return valhalla("route",base);}).then(function(j){add(j,"base");
   if(zonePolys.length)return valhalla("route",Object.assign({},base,{exclude_polygons:zonePolys})).then(function(j2){add(j2,"zones");},function(){});
  }).then(function(){
   step("Recherche des ralentisseurs sur le secteur…");
@@ -1355,7 +1356,7 @@ function fZone(z){
 
 function resetMission(){ui.edit=null;ui.editFrom=null;ui.etat=ui.mode==="programme"?"programme":null;ui.destId=null;ui.libre="";ui.libreGeo=null;ui.libreOk=false;ui.filtre="";ui.pecFiltre="";ui.pec={q:"",etab:""};ui.leg=1;ui.dep=null;ui.depEdit=false;ui.route=null;keepUi();}
 /* ===== GPS intégré (module gps.js chargé à la demande) ===== */
-var GPS_V="8",gpsP=null;
+var GPS_V="9",gpsP=null;
 function loadGps(){if(window.AmbuGPS)return Promise.resolve();if(gpsP)return gpsP;
  gpsP=new Promise(function(res,rej){var sc=document.createElement("script");sc.src="gps.js?v="+GPS_V;
   sc.onload=function(){if(window.AmbuGPS)res();else{gpsP=null;rej(new Error("GPS indisponible."));}};
