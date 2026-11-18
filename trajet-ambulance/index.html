@@ -545,6 +545,10 @@ function linePolys(c,w){var out=[],k=111320*Math.cos(c[0][0]*Math.PI/180),ky=110
   out.push([P(a,nx-ux,ny-uy),P(b,nx+ux,ny+uy),P(b,-nx+ux,-ny+uy),P(a,-nx-ux,-ny-uy),P(a,nx-ux,ny-uy)]);}
  return out;}
 function bumpMarker(L,q){return L.circleMarker(q,{radius:7,color:"#fff",weight:2,fillColor:"#f08c00",fillOpacity:1});}
+/* « chemins » : pistes, chemins d'accès privés, ruelles, allées de parking — jamais au milieu d'un trajet, sauf s'il n'y a aucun autre choix */
+var CHEMIN={track:1,driveway:1,alley:1,parking_aisle:1,drive_through:1};
+function midChemins(t){var E=(t&&t.edges)||[],i0=0,i1=E.length-1;while(i0<=i1&&CHEMIN[E[i0].use])i0++;while(i1>=i0&&CHEMIN[E[i1].use])i1--;var out=[];for(var i=i0;i<=i1;i++)if(CHEMIN[E[i].use])out.push(E[i]);return out;}
+function edgeMid(sp,e){var a=e.begin_shape_index,b=e.end_shape_index;if(!sp[a]||!sp[b])return null;var L=0,i;for(i=a;i<b;i++)L+=distM(sp[i],sp[i+1]);var h=L/2;for(i=a;i<b;i++){var d=distM(sp[i],sp[i+1]);if(h<=d){var t=d?h/d:0;return[sp[i][0]+(sp[i+1][0]-sp[i][0])*t,sp[i][1]+(sp[i+1][1]-sp[i][1])*t];}h-=d;}return sp[a];}
 function circlePoly(lat,lon,r){var out=[],k=111320*Math.cos(lat*Math.PI/180);for(var i=0;i<=8;i++){var a=(i%8)*Math.PI/4;out.push([+(lon+r*Math.cos(a)/k).toFixed(6),+(lat+r*Math.sin(a)/110540).toFixed(6)]);}return out;}
 function geocode(q){
  return fetch(GEO+"search?q="+encodeURIComponent(q)+"&limit=1").then(function(r){return r.json();}).then(function(j){
@@ -624,20 +628,31 @@ function computeRoute(e,dest,dep,step){
   var i=0;
   function nextTrace(){
    if(i>=cands.length)return Promise.resolve();var c=cands[i++];
-   return valhalla("trace_attributes",{encoded_polyline:c.shape,shape_match:"edge_walk",costing:"auto",filters:{attributes:["edge.surface","edge.length"],action:"include"}}).then(function(t){
+   if(c.rough!==undefined)return nextTrace();
+   return valhalla("trace_attributes",{encoded_polyline:c.shape,shape_match:"edge_walk",costing:"auto",filters:{attributes:["edge.surface","edge.length","edge.use","edge.begin_shape_index","edge.end_shape_index","shape"],action:"include"}}).then(function(t){
     c.rough=0;(t.edges||[]).forEach(function(ed){if(ROUGH[ed.surface])c.rough+=(ed.length||0)*1000;});
-   },function(){c.rough=null;}).then(nextTrace);
+    var mc=midChemins(t),sp=decode6(t.shape||"");if(!sp.length)sp=c.pts;
+    c.chem=mc.reduce(function(s,e){return s+(e.length||0)*1000;},0);c.chemPts=mc.map(function(e){return edgeMid(sp,e);}).filter(Boolean);
+   },function(){c.rough=null;c.chem=0;c.chemPts=[];}).then(nextTrace);
   }
-  return nextTrace();
+  return nextTrace().then(function(){
+   // tous les trajets passent par un chemin : on en cherche un qui les évite
+   if(!cands.length||cands.some(function(c){return !c.chem;}))return;
+   step("Recherche d'un itinéraire sans chemin…");
+   var pts=[];cands.forEach(function(c){pts=pts.concat(c.chemPts||[]);});
+   return valhalla("route",Object.assign({},base,{alternates:1,exclude_polygons:zonePolys.concat(pts.slice(0,80).map(function(q){return circlePoly(q[0],q[1],4);}))})).then(function(j4){add(j4,"chemins");},function(){}).then(nextTrace);
+  });
  }).then(function(){
+  // un trajet sans chemin existe : on écarte ceux qui en prennent
+  if(cands.some(function(c){return !c.chem;}))cands=cands.filter(function(c){return !c.chem;});
   cands.forEach(function(c){
    c.bumps=bumps.pts.filter(function(q){return nearLine(P(q),c.proj,12);}).length;
    c.zoneHits=zs.filter(function(z){var g=zGeom(z);
     if(g.k==="line")return g.c.filter(function(q){return nearLine(P(q),c.proj,15);}).length>=2;
     return c.pts.some(function(q){return distM(q,[g.lat,g.lon])<=g.r+10;});}).length;
-   c.score=c.time+W.b*c.bumps+W.r*(c.rough||0)+W.z*c.zoneHits;
+   c.score=c.time+W.b*c.bumps+W.r*(c.rough||0)+W.z*c.zoneHits+30*(c.chem||0);
   });
-  var baseline=cands.filter(function(c){return c.baseline;})[0]||cands[0];
+  var baseline=cands.filter(function(c){return c.baseline;})[0]||cands.slice().sort(function(a,b){return a.time-b.time;})[0];
   cands.sort(function(a,b){return a.score-b.score;});
   return{cands:cands.slice(0,4),baseline:baseline,bumpsOk:bumps.ok,bumpPts:bumps.pts,userBumps:userBumps,zones:zs,dest:dest,dep:dep};
  });
@@ -1356,7 +1371,7 @@ function fZone(z){
 
 function resetMission(){ui.edit=null;ui.editFrom=null;ui.etat=ui.mode==="programme"?"programme":null;ui.destId=null;ui.libre="";ui.libreGeo=null;ui.libreOk=false;ui.filtre="";ui.pecFiltre="";ui.pec={q:"",etab:""};ui.leg=1;ui.dep=null;ui.depEdit=false;ui.route=null;keepUi();}
 /* ===== GPS intégré (module gps.js chargé à la demande) ===== */
-var GPS_V="11",gpsP=null;
+var GPS_V="12",gpsP=null;
 function loadGps(){if(window.AmbuGPS)return Promise.resolve();if(gpsP)return gpsP;
  gpsP=new Promise(function(res,rej){var sc=document.createElement("script");sc.src="gps.js?v="+GPS_V;
   sc.onload=function(){if(window.AmbuGPS)res();else{gpsP=null;rej(new Error("GPS indisponible."));}};
@@ -1376,7 +1391,7 @@ function startGps(leg){
    label:(ug?"Urgence · aller au patient":pickup?"Prise en charge":({vitale:"Urgence vitale",rachis:"Trauma immobilisé",enceinte:"Femme enceinte",fragile:"Patient fragile",programme:"Transport programmé"}[e.id]||e.label))+(cand?" · trajet confort":""),links:links(t.addr,"",t.lat,t.lon),sim:/[?&]sim\b/.test(location.search)});
  },function(err){if(btn){btn.disabled=false;btn.textContent="▶ Démarrer le guidage";}if(msg)msg.textContent=netErr(err)?"Pas de connexion internet : utilise Waze ou Google Maps en secours.":err.message;});
 }
-window.AMB={get state(){return state;},ui:ui,api:api,isCloud:isCloud,netErr:netErr,valhalla:valhalla,decode6:decode6,distM:distM,linePolys:linePolys,circlePoly:circlePoly,
+window.AMB={get state(){return state;},ui:ui,api:api,isCloud:isCloud,netErr:netErr,valhalla:valhalla,decode6:decode6,distM:distM,linePolys:linePolys,circlePoly:circlePoly,midChemins:midChemins,edgeMid:edgeMid,
  zGeom:zGeom,zoneRow:zoneRow,enqueue:enqueue,save:save,uid:uid,esc:esc,nameOf:nameOf,me:function(){return sess?sess.email:"";},getBumps:getBumps,acFetch:acFetch,
  matchEtabs:matchEtabs,isFav:isFav,etab:etab,geocode:geocode,GEO:GEO,
  setDest:function(x,pickup){
