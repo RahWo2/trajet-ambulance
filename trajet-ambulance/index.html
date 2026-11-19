@@ -150,14 +150,15 @@ details summary{cursor:pointer;color:var(--acc)}
 .btn.ok{background:var(--ok);border-color:var(--ok);color:#fff}
 .blk.next{color:var(--mut);font-size:15px}
 .blk.next b{color:var(--txt)}
-button,.btn,.tile,.mode,.chip,.opt,.check{transition:transform .12s ease,background-color .2s ease,border-color .2s ease,box-shadow .2s ease,opacity .2s ease}
-button:active,.btn:active,.tile:active,.mode:active,.chip:active,.opt:active,.check:active{transform:scale(.97)}
+:root{--spr:cubic-bezier(.32,.72,0,1)}
+button,.btn,.tile,.mode,.chip,.opt,.check,.gear{transition:transform .5s var(--spr),opacity .3s ease,background-color .25s ease,border-color .25s ease,box-shadow .25s ease;-webkit-tap-highlight-color:transparent}
+button:active,.btn:active,.tile:active,.mode:active,.chip:active,.opt:active,.check:active,.gear:active{transform:scale(.97);opacity:.82;transition-duration:.12s,.08s,.25s,.25s,.25s}
 /* Animations : seul ce qui apparaît bouge, le reste ne clignote pas */
-.in{animation:in .22s ease-out both}
-@keyframes in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
-main.pg{animation:pg .16s ease-out}
-@keyframes pg{from{opacity:.4}to{opacity:1}}
-.ac:not([hidden]){animation:acin .15s ease-out}@keyframes acin{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
+/* Transitions : courbe « ressort » façon iOS ; ce qui reste bouge en douceur, ce qui arrive glisse, ce qui part s'efface */
+#ghosts{position:fixed;inset:0;pointer-events:none;z-index:4;overflow:hidden}
+nav{position:relative}nav a.on{border-color:transparent}
+nav .tabind{position:absolute;left:0;bottom:0;width:0;height:3px;border-radius:3px 3px 0 0;background:var(--acc);pointer-events:none;opacity:0}
+.ac:not([hidden]){animation:acin .32s var(--spr);transform-origin:top center}@keyframes acin{from{opacity:0;transform:translateY(-6px) scale(.98)}to{opacity:1;transform:none}}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
 </style></head><body><div id="app"></div><script id="state" type="application/json">{"rev":0,"etabs":[],"zones":[],"setupDone":false}</script><script id="main">
 (function(){
@@ -1101,7 +1102,7 @@ function render0(){
  if(ui.auth){app.innerHTML=headerHtml("")+mo+'<div data-k="au-'+ui.auth.step+'">'+vAuth()+'</div></main>';paintStatus();return;}
  if(!ui.search&&state.mode==="local"&&!state.setupDone)ui.search={step:"start",radius:20};
  if(ui.search){app.innerHTML=headerHtml("")+mo+'<div data-k="se-'+ui.search.step+'">'+vSearch()+'</div></main>';paintStatus();if(ui.search.step==="review")syncGroups();return;}
- var nav='<nav>'+tabLink("trajet","Trajet")+tabLink("etablissements","Établissements")+tabLink("zones","Zones")+(isCloud()?tabLink("equipe","Équipe"):"")+'</nav>';
+ var nav='<nav>'+tabLink("trajet","Trajet")+tabLink("etablissements","Établissements")+tabLink("zones","Zones")+(isCloud()?tabLink("equipe","Équipe"):"")+'<i class="tabind"></i></nav>';
  var html=headerHtml(nav)+mo;
  if(isCloud()&&cloud.status==="notmember")html+='<div class="warnbox" style="margin:0 0 12px">Ton compte n\'est pas (ou plus) dans l\'équipe. Demande à ton responsable de t\'ajouter, ou déconnecte-toi depuis l\'onglet Équipe.</div>';
  if(ui.tab==="trajet")html+=vTrajet();else if(ui.tab==="etablissements")html+=vEtabs();else if(ui.tab==="zones")html+=vZones();else if(ui.tab==="parametres")html+=vParams();else html+=vEquipe();
@@ -1116,19 +1117,57 @@ function render0(){
 }
 var RTAB=null,TRAP={on:false,href:""};
 try{history.scrollRestoration="manual";}catch(e){}
+var SPR="cubic-bezier(.32,.72,0,1)",DUR=480,RM=false;try{RM=matchMedia("(prefers-reduced-motion: reduce)").matches;}catch(e){}
+function canAnim(){return !RM&&!!(window.Element&&Element.prototype.animate)&&!document.hidden;}
+function ghostLayer(){var g=document.getElementById("ghosts");if(!g){g=document.createElement("div");g.id="ghosts";g.setAttribute("aria-hidden","true");document.body.appendChild(g);}return g;}
+function toGhost(g,r){g.removeAttribute("id");Array.prototype.forEach.call(g.querySelectorAll("[id]"),function(x){x.removeAttribute("id");});
+ var st=g.style;st.position="fixed";st.left=r.left+"px";st.top=r.top+"px";st.width=r.width+"px";st.height=r.height+"px";st.margin="0";st.maxWidth="none";st.boxSizing="border-box";ghostLayer().appendChild(g);return g;}
+function navRect(app){var a=app.querySelector("nav a.on");return a?{l:a.offsetLeft,w:a.offsetWidth}:null;}
+function placeInd(app,prev,anim){var nav=app.querySelector("nav"),ind=nav&&nav.querySelector(".tabind");if(!ind)return;var a=nav.querySelector("a.on");
+ if(!a){ind.style.opacity="0";return;}var l=a.offsetLeft,w=a.offsetWidth;
+ ind.style.width=w+"px";ind.style.transform="translateX("+l+"px)";ind.style.opacity="1";
+ if(anim){if(prev&&(prev.l!==l||prev.w!==w))ind.animate([{transform:"translateX("+prev.l+"px)",width:prev.w+"px"},{transform:"translateX("+l+"px)",width:w+"px"}],{duration:DUR,easing:SPR});
+  else if(!prev)ind.animate([{opacity:0},{opacity:1}],{duration:260,easing:"ease-out"});}}
 function render(){
- var app=document.getElementById("app"),prev={},first=RTAB===null,oldTab=ui.tab;
- var keyOf=function(x){return x.getAttribute("data-k");};
- Array.prototype.forEach.call(app.querySelectorAll("[data-k]"),function(x){prev[keyOf(x)]=1;});
+ var app=document.getElementById("app"),first=RTAB===null,oldTab=ui.tab,anim=!first&&canAnim(),dir=ui.navDir||0;ui.navDir=0;
+ var before={},oldMain=null,oldMainR=null,indR=null;
+ if(anim){
+  Array.prototype.forEach.call(app.querySelectorAll("main [data-k]"),function(x){before[x.getAttribute("data-k")]={el:x,r:x.getBoundingClientRect(),top:!!(x.parentElement&&x.parentElement.tagName==="MAIN")};});
+  oldMain=app.querySelector("main");if(oldMain)oldMainR=oldMain.getBoundingClientRect();indR=navRect(app);
+ }
  render0();
  Array.prototype.forEach.call(app.querySelectorAll(".confirm:not([data-k])"),function(x){x.setAttribute("data-k","cf-"+ui.confirm);});
  Array.prototype.forEach.call(app.querySelectorAll("form.form:not([data-k])"),function(x){x.setAttribute("data-k","fm-"+x.getAttribute("data-f")+(ui.form&&ui.form.id||""));});
+ placeInd(app,indR,anim);
  var mn=app.querySelector("main");
- if(!first&&mn){
-  if(oldTab!==ui.tab)mn.classList.add("pg");
-  else Array.prototype.forEach.call(app.querySelectorAll("[data-k]"),function(x){if(!prev[keyOf(x)]&&!(x.parentElement&&x.parentElement.closest(".in")))x.classList.add("in");});
- }
+ if(anim&&mn){try{if(oldTab!==ui.tab)crossMain(oldMain,oldMainR,mn);else flip(before,app,dir);}catch(e){}}
  RTAB=ui.tab;ensureTrap();
+}
+/* changement d'onglet : fondu enchaîné */
+function crossMain(old,r,mn){
+ if(old&&r&&r.height>0){var g=toGhost(old,{left:r.left,top:r.top,width:r.width,height:Math.min(r.height,innerHeight-Math.max(0,r.top))});g.style.overflow="hidden";
+  var a=g.animate([{opacity:1},{opacity:0}],{duration:110,easing:"ease-out",fill:"forwards"});a.onfinish=a.oncancel=function(){if(g.parentNode)g.remove();};}
+ mn.animate([{opacity:0,transform:"translateY(6px)"},{opacity:1,transform:"none"}],{duration:340,delay:70,easing:SPR,fill:"backwards"});
+}
+/* même onglet : ce qui reste glisse vers sa nouvelle place, ce qui arrive entre en glissant, ce qui part s'efface */
+function flip(before,app,dir){
+ var els=Array.prototype.slice.call(app.querySelectorAll("main [data-k]")),seen={},n=0,cur={};
+ els.forEach(function(x){cur[x.getAttribute("data-k")]=1;});
+ var gone=Object.keys(before).some(function(k){var o=before[k];return !cur[k]&&o.top&&o.r.height>=1&&o.r.bottom>=0&&o.r.top<=innerHeight;}),d0=gone?95:30;
+ els.forEach(function(x){var k=x.getAttribute("data-k"),o=before[k];seen[k]=1;
+  if(o&&x.hasAttribute("data-kh")){var h1=o.r.height,h2=x.getBoundingClientRect().height;
+   if(h1>0&&Math.abs(h1-h2)>1){var ov=x.style.overflow;x.style.overflow="hidden";var a=x.animate([{height:h1+"px"},{height:h2+"px"}],{duration:DUR,easing:SPR});a.onfinish=a.oncancel=function(){x.style.overflow=ov;};}}});
+ els.forEach(function(x){var k=x.getAttribute("data-k"),o=before[k],pe=x.parentElement;
+  if(pe&&(pe.closest(".kin")||pe.closest("[data-kmv]")))return;
+  var r=x.getBoundingClientRect();if(!r.width&&!r.height)return;
+  if(o){var dx=o.r.left-r.left,dy=o.r.top-r.top;
+   if(Math.abs(dx)>0.5||Math.abs(dy)>0.5){x.setAttribute("data-kmv","");var a=x.animate([{transform:"translate("+dx+"px,"+dy+"px)"},{transform:"none"}],{duration:DUR,easing:SPR});a.onfinish=a.oncancel=function(){x.removeAttribute("data-kmv");};}}
+  else{x.classList.add("kin");var from=dir>0?"translateX(36px)":dir<0?"translateX(-36px)":"translateY(14px) scale(.985)";
+   var b=x.animate([{opacity:0,transform:from},{opacity:1,transform:"none"}],{duration:DUR,delay:d0+Math.min(n++,5)*45,easing:SPR,fill:"backwards"});b.onfinish=b.oncancel=function(){x.classList.remove("kin");};}
+ });
+ Object.keys(before).forEach(function(k){if(seen[k])return;var o=before[k];if(!o.top||o.r.height<1||o.r.bottom<0||o.r.top>innerHeight)return;
+  var g=toGhost(o.el,o.r),to=dir>0?"translateX(-20px)":dir<0?"translateX(20px)":"scale(.985)";
+  var a=g.animate([{opacity:1,transform:"none"},{opacity:0,transform:to}],{duration:130,easing:"ease-out",fill:"forwards"});a.onfinish=a.oncancel=function(){if(g.parentNode)g.remove();};});
 }
 /* Bouton retour du téléphone : revient d'une étape au lieu de quitter l'appli */
 function canBack(){
@@ -1158,7 +1197,7 @@ function goBack(){
    else{ui.mode=null;ui.edit=null;}}
   keepUi();
  }else{try{history.back();}catch(e){}return;}
- render();window.scrollTo(0,0);
+ ui.navDir=-1;render();window.scrollTo(0,0);
 }
 window.addEventListener("popstate",function(e){
  var st=e.state||{},was=TRAP.on,wh=TRAP.href;
@@ -1248,14 +1287,14 @@ function stepDone(k){
 function searchRow(id,ph,val){return '<div class="row nowrap"><div class="acw" style="flex:1 1 auto"><input id="'+id+'" data-ac="'+id+'" type="text" placeholder="'+esc(ph)+'" value="'+esc(val)+'" autocomplete="off" enterkeyhint="done"></div><button class="btn pri" data-a="'+id+'Ok">OK</button></div>';}
 function curStep(){if(ui.edit===1||ui.edit===2)return ui.edit;return !stepDone(1)?1:(!stepDone(2)?2:3);}
 function doneRow(k,label,val){return '<div class="done" data-k="d'+k+'"><span class="step-n">✓</span><div class="k"><small>'+esc(label)+'</small><b>'+esc(val)+'</b></div><button class="btn small" data-a="editStep" data-id="'+k+'">Modifier</button></div>';}
-function goStep(){ui.edit=null;ui.editFrom=null;keepUi();render();scrollStep();}
+function goStep(){ui.edit=null;ui.editFrom=null;ui.navDir=1;keepUi();render();scrollStep();}
 function scrollStep(){window.scrollTo({top:0,behavior:"smooth"});}
 function vTrajet(){
  var md=ui.mode,prog=md==="programme",ua=md==="urgence"&&!u1(),ub=md==="urgence"&&!ua,pec=prog||ub;
  // ua : urgence, patient à bord (même menu que l'urgence, sans le choix du type de transport)
  var h=ua?'':'<h2 data-k="tt">Type de transport</h2><div class="modes'+(md?" picked":"")+'" data-k="modes">'+
-  '<button class="mode'+(md==="urgence"?" on":"")+'" style="--c:#d93a3f" data-a="mode" data-id="urgence"><span class="ic">🚨</span><b>Urgence</b></button>'+
-  '<button class="mode'+(prog?" on":"")+'" style="--c:#2f9e6a" data-a="mode" data-id="programme"><span class="ic">📋</span><b>Transport programmé</b></button></div>';
+  '<button class="mode'+(md==="urgence"?" on":"")+'" style="--c:#d93a3f" data-a="mode" data-id="urgence" data-k="mu" data-kh><span class="ic">🚨</span><b>Urgence</b></button>'+
+  '<button class="mode'+(prog?" on":"")+'" style="--c:#2f9e6a" data-a="mode" data-id="programme" data-k="mp" data-kh><span class="ic">📋</span><b>Transport programmé</b></button></div>';
  var depB='<button class="btn wide depotb" data-k="depb" data-a="depotGo">🏠 Retour au dépôt</button>';
  if(!md)return h+depB;
  var cs=curStep(),n=state.etabs.length;
@@ -1265,7 +1304,7 @@ function vTrajet(){
   if(pec){var pk=pecInfo();g+=doneRow(1,prog?"Prise en charge":"Adresse du patient",pk.label||pk.addr);if(ub)gc="#d93a3f";}
   else{var e=curEtat();g+=doneRow(1,"État du patient",e.ic+" "+e.label);gc=PROFILS[e.p].c;}
   if(cs>2&&!ub){var d=ui.destId?etab(ui.destId):null;g+=doneRow(2,prog?"Rendez-vous":"Destination",d?d.nom:ui.libre.trim());}
-  h+='<div class="donegrp" data-k="done'+(ua?"2":"")+'"'+(gc?' style="--c:'+gc+'"':'')+'>'+g+'</div>';
+  h+='<div class="donegrp" data-kh data-k="done'+(ua?"2":"")+'"'+(gc?' style="--c:'+gc+'"':'')+'>'+g+'</div>';
  }
  var sk=md+(ua?"2":"");
  // Étape en cours
@@ -1415,7 +1454,7 @@ function fZone(z){
 
 function resetMission(){ui.edit=null;ui.editFrom=null;ui.etat=ui.mode==="programme"?"programme":null;ui.destId=null;ui.libre="";ui.libreGeo=null;ui.libreOk=false;ui.filtre="";ui.pecFiltre="";ui.pec={q:"",etab:""};ui.leg=1;ui.dep=null;ui.depEdit=false;ui.route=null;keepUi();}
 /* ===== GPS intégré (module gps.js chargé à la demande) ===== */
-var GPS_V="12",gpsP=null;
+var GPS_V="13",gpsP=null;
 function loadGps(){if(window.AmbuGPS)return Promise.resolve();if(gpsP)return gpsP;
  gpsP=new Promise(function(res,rej){var sc=document.createElement("script");sc.src="gps.js?v="+GPS_V;
   sc.onload=function(){if(window.AmbuGPS)res();else{gpsP=null;rej(new Error("GPS indisponible."));}};
@@ -1446,7 +1485,7 @@ window.AMB={get state(){return state;},ui:ui,api:api,isCloud:isCloud,netErr:netE
  nextLeg:function(){ui.leg=2;keepUi();var d=ui.destId?etab(ui.destId):null,addr=d?d.adresse:ui.libre.trim();
   if(!addr)return Promise.reject(new Error("aucun lieu de rendez-vous."));
   return resolveDest(d,addr).then(function(x){return{lat:x.lat,lon:x.lon,nom:x.nom||addr,addr:addr,id:x.id||"",label:"Transport programmé",links:links(addr,"",x.lat,x.lon)};});},
- onEnd:function(kind){if(kind==="abord"){ui.leg=2;ui.edit=null;ui.editFrom=null;keepUi();}if(kind==="nouvelle"){resetMission();ui.mode=null;ui.etat=null;keepUi();if(location.hash!=="#trajet"&&location.hash!==""){location.hash="#trajet";return;}}render();window.scrollTo(0,0);}
+ onEnd:function(kind){if(kind==="abord"){ui.leg=2;ui.navDir=1;ui.edit=null;ui.editFrom=null;keepUi();}if(kind==="nouvelle"){resetMission();ui.mode=null;ui.etat=null;keepUi();if(location.hash!=="#trajet"&&location.hash!==""){location.hash="#trajet";return;}}render();window.scrollTo(0,0);}
 };
 document.addEventListener("click",function(ev){
  var b=ev.target.closest("[data-a]");if(!b)return;
@@ -1462,7 +1501,7 @@ document.addEventListener("click",function(ev){
  else if(a==="depotDel"){saveDepot(null);ui.depotEdit=false;render();}
  else if(a==="pecOk"){var pv=document.getElementById("pec");if(!(ui.pec.q||"").trim()||(ui.pec.q||"").trim().length<3){if(pv)pv.focus();return;}ui.pec.ok=true;acHide();goStep();}
  else if(a==="libreOk"){var lv=document.getElementById("libre");if(ui.libre.trim().length<3){if(lv)lv.focus();return;}ui.libreOk=true;ui.destId=null;acHide();goStep();}
- else if(a==="editStep"){ui.editFrom={e:ui.edit};ui.edit=+id;acHide();render();scrollStep();}
+ else if(a==="editStep"){ui.editFrom={e:ui.edit};ui.edit=+id;ui.navDir=-1;acHide();render();scrollStep();}
  else if(a==="fav"){toggleFav(id);if(document.getElementById("destList"))paintDest();else render();}
  else if(a==="acPick"){acPick(+b.getAttribute("data-i"));}
  else if(a==="acFav"){var ai=AC.items[+b.getAttribute("data-i")];if(ai&&ai.etab){toggleFav(ai.etab);ai.fav=isFav(ai.etab);if(AC.input)acPaint(AC.input,AC.items,"");paintDest();}}
@@ -1514,7 +1553,7 @@ document.addEventListener("click",function(ev){
  else if(a==="dropBackup"){delete state.localBackup;save();render();}
  else if(a==="reset"){resetMission();render();window.scrollTo(0,0);}
  else if(a==="gps"){startGps(+(b.getAttribute("data-leg")||0));}
- else if(a==="leg2"||a==="leg1"){ev.preventDefault();ui.leg=a==="leg2"?2:1;ui.edit=null;ui.editFrom=null;keepUi();render();if(ui.mode==="urgence"){window.scrollTo(0,0);return;}var lg=document.getElementById(a==="leg2"?"leg2":"leg1");if(lg)lg.scrollIntoView({behavior:"smooth",block:"start"});}
+ else if(a==="leg2"||a==="leg1"){ev.preventDefault();ui.leg=a==="leg2"?2:1;ui.navDir=a==="leg2"?1:-1;ui.edit=null;ui.editFrom=null;keepUi();render();if(ui.mode==="urgence"){window.scrollTo(0,0);return;}var lg=document.getElementById(a==="leg2"?"leg2":"leg1");if(lg)lg.scrollIntoView({behavior:"smooth",block:"start"});}
  else if(a==="newEtab"){ui.form={kind:"etab"};ui.confirm=null;render();}
  else if(a==="editEtab"){ui.form={kind:"etab",id:id};ui.confirm=null;render();window.scrollTo(0,0);}
  else if(a==="newZone"){ui.form={kind:"zone"};ui.confirm=null;render();}
