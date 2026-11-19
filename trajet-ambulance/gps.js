@@ -139,7 +139,6 @@ var CSS='#gps{position:fixed;inset:0;z-index:3000;background:#1c1f25;color:#f1f3
 '#gps .gabord{min-height:56px;border-radius:14px;border:0;background:#1f9d5a;color:#fff;display:flex;align-items:center;justify-content:center;gap:10px;padding:0 16px;font-size:17px;font-weight:900;box-shadow:0 4px 14px rgba(0,0,0,.35)}#gps .gabord i{width:26px;height:26px;border:2.5px solid #fff;border-radius:7px;display:flex;align-items:center;justify-content:center;flex:0 0 auto}#gps .gabord:disabled{opacity:.6}'+
 '#gps .gbtns.g3{grid-template-columns:1.12fr 1.28fr .9fr;gap:8px}#gps .gbtns.g3 .gsig{font-size:16.5px;gap:6px}#gps .gbtns.g3 .gstop{font-size:15.5px}'+
 '#gps .galtbtn{min-height:56px;border-radius:14px;border:1px solid #2f4b7a;background:#17243b;color:#d6e4ff;display:flex;align-items:center;justify-content:center;gap:6px;font-size:16px;font-weight:800;padding:0 6px;white-space:nowrap}'+
-'#gps .gnext{min-height:48px;border-radius:14px;border:1px solid #24583d;background:#10251a;color:#c9f5dc;display:flex;align-items:center;justify-content:center;gap:9px;padding:0 12px;font-size:15px;font-weight:800;white-space:nowrap;min-width:0}#gps .gnext span{overflow:hidden;text-overflow:ellipsis}#gps .gnext i{width:22px;height:22px;border:2px solid #5fe39a;border-radius:6px;display:flex;align-items:center;justify-content:center;flex:0 0 auto}#gps .gnext:disabled{opacity:.6}'+
 '#gps .gstop{min-height:56px;border-radius:14px;border:1px solid #5a2a2d;background:#2a1719;color:#ff9a9d;font-size:16px;font-weight:700}'+
 '#gps .gbot{transition:transform .5s cubic-bezier(.32,.72,0,1),opacity .3s ease}#gps.galton .gbot{transform:translateY(105%);opacity:0;pointer-events:none}'+
 '#gps .galt{position:absolute;left:0;right:0;bottom:0;z-index:16;background:#181b22;border-top:1px solid #2c313c;border-radius:22px 22px 0 0;padding:10px 14px 14px;padding-bottom:max(14px,env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:10px;box-shadow:0 -12px 34px rgba(0,0,0,.55);max-height:64%;box-sizing:border-box;animation:gup .52s cubic-bezier(.32,.72,0,1)}#gps .galt.gout{animation:gdown .34s cubic-bezier(.32,.72,0,1) forwards}'+
@@ -162,7 +161,7 @@ var CSS='#gps{position:fixed;inset:0;z-index:3000;background:#1c1f25;color:#f1f3
 '#gps .ghandle{width:44px;height:5px;border-radius:3px;background:#3a404c;align-self:center}#gps .gsheet h3{margin:0;font-size:23px;font-weight:900}#gps .gsheet p{margin:0;color:#9aa3b2;font-size:13.5px}'+
 '#gps .ggrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}#gps .gtile{min-height:84px;border-radius:14px;background:#20242d;border:1px solid #2c313c;display:flex;flex-direction:column;justify-content:space-between;align-items:flex-start;padding:10px 12px;gap:6px;text-align:left}'+
 '#gps .gtile.w{grid-column:span 2;min-height:58px;flex-direction:row;align-items:center;justify-content:flex-start;gap:12px}#gps .gtile .ti{width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex:0 0 auto}#gps .gtile b{font-size:16px}#gps .gtile small{display:block;font-size:12.5px;color:#9aa3b2;font-weight:400}'+
-'#gps .gopt{min-height:60px;border-radius:16px;border:1px solid #2c313c;background:#20242d;display:flex;align-items:center;gap:14px;padding:10px 16px;font-size:18px;font-weight:900;text-align:left}#gps .gopt.pri{background:#00387B;border-color:#00387B;color:#fff}'+
+'#gps .gopt{min-height:60px;border-radius:16px;border:1px solid #2c313c;background:#20242d;display:flex;align-items:center;gap:14px;padding:10px 16px;font-size:18px;font-weight:900;text-align:left}#gps .gopt.pri{background:#00387B;border-color:#00387B;color:#fff}#gps .gopt.ok{background:#1f9d5a;border-color:#1f9d5a;color:#fff}#gps .gopt.ok i{width:26px;height:26px;border:2.5px solid #fff;border-radius:7px;display:flex;align-items:center;justify-content:center;flex:0 0 auto}#gps .gopt small{display:block;font-size:13.5px;font-weight:700;opacity:.85;margin-top:1px}'+
 '#gps .gcard{position:absolute;left:0;right:0;bottom:0;z-index:15;background:rgba(24,27,34,.97);border-top:1px solid #2c313c;border-radius:22px 22px 0 0;padding:16px;padding-bottom:max(18px,env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:12px;box-shadow:0 -12px 34px rgba(0,0,0,.55)}'+
 '#gps .gcard .hd{display:flex;align-items:center;gap:12px}#gps .gcard .hd .ci{width:46px;height:46px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex:0 0 auto}#gps .gcard .hd b{display:block;font-size:18px;font-weight:900}#gps .gcard .hd small{display:block;font-size:13.5px;color:#9aa3b2}'+
 '#gps .gq{font-size:21px;font-weight:900;text-align:center}#gps .g3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}#gps .g2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}#gps .g3 button,#gps .g2 button{min-height:64px;border-radius:14px;border:0;font-size:15px;font-weight:900;padding:0 6px}'+
@@ -275,8 +274,7 @@ function paintPanel(force){
  if(mode==="rec")h='<div style="font-size:14.5px;color:#9aa3b2;text-align:center">Touche quand la route redevient correcte.</div><button type="button" class="gbig" style="background:#f2c200;color:#2b2300" data-g="recEnd">'+svgI(IC.stop,22,"#2b2300",2.6)+'<span>Fin de la route dégradée</span></button><button type="button" class="gsec" data-g="recCancel">Annuler le signalement</button>';
  else if(mode==="arr")h='<button type="button" class="gbig" style="background:#00387B;color:#fff" data-g="finish">Terminer le guidage</button>'+sig;
  else if(mode==="arrP")h='<div class="geta"><div><div class="t">Arrivé</div><div class="m">'+(G.opts.urg?"Chez le patient":"Prise en charge")+'</div></div><button type="button" class="gabord" id="gAbord" data-g="abord"><i>'+svgI("M5 12.5l4.5 4.5L19 7.5",18,"#fff",3)+'</i><span>Patient à bord</span></button></div>'+sig;
- else h='<div class="geta"><div><div class="t" id="gEtaT">'+t1+'</div><div class="m" id="gEtaM">'+esc(t2)+'</div></div><div class="gdest"><b id="gDestN">'+esc(G.dest.nom||"Destination")+'</b>'+(G.opts.label?'<span class="gprof"><i></i><span>'+esc(G.opts.label)+'</span></span>':'')+'</div></div>'+
-  (G.opts.pickup&&!G.opts.urg?'<button type="button" class="gnext" id="gAbord" data-g="abordAsk"><i>'+svgI("M5 12.5l4.5 4.5L19 7.5",15,"#5fe39a",3.2)+'</i><span>Patient à bord · aller au rendez-vous</span></button>':'')+sig3;
+ else h='<div class="geta"><div><div class="t" id="gEtaT">'+t1+'</div><div class="m" id="gEtaM">'+esc(t2)+'</div></div><div class="gdest"><b id="gDestN">'+esc(G.dest.nom||"Destination")+'</b>'+(G.opts.label?'<span class="gprof"><i></i><span>'+esc(G.opts.label)+'</span></span>':'')+'</div></div>'+sig3;
  var chg=p._pm!=null&&p._pm!==mode;p._pm=mode;
  p.innerHTML=h+attr;if(chg)popIn(p.firstElementChild,14);
 }
@@ -502,7 +500,7 @@ function arrive(){if(G.alt)closeAlt();G.arrived=true;say(G.opts.pickup?(G.opts.u
 function patientAbord(){
  if(G.opts.urg){stop();A.onEnd("abord");return;}
  if(!G.opts.pickup)return;if(G.alt)closeAlt();
- var b=$("#gAbord");if(b){b.disabled=true;b.querySelector("span").textContent="Calcul du trajet…";}
+ var b=$("#gAbord");if(b){b.disabled=true;b.querySelector("span").textContent="Calcul du trajet…";}else toast("Calcul du trajet vers le rendez-vous…");
  A.nextLeg().then(function(t){if(!G)return;G.dest={lat:t.lat,lon:t.lon,nom:t.nom,addr:t.addr};G.opts.pickup=false;G.opts.destEtab=t.id;G.opts.label=t.label;G.opts.links=t.links;G.arrived=false;G.panMode=null;
   say("Patient à bord. En route vers "+t.nom+".",true);paintPanel(true);if(G.rerouting)G._redo=true;else reroute("leg2");},
   function(e){if(!G)return;toast("Rendez-vous introuvable : "+(e&&e.message?e.message:"vérifie l'adresse."),3500);G.panMode=null;paintPanel(true);});
@@ -647,17 +645,10 @@ function openSignal(){
   '</div><button type="button" class="gsec" data-g="scrimClose">Annuler</button></div></div>');
  G.root.appendChild(s);
 }
-/* passer au rendez-vous avant d'être arrivé à la prise en charge (transport programmé) */
-function openAbordAsk(){
- closeCard();closeScrim();
- G.root.appendChild(el('<div class="gscrim" data-g="scrim"><div class="gsheet" role="dialog" aria-label="Patient à bord"><div class="ghandle"></div><h3>Patient à bord ?</h3>'+
-  '<p style="font-size:15px;line-height:1.4">Tu n\'es pas encore arrivé à la prise en charge. Le guidage part tout de suite vers le rendez-vous.</p>'+
-  '<button type="button" class="gabord" data-g="abordGo"><i>'+svgI("M5 12.5l4.5 4.5L19 7.5",18,"#fff",3)+'</i><span>Oui, aller au rendez-vous</span></button>'+
-  '<button type="button" class="gsec" data-g="scrimClose" style="min-height:52px">Annuler, continuer vers la prise en charge</button></div></div>'));
-}
 function openStop(){
  closeCard();closeScrim();
  var s=el('<div class="gscrim" data-g="scrim"><div class="gsheet" role="dialog" aria-label="Arrêter le guidage"><div class="ghandle"></div><h3>Arrêter le guidage</h3>'+
+  (G.opts.pickup&&!G.opts.urg&&!G.arrived?'<button type="button" class="gopt ok" data-g="abordGo"><i>'+svgI("M5 12.5l4.5 4.5L19 7.5",17,"#fff",3.2)+'</i><span>Patient à bord<small>Passer au rendez-vous</small></span></button>':'')+
   '<button type="button" class="gopt pri" data-g="newMission">'+svgI(IC.home,26,"#fff",2.3)+'<span>Nouvelle mission</span></button>'+
   '<button type="button" class="gopt" data-g="changeDest">'+svgI(IC.pin,26,"#f1f3f6",2.3)+'<span>Changer de destination</span></button>'+
   '<button type="button" class="gsec" data-g="scrimClose" style="min-height:52px">Annuler, continuer le guidage</button></div></div>');
@@ -825,7 +816,6 @@ function onClick(ev){
  else if(g==="pickDest")pickDest(+b.getAttribute("data-i"));
  else if(g==="finish"){stop();A.onEnd("fin");}
  else if(g==="abord")patientAbord();
- else if(g==="abordAsk")openAbordAsk();
  else if(g==="abordGo"){closeScrim();patientAbord();}
  else if(g==="mute"){G.mute=!G.mute;try{localStorage.setItem("ambumaps-gps-muet",G.mute?"1":"");if(G.mute)speechSynthesis.cancel();}catch(e){}paintMute();}
  else if(g==="recenter")recenter();
