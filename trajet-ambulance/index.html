@@ -5,7 +5,9 @@
 html,body{margin:0;background:var(--bg);color:var(--txt);font:17px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-text-size-adjust:100%}
 header{position:sticky;top:0;z-index:5;background:rgba(14,16,20,.96);border-bottom:1px solid var(--line);padding:10px 14px 0}
 .top{display:flex;align-items:center;justify-content:space-between;gap:10px}
-h1{font-size:19px;margin:0;letter-spacing:.2px}
+h1{font-size:19px;margin:0;letter-spacing:.2px;display:flex;align-items:center;gap:8px}
+h1 .logo{height:28px;width:auto;flex:none}
+.hero .logo{height:64px;width:auto}
 .status{font-size:12.5px;color:var(--mut);text-align:right}
 .status.ok{color:var(--ok)}.status.warn{color:var(--warn)}
 nav{display:flex;gap:4px;margin-top:10px}
@@ -1089,8 +1091,10 @@ function sync(first){
 function inviteMsg(email){return "Salut ! Je t'ai ajouté dans l'appli Ambumaps de l'équipe. Ouvre ce lien sur ton téléphone avec Chrome : "+APP_URL+" puis choisis « Première connexion » avec l'adresse "+email+" et crée ton mot de passe. Ensuite, menu ⋮ ▸ « Installer l'application ».";}
 
 function headerHtml(nav){
- return '<header><div class="top"'+(nav?'':' style="padding-bottom:10px"')+'><h1>🚑 Ambumaps</h1><div class="hr"><div id="status" class="status"></div>'+(nav?'<a href="#parametres" class="gear'+(ui.tab==="parametres"?" on":"")+'" aria-label="Paramètres">⚙️</a>':'')+(isCloud()&&!ui.auth?'<button class="sync" data-a="sync" aria-label="Synchroniser">↻</button>':'')+'</div></div>'+(nav||'')+'</header>';
+ return '<header><div class="top"'+(nav?'':' style="padding-bottom:10px"')+'><h1>'+LOGO+'Ambumaps</h1><div class="hr"><div id="status" class="status"></div>'+(nav?'<a href="#parametres" class="gear'+(ui.tab==="parametres"?" on":"")+'" aria-label="Paramètres">⚙️</a>':'')+(isCloud()&&!ui.auth?'<button class="sync" data-a="sync" aria-label="Synchroniser">↻</button>':'')+'</div></div>'+(nav||'')+'</header>';
 }
+/* logo : repère bleu avec l'étoile de vie */
+var LOGO='<svg class="logo" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="112 66 288 380"><path d="M256 76c-74 0-134 60-134 134 0 98 134 226 134 226s134-128 134-226c0-74-60-134-134-134z" fill="#2f6fe0"/><circle cx="256" cy="210" r="86" fill="#fff"/><rect x="232.5" y="138.0" width="47.0" height="144.0" fill="#1e4fb0" transform="rotate(0 256.0 210.0)"/><rect x="232.5" y="138.0" width="47.0" height="144.0" fill="#1e4fb0" transform="rotate(60 256.0 210.0)"/><rect x="232.5" y="138.0" width="47.0" height="144.0" fill="#1e4fb0" transform="rotate(120 256.0 210.0)"/><path d="M256.0 153.8 L256.0 268.2" stroke="#fff" stroke-width="7.8" stroke-linecap="round" fill="none"/><path d="M259.1 257.8 C240.4 253.7 238.3 239.1 256.0 235.0 C273.7 230.8 273.7 216.2 256.0 212.1 C238.3 207.9 238.3 193.4 256.0 189.2 C269.5 186.1 271.6 176.7 263.3 170.5" stroke="#fff" stroke-width="6.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/><ellipse cx="265.4" cy="167.4" rx="7.8" ry="5.2" fill="#fff" transform="rotate(-35 265.4 167.4)"/></svg>';
 function tabLink(k,l){return '<a href="#'+k+'" class="'+(ui.tab===k?"on":"")+'">'+l+'</a>';}
 function render0(){
  var h=location.hash.replace("#","");
@@ -1208,7 +1212,7 @@ window.addEventListener("popstate",function(e){
 function vAuth(){
  var a=ui.auth,h="";
  if(a.step==="choice"){
-  h+='<div class="hero"><div class="big">🚑</div><h2>Bienvenue</h2><p>Connecte-toi pour partager les établissements, les infos d\'arrivée et les zones à éviter avec ton équipe.</p></div>';
+  h+='<div class="hero"><div class="big">'+LOGO+'</div><h2>Bienvenue</h2><p>Connecte-toi pour partager les établissements, les infos d\'arrivée et les zones à éviter avec ton équipe.</p></div>';
   if(a.msg)h+='<div class="warnbox">'+esc(a.msg)+'</div>';
   h+='<button class="btn pri wide" style="margin-top:14px;min-height:58px;font-size:18px" data-a="authStep" data-v="login">Se connecter</button>';
   h+='<button class="btn wide" style="margin-top:10px" data-a="authStep" data-v="signup">Première connexion : créer mon mot de passe</button>';
