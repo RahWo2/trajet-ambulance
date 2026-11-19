@@ -208,7 +208,7 @@ function lenM(c){var t=0;for(var i=1;i<c.length;i++)t+=distM(c[i-1],c[i]);return
 function etTags(x){return String((x&&x.type)||"").split(/\s*[,;]\s*/).map(function(t){return t.trim();}).filter(Boolean);}
 function tagsHtml(x,click){var t=etTags(x);if(!t.length)t=["Autre"];return t.map(function(s){return click?'<button type="button" class="tag blue" data-a="tagFilter" data-t="'+esc(s)+'">'+esc(s)+'</button>':'<span class="tag blue">'+esc(s)+'</span>';}).join(" ");}
 function allTags(cur){var seen={},out=[];function add(t){var k=norm(t);if(!k||seen[k])return;seen[k]=1;out.push(t);}
- ETYPES.forEach(function(t){if(t!=="Autre")add(t);});state.etabs.forEach(function(x){etTags(x).forEach(add);});(cur||[]).forEach(add);return out;}
+ ETYPES.forEach(function(t){if(t!=="Autre")add(t);});state.etabs.forEach(function(x){etTags(x).forEach(function(t){if(t!=="Autre")add(t);});});(cur||[]).forEach(add);return out;}
 function syncTags(f){var h=f&&f.elements.type;if(!h)return;h.value=Array.prototype.map.call(f.querySelectorAll(".tagb.on"),function(b){return b.getAttribute("data-t");}).join(", ");}
 function addTagFromInput(f){var inp=f&&f.querySelector("#tagNew");if(!inp)return;var box=f.querySelector("#tagBox");
  inp.value.split(/\s*[,;]\s*/).map(function(t){return t.trim();}).filter(Boolean).forEach(function(t){
@@ -1166,7 +1166,7 @@ function render(){
 /* changement d'onglet : fondu enchaîné */
 function crossMain(old,r,mn){
  if(old&&r&&r.height>0){var g=toGhost(old,{left:r.left,top:r.top,width:r.width,height:Math.min(r.height,innerHeight-Math.max(0,r.top))});g.style.overflow="hidden";
-  var a=g.animate([{opacity:1},{opacity:0}],{duration:110,easing:"ease-out",fill:"forwards"});a.onfinish=a.oncancel=function(){if(g.parentNode)g.remove();};}
+  var a=g.animate([{opacity:1},{opacity:0}],{duration:110,easing:"ease-out",fill:"forwards"});a.onfinish=a.oncancel=function(){if(g.parentNode)g.remove();};setTimeout(function(){if(g.parentNode)g.remove();},700);}
  mn.animate([{opacity:0,transform:"translateY(6px)"},{opacity:1,transform:"none"}],{duration:340,delay:70,easing:SPR,fill:"backwards"});
 }
 /* même onglet : ce qui reste glisse vers sa nouvelle place, ce qui arrive entre en glissant, ce qui part s'efface */
@@ -1187,7 +1187,7 @@ function flip(before,app,dir){
  });
  Object.keys(before).forEach(function(k){if(seen[k])return;var o=before[k];if(!o.top||o.r.height<1||o.r.bottom<0||o.r.top>innerHeight)return;
   var g=toGhost(o.el,o.r),to=dir>0?"translateX(-20px)":dir<0?"translateX(20px)":"scale(.985)";
-  var a=g.animate([{opacity:1,transform:"none"},{opacity:0,transform:to}],{duration:130,easing:"ease-out",fill:"forwards"});a.onfinish=a.oncancel=function(){if(g.parentNode)g.remove();};});
+  var a=g.animate([{opacity:1,transform:"none"},{opacity:0,transform:to}],{duration:130,easing:"ease-out",fill:"forwards"});a.onfinish=a.oncancel=function(){if(g.parentNode)g.remove();};setTimeout(function(){if(g.parentNode)g.remove();},700);});
 }
 /* Bouton retour du téléphone : revient d'une étape au lieu de quitter l'appli */
 function canBack(){
