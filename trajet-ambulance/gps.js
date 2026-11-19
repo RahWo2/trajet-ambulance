@@ -118,7 +118,7 @@ var CSS='#gps{position:fixed;inset:0;z-index:3000;background:#1c1f25;color:#f1f3
 '#gps .gb1{background:rgba(0,56,123,.72);padding:12px 18px 12px;padding-top:max(12px,env(safe-area-inset-top));display:flex;align-items:center;gap:16px;min-height:70px}'+
 '#gps .gb1 .d{font-size:36px;font-weight:900;line-height:1}#gps .gb1 .l{font-size:17px;font-weight:500}#gps .gb1 .s{font-size:18px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}'+
 '#gps .gb2{background:rgba(0,36,82,.8);padding:7px 18px;display:flex;align-items:center;gap:10px;font-size:15px}#gps .gb2 span:last-child{font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}'+
-'#gps .gwzw{display:flex;justify-content:center;padding:10px 12px 0;animation:gfade .2s ease-out}#gps .gwz{pointer-events:auto;display:flex;align-items:center;gap:12px;min-height:56px;background:rgba(18,20,25,.82);backdrop-filter:blur(1.5px);-webkit-backdrop-filter:blur(1.5px);border:1px solid rgba(51,204,255,.45);border-radius:16px;padding:8px 18px 8px 14px;color:#f1f3f6;text-decoration:none;box-shadow:0 6px 16px rgba(0,0,0,.45)}#gps .gwz b{display:block;font-size:17px;font-weight:800}#gps .gwz small{display:block;font-size:14px;color:#33ccff;font-weight:600}#gps .gwz:active{transform:scale(.97)}'+
+'#gps .gwzw{display:flex;justify-content:center;padding:10px 12px 0}#gps .gwz{pointer-events:auto;display:flex;align-items:center;gap:12px;min-height:56px;background:rgba(18,20,25,.82);backdrop-filter:blur(1.5px);-webkit-backdrop-filter:blur(1.5px);border:1px solid rgba(51,204,255,.45);border-radius:16px;padding:8px 18px 8px 14px;color:#f1f3f6;text-decoration:none;box-shadow:0 6px 16px rgba(0,0,0,.45)}#gps .gwz b{display:block;font-size:17px;font-weight:800}#gps .gwz small{display:block;font-size:14px;color:#33ccff;font-weight:600}#gps .gwz{transition:transform .5s cubic-bezier(.32,.72,0,1),opacity .3s ease}#gps .gwz:active{transform:scale(.96);opacity:.82;transition-duration:.12s,.08s}'+
 '#gps .gchip{display:flex;justify-content:center;padding:10px 12px 0}#gps .gchip>div{display:flex;align-items:center;gap:12px;background:rgba(18,20,25,.55);backdrop-filter:blur(1.5px);-webkit-backdrop-filter:blur(1.5px);border:1px solid rgba(255,255,255,.25);padding:7px 16px 7px 7px;border-radius:14px;box-shadow:0 6px 18px rgba(0,0,0,.35);text-shadow:0 1px 2px rgba(0,0,0,.35)}'+
 '#gps .gchip .ci{width:36px;height:36px;border-radius:50%;border:2px solid #fff;box-sizing:border-box;display:flex;align-items:center;justify-content:center}#gps .gchip b{display:block;font-size:16px}#gps .gchip small{display:block;font-size:13px;color:#d5d9e0}'+
 '#gps .gbot{position:absolute;left:0;right:0;bottom:0;display:flex;flex-direction:column;z-index:5}'+
@@ -161,12 +161,20 @@ var CSS='#gps{position:fixed;inset:0;z-index:3000;background:#1c1f25;color:#f1f3
 '#gps .gwait{color:#9aa3b2;font-size:14.5px;padding:14px 4px}'+
 '#gps .gerr{position:absolute;inset:0;z-index:40;background:#121418;display:flex;flex-direction:column;justify-content:center;gap:12px;padding:24px}#gps .gerr h3{margin:0;font-size:22px}#gps .gerr p{margin:0;color:#9aa3b2}#gps .gerr a,#gps .gerr button{min-height:54px;border-radius:14px;border:1px solid #2c313c;background:#20242d;display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:700;color:#f1f3f6;text-decoration:none}#gps .gerr .pri{background:#00387B;border-color:#00387B}'+
 '#gps .gload{position:absolute;inset:0;z-index:35;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;background:#1c1f25;color:#9aa3b2}#gps .gload i{width:38px;height:38px;border:4px solid #2c313c;border-top-color:#4f8cff;border-radius:50%;animation:gsp 1s linear infinite}@keyframes gsp{to{transform:rotate(360deg)}}'+
-'#gps{animation:gfade .25s ease-out}#gps.gout{animation:gfadeo .2s ease-in forwards}'+
-'#gps button{transition:transform .12s ease,opacity .2s ease,background-color .2s ease}#gps button:active{transform:scale(.97)}'+
-'#gps .gscrim{animation:gfade .2s ease-out}#gps .gscrim .gsheet{animation:gup .26s cubic-bezier(.2,.8,.2,1)}#gps .gscrim.gout{animation:gfadeo .18s ease-in forwards}#gps .gscrim.gout .gsheet{animation:gdown .18s ease-in forwards}'+
-'#gps .gcard{animation:gup .26s cubic-bezier(.2,.8,.2,1)}#gps .gcard.gout{animation:gdown .18s ease-in forwards}'+
-'#gps .gfull{animation:gin .24s cubic-bezier(.2,.8,.2,1)}#gps .gfull.gout{animation:gfadeo .18s ease-in forwards}#gps .gtoast{animation:gfade .2s ease-out}#gps .gchip>div{animation:gfade .25s ease-out}'+
-'@keyframes gfade{from{opacity:0}to{opacity:1}}@keyframes gfadeo{from{opacity:1}to{opacity:0}}@keyframes gup{from{transform:translateY(100%)}to{transform:none}}@keyframes gdown{from{transform:none}to{transform:translateY(100%)}}@keyframes gin{from{opacity:0;transform:translateX(24px)}to{opacity:1;transform:none}}'+
+/* transitions façon iOS : courbe ressort, feuilles qui montent, écrans poussés depuis la droite */
+'#gps{animation:gopen .42s cubic-bezier(.32,.72,0,1)}#gps.gout{animation:gclose .3s cubic-bezier(.32,.72,0,1) forwards}'+
+'#gps button{transition:transform .5s cubic-bezier(.32,.72,0,1),opacity .3s ease,background-color .25s ease;-webkit-tap-highlight-color:transparent}#gps button:active{transform:scale(.96);opacity:.82;transition-duration:.12s,.08s,.25s}'+
+'#gps .gscrim{animation:gfade .38s ease-out}#gps .gscrim .gsheet{animation:gup .52s cubic-bezier(.32,.72,0,1)}#gps .gscrim.gout{animation:gfadeo .3s ease-out forwards}#gps .gscrim.gout .gsheet{animation:gdown .34s cubic-bezier(.32,.72,0,1) forwards}'+
+'#gps .gcard{animation:gcard .5s cubic-bezier(.32,.72,0,1)}#gps .gcard.gout{animation:gcardo .3s cubic-bezier(.32,.72,0,1) forwards}'+
+'#gps .gfull{animation:gpush .5s cubic-bezier(.32,.72,0,1)}#gps .gfull.gout{animation:gpop .34s cubic-bezier(.32,.72,0,1) forwards}'+
+'#gps .gtoast{animation:gtoast .45s cubic-bezier(.32,.72,0,1)}#gps .gchip>div,#gps .gwzw{animation:gdrop .48s cubic-bezier(.32,.72,0,1)}'+
+'@keyframes gfade{from{opacity:0}to{opacity:1}}@keyframes gfadeo{from{opacity:1}to{opacity:0}}'+
+'@keyframes gopen{from{opacity:0;transform:scale(1.03)}to{opacity:1;transform:none}}@keyframes gclose{from{opacity:1;transform:none}to{opacity:0;transform:scale(1.03)}}'+
+'@keyframes gup{from{transform:translateY(100%)}to{transform:none}}@keyframes gdown{from{transform:none}to{transform:translateY(100%)}}'+
+'@keyframes gcard{from{opacity:0;transform:translateY(28px) scale(.97)}to{opacity:1;transform:none}}@keyframes gcardo{from{opacity:1;transform:none}to{opacity:0;transform:translateY(20px) scale(.97)}}'+
+'@keyframes gpush{from{transform:translateX(100%)}to{transform:none}}@keyframes gpop{from{transform:none}to{transform:translateX(100%)}}'+
+'@keyframes gtoast{from{opacity:0;transform:translate(-50%,10px) scale(.95)}to{opacity:1;transform:translate(-50%,0)}}'+
+'@keyframes gdrop{from{opacity:0;transform:translateY(-10px) scale(.97)}to{opacity:1;transform:none}}'+
 '@media (prefers-reduced-motion:reduce){#gps *,#gps{animation:none!important;transition:none!important}}'+
 '#gps .gvfix{position:absolute;z-index:4;width:54px;height:54px;line-height:0;pointer-events:none}#gps .gvfix[hidden]{display:none}#gps .gveh{line-height:0;pointer-events:none}#gps .maplibregl-ctrl-bottom-left,#gps .maplibregl-ctrl-bottom-right{display:none}';
 
@@ -199,8 +207,9 @@ function paintRec(){var b=$("#gRec");if(b)b.classList.toggle("on",!G.follow);veh
 function vehMode(){var fx=$("#gVeh"),on=!!(G.follow&&G.mapReady&&G.R);if(fx)fx.hidden=!on;if(G.veh){if(!on&&G.disp){G.veh.setLngLat([G.disp[1],G.disp[0]]);G.veh.setRotation(G.dispH||0);}var e=G.veh.getElement();if(e)e.style.visibility=on||!G.R?"hidden":"visible";}}
 
 function paintBanner(){
- var b=$("#gBan");if(!b||!G.R)return;var R=G.R,k=G.next,h;
+ var b=$("#gBan");if(!b||!G.R)return;var R=G.R,k=G.next,h,bk=(G.arrived?"a":G.rerouting?"r":"m"+k)+"|"+R.total;
  paintWz();
+ var nw=b._bk!=null&&b._bk!==bk;b._bk=bk;if(nw)setTimeout(function(){popIn(b.firstElementChild,12);},0);
  if(G.arrived){h='<div class="gb1">'+svgI(IC.flag,56,"#fff",2.7)+'<div style="min-width:0"><div class="d" style="font-size:30px">Arrivé</div><div class="s">'+esc(G.dest.nom||"Destination")+'</div></div></div>';b.innerHTML=h;return;}
  if(G.rerouting){b.innerHTML='<div class="gb1">'+svgI(IC.straight,56,"#fff",2.7)+'<div><div class="d" style="font-size:26px">Recalcul…</div><div class="l">Nouvel itinéraire en cours</div></div></div>';return;}
  if(k<0||!R.man[k]){b.innerHTML='<div class="gb1">'+svgI(IC.straight,56,"#fff",2.7)+'<div><div class="d">'+fmtDist(R.total-G.along)+'</div><div class="l">Continue</div></div></div>';return;}
@@ -249,7 +258,8 @@ function paintPanel(force){
  else if(mode==="arr")h='<button type="button" class="gbig" style="background:#00387B;color:#fff" data-g="finish">Terminer le guidage</button>'+sig;
  else if(mode==="arrP")h='<div class="geta"><div><div class="t">Arrivé</div><div class="m">'+(G.opts.urg?"Chez le patient":"Prise en charge")+'</div></div><button type="button" class="gabord" id="gAbord" data-g="abord"><i>'+svgI("M5 12.5l4.5 4.5L19 7.5",18,"#fff",3)+'</i><span>Patient à bord</span></button></div>'+sig;
  else h='<div class="geta"><div><div class="t" id="gEtaT">'+t1+'</div><div class="m" id="gEtaM">'+esc(t2)+'</div></div><div class="gdest"><b id="gDestN">'+esc(G.dest.nom||"Destination")+'</b>'+(G.opts.label?'<span class="gprof"><i></i><span>'+esc(G.opts.label)+'</span></span>':'')+'</div></div>'+sig;
- p.innerHTML=h+attr;
+ var chg=p._pm!=null&&p._pm!==mode;p._pm=mode;
+ p.innerHTML=h+attr;if(chg)popIn(p.firstElementChild,14);
 }
 
 /* ---------- voix ---------- */
@@ -568,7 +578,10 @@ function checkConfirm(){
 }
 
 /* ---------- fenêtres ---------- */
-function fadeOut(e){if(!e)return;e.classList.add("gout");setTimeout(function(){if(e.parentNode)e.remove();},190);}
+function fadeOut(e){if(!e)return;e.classList.add("gout");setTimeout(function(){if(e.parentNode)e.remove();},350);}
+/* contenu qui change (nouvelle manœuvre, arrivée…) : il remonte doucement en fondu */
+var SPR="cubic-bezier(.32,.72,0,1)";
+function popIn(x,dy){if(!x||!x.animate)return;try{if(matchMedia("(prefers-reduced-motion: reduce)").matches)return;}catch(e){}x.animate([{opacity:0,transform:"translateY("+(dy||10)+"px)"},{opacity:1,transform:"none"}],{duration:420,easing:SPR});}
 function closeCard(){fadeOut($(".gcard:not(.gout)"));G.card=null;if(G.cardT){clearInterval(G.cardT);G.cardT=null;}}
 function cardHead(k,t1,t2){return'<div class="hd"><div class="ci" style="background:'+COL[k][0]+'">'+glyph(k,30)+'</div><div style="min-width:0"><b>'+esc(t1)+'</b><small>'+esc(t2)+'</small></div></div>';}
 function who(al){return(al.par?(al.par===A.me()?"toi":A.nameOf(al.par)):"l'équipe")+", "+ago(al.cree);}
@@ -735,7 +748,7 @@ function stop(){
  clearInterval(g.simT);clearInterval(g.pollT);clearInterval(g.tickT);clearInterval(g.cardT);if(g.raf)cancelAnimationFrame(g.raf);
  try{if(g.lock)g.lock.release();}catch(e){}try{speechSynthesis.cancel();}catch(e){}
  try{if(g.map)g.map.remove();}catch(e){}
- if(g.root){var rt=g.root;rt.classList.add("gout");setTimeout(function(){rt.remove();},210);}document.body.style.overflow="";
+ if(g.root){var rt=g.root;rt.classList.add("gout");setTimeout(function(){rt.remove();},310);}document.body.style.overflow="";
  document.removeEventListener("visibilitychange",onVis);window.removeEventListener("popstate",onPop);window.removeEventListener("resize",onResize);
  try{if(history.state&&history.state.gps)history.back();}catch(e){}
 }
