@@ -57,6 +57,11 @@ ul{margin:0;padding-left:20px}li{margin:4px 0}
 .zone:last-child{border-bottom:0}
 .tag{display:inline-block;font-size:12.5px;font-weight:700;padding:2px 8px;border-radius:20px;background:#3a2a10;color:#ffc46b;white-space:nowrap}
 .tag.blue{background:#16284a;color:#9cc0ff}
+button.tag{border:0;font-family:inherit;cursor:pointer;margin:1px 0}
+.tags{display:flex;flex-wrap:wrap;gap:8px;margin:2px 0 4px}
+.tagb{padding:8px 13px;border-radius:20px;border:1.5px solid var(--line);background:var(--card);color:var(--txt);font:inherit;font-size:14.5px;font-weight:600;cursor:pointer}
+.tagb.on{background:#16284a;border-color:#4c8dff;color:#9cc0ff}.tagb.on::before{content:"✓ "}
+.tagadd{margin-top:10px;flex-wrap:nowrap}.tagadd input{flex:1;min-width:0}
 .item{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:10px}
 .item .t{font-weight:700;font-size:17.5px}
 .item .m{color:var(--mut);font-size:14.5px;margin-top:2px}
@@ -199,6 +204,17 @@ function zGeom(z){var k=zKind(z.type);
  if(typeof z.lat==="number"&&typeof z.lon==="number")return{k:"circle",lat:z.lat,lon:z.lon,r:z.rayon||60};
  return null;}
 function lenM(c){var t=0;for(var i=1;i<c.length;i++)t+=distM(c[i-1],c[i]);return t;}
+/* tags d'un établissement : plusieurs possibles, rangés dans le champ « type » séparés par des virgules */
+function etTags(x){return String((x&&x.type)||"").split(/\s*[,;]\s*/).map(function(t){return t.trim();}).filter(Boolean);}
+function tagsHtml(x,click){var t=etTags(x);if(!t.length)t=["Autre"];return t.map(function(s){return click?'<button type="button" class="tag blue" data-a="tagFilter" data-t="'+esc(s)+'">'+esc(s)+'</button>':'<span class="tag blue">'+esc(s)+'</span>';}).join(" ");}
+function allTags(cur){var seen={},out=[];function add(t){var k=norm(t);if(!k||seen[k])return;seen[k]=1;out.push(t);}
+ ETYPES.forEach(function(t){if(t!=="Autre")add(t);});state.etabs.forEach(function(x){etTags(x).forEach(add);});(cur||[]).forEach(add);return out;}
+function syncTags(f){var h=f&&f.elements.type;if(!h)return;h.value=Array.prototype.map.call(f.querySelectorAll(".tagb.on"),function(b){return b.getAttribute("data-t");}).join(", ");}
+function addTagFromInput(f){var inp=f&&f.querySelector("#tagNew");if(!inp)return;var box=f.querySelector("#tagBox");
+ inp.value.split(/\s*[,;]\s*/).map(function(t){return t.trim();}).filter(Boolean).forEach(function(t){
+  var ex=Array.prototype.filter.call(box.querySelectorAll(".tagb"),function(b){return norm(b.getAttribute("data-t"))===norm(t);})[0];
+  if(ex)ex.classList.add("on");else{var b=document.createElement("button");b.type="button";b.className="tagb on";b.setAttribute("data-a","tagTog");b.setAttribute("data-t",t);b.textContent=t;box.appendChild(b);}});
+ inp.value="";syncTags(f);}
 var ETYPES=["Urgences","Maternité","CHU / Hôpital","Clinique","Cardiologie","Imagerie","Dialyse","Psychiatrie","SMR / Rééducation","EHPAD","Cabinet / centre médical","Autre"];
 
 var state;
@@ -939,7 +955,7 @@ function acPick(i){
 }
 document.addEventListener("mousedown",function(ev){if(ev.target.closest&&ev.target.closest(".ac"))ev.preventDefault();});
 document.addEventListener("focusout",function(ev){var t=ev.target;if(t&&t.getAttribute&&t.getAttribute("data-ac"))setTimeout(function(){if(document.activeElement!==t)acHide();},250);});
-document.addEventListener("keydown",function(ev){if(ev.key==="Escape")acHide();
+document.addEventListener("keydown",function(ev){if(ev.key==="Enter"&&ev.target&&ev.target.id==="tagNew"){ev.preventDefault();addTagFromInput(ev.target.form);return;}if(ev.key==="Escape")acHide();
  if(ev.key==="Enter"&&ev.target&&(ev.target.id==="pec"||ev.target.id==="libre")){ev.preventDefault();var bt=document.querySelector('[data-a="'+ev.target.id+'Ok"]');if(bt)bt.click();}});
 
 /* ===== Lieux enregistrés (rendez-vous et prise en charge) : favoris affichés, recherche dans tous les lieux ===== */
@@ -1394,7 +1410,7 @@ function vEtabs(){
  if(n&&!ui.form)h+='<div class="acw" style="margin-bottom:12px"><input id="etabQ" type="search" placeholder="🔍 Rechercher un établissement" value="'+esc(ui.etabQ||"")+'" autocomplete="off" enterkeyhint="search"></div><div class="empty" id="etabNone" hidden>Aucun établissement ne correspond à ta recherche.</div>';
  if(isCloud()&&isAdmin()&&state.localBackup&&state.localBackup.etabs&&state.localBackup.etabs.length)h+='<div class="infos" style="margin-bottom:12px;white-space:normal">Tu avais '+state.localBackup.etabs.length+' établissement(s) sur ce téléphone avant de te connecter.<div class="row" style="margin-top:8px"><button class="btn small pri" data-a="pushBackup">Les envoyer à l\'équipe</button><button class="btn small" data-a="dropBackup">Ignorer</button></div></div>';
  state.etabs.forEach(function(x,i){
-  h+='<div class="item" data-q="'+esc(norm(x.nom+" "+x.type+" "+x.adresse+" "+(x.infos||"")))+'"><div class="t"><span style="color:var(--mut)">'+(i+1)+'.</span> '+esc(x.nom)+' <span class="tag blue">'+esc(x.type)+'</span></div><div class="m">'+esc(x.adresse)+'</div>'+
+  h+='<div class="item" data-q="'+esc(norm(x.nom+" "+x.type+" "+x.adresse+" "+(x.infos||"")))+'"><div class="t"><span style="color:var(--mut)">'+(i+1)+'.</span> '+esc(x.nom)+' '+tagsHtml(x,true)+'</div><div class="m">'+esc(x.adresse)+'</div>'+
    (x.infos?'<div class="x">📍 '+esc(x.infos)+'</div>':"")+(x.via?'<div class="m">Passage confort : via '+esc(x.via)+'</div>':"")+(isCloud()&&x.majPar?'<div class="m" style="font-size:12.5px">Modifié par '+esc(nameOf(x.majPar))+'</div>':"")+
    '<div class="row"><button class="btn small favb'+(isFav(x.id)?" on":"")+'" data-a="fav" data-id="'+x.id+'">'+(isFav(x.id)?"★ Favori":"☆ Favori")+'</button>'+(i>0?'<button class="btn small" data-a="up" data-id="'+x.id+'" aria-label="Monter">▲</button>':"")+(i<n-1?'<button class="btn small" data-a="down" data-id="'+x.id+'" aria-label="Descendre">▼</button>':"")+'<button class="btn small" data-a="editEtab" data-id="'+x.id+'">Modifier</button><button class="btn small danger" data-a="askDel" data-k="etab" data-id="'+x.id+'">Supprimer</button></div>'+
    (ui.confirm===x.id?'<div class="confirm">Supprimer « '+esc(x.nom)+' » ?<div class="row"><button class="btn small danger" data-a="delEtab" data-id="'+x.id+'">Oui, supprimer</button><button class="btn small" data-a="noDel">Annuler</button></div></div>':"")+'</div>';});
@@ -1409,10 +1425,12 @@ function vEtabs(){
  return h;
 }
 function fEtab(x){
- x=x||{nom:"",type:"Urgences",adresse:"",infos:"",via:""};
- var o="";ETYPES.forEach(function(t){o+='<option'+(t===x.type?" selected":"")+">"+esc(t)+"</option>";});
+ x=x||{nom:"",type:"",adresse:"",infos:"",via:""};
+ var cur=etTags(x),cn={};cur.forEach(function(t){cn[norm(t)]=1;});
+ var o="";allTags(cur).forEach(function(t){o+='<button type="button" class="tagb'+(cn[norm(t)]?" on":"")+'" data-a="tagTog" data-t="'+esc(t)+'">'+esc(t)+'</button>';});
  return '<form class="form" data-f="etab"><label>Nom</label><input name="nom" required value="'+esc(x.nom)+'" placeholder="Ex. Urgences CH de Pau">'+
- '<label>Type</label><select name="type">'+o+'</select>'+
+ '<label>Tags <span style="font-weight:500;color:var(--mut)">(plusieurs possibles)</span></label><input type="hidden" name="type" value="'+esc(cur.join(", "))+'"><div class="tags" id="tagBox">'+o+'</div>'+
+ '<div class="row tagadd"><input id="tagNew" placeholder="Autre tag (ex. CHU, Pédiatrie)" autocomplete="off" enterkeyhint="done"><button class="btn small" type="button" data-a="tagAdd">Ajouter</button></div>'+
  '<label>Adresse (telle que tu la taperais dans Waze)</label><input name="adresse" data-ac="etab" required value="'+esc(x.adresse)+'" placeholder="Ex. 4 boulevard Hauterive, Pau" autocomplete="off"><input type="hidden" name="lat" value="'+(typeof x.lat==="number"?x.lat:"")+'"><input type="hidden" name="lon" value="'+(typeof x.lon==="number"?x.lon:"")+'">'+
  '<label>Infos d\'arrivée</label><textarea name="infos" placeholder="Entrée urgences côté parking B, code portail 1234, se garer sur le quai ambulances…">'+esc(x.infos)+'</textarea>'+
  '<label>Passage confort (facultatif)</label><input name="via" value="'+esc(x.via)+'" placeholder="Ex. une rue ou un boulevard à emprunter">'+
@@ -1563,6 +1581,9 @@ document.addEventListener("click",function(ev){
  else if(a==="newZone"){ui.form={kind:"zone"};ui.confirm=null;render();}
  else if(a==="editZone"){ui.form={kind:"zone",id:id};ui.confirm=null;render();window.scrollTo(0,0);}
  else if(a==="cancel"){ui.form=null;render();}
+ else if(a==="tagTog"){b.classList.toggle("on");syncTags(b.form);}
+ else if(a==="tagAdd"){addTagFromInput(b.form);var tn=b.form&&b.form.querySelector("#tagNew");if(tn)tn.focus();}
+ else if(a==="tagFilter"){ui.etabQ=b.getAttribute("data-t")||"";var eq=document.getElementById("etabQ");if(eq)eq.value=ui.etabQ;filterEtabs();window.scrollTo({top:0,behavior:"smooth"});}
  else if(a==="askDel"){ui.confirm=id;render();}
  else if(a==="noDel"){ui.confirm=null;render();}
  else if(a==="delEtab"){state.etabs=state.etabs.filter(function(x){return x.id!==id;});state.zones.forEach(function(z){if(z.etab===id)z.etab="";});if(ui.destId===id)ui.destId=null;ui.confirm=null;save();enqueue({t:"delE",id:id});render();}
@@ -1591,7 +1612,9 @@ document.addEventListener("submit",function(ev){
   return;}
  if(k==="depart"){acHide();var dq=(f.elements.q.value||"").trim();ui.dep=dq?{mode:"addr",q:dq}:null;ui.depEdit=false;paintFeuille();return;}
  if(k==="ville"){var q=(f.elements.ville.value||"").trim();if(q&&ui.search){ui.search.q=q;searchCity(q);}return;}
+ if(k==="etab")addTagFromInput(f);
  var v={};Array.prototype.forEach.call(f.elements,function(el){if(el.name)v[el.name]=el.value.trim();});
+ if(k==="etab"&&!v.type)v.type="Autre";
  if(!v.nom)return;
  var chE=null,chZ=null;
  if(k==="etab"){if(!v.adresse)return;
