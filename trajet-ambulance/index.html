@@ -235,6 +235,13 @@ header.fh h1{font-size:clamp(19px,5.6vw,24px);letter-spacing:-.2px;font-weight:8
 .fs.on span{color:var(--ft);font-weight:800}
 /* accueil */
 .ttl{font-size:30px;font-weight:800;letter-spacing:-.3px;margin:16px 0 18px;display:block}
+.vehs{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:0 0 14px}
+.veh{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;min-height:86px;padding:8px 4px;border-radius:16px;border:2px solid var(--line);background:var(--card);color:var(--txt);font:inherit;cursor:pointer;text-align:center}
+.veh .vic{display:inline-flex;color:var(--mut)}.veh .vic svg.i{width:30px;height:30px}
+.veh b{font-size:15px;font-weight:800;line-height:1.15}.veh small{font-size:12px;color:var(--mut)}
+.veh.on{border-color:var(--acc);background:var(--card2);box-shadow:0 0 0 1px var(--acc) inset}
+.veh.on .vic{color:var(--acc)}.veh:active{transform:scale(.97)}
+.vhint{margin:-6px 0 14px;font-size:13px;color:var(--mut);text-align:center}
 .bigmodes{display:grid;gap:14px}
 .bigmode{display:flex;align-items:center;gap:18px;width:100%;min-height:150px;padding:0 22px;border-radius:24px;font:inherit;color:var(--txt);text-align:left;cursor:pointer}
 .bigmode.urg{background:#2a1416;border:1px solid #5a2427}
@@ -473,6 +480,9 @@ var ICP={
  wave:'<path d="M3.5 9.5c2.8-3 5.7-3 8.5 0s5.7 3 8.5 0"/><path d="M3.5 15.5c2.8-3 5.7-3 8.5 0s5.7 3 8.5 0"/>',
  medal:'<circle cx="12" cy="15" r="5"/><path d="M8.6 3h6.8l-2 7.2h-2.8z"/><path d="M12 13v4"/>',
  road2:'<path d="M9 3L5 21M15 3l4 18"/><path d="M12 5v2.5M12 11v2.5M12 17v2.5"/>',
+ car:'<path d="M3.5 16.5v-3.4l1.9-4A2 2 0 0 1 7.2 8h9.6a2 2 0 0 1 1.8 1.1l1.9 4v3.4z"/><path d="M5.6 12.8h12.8"/><circle cx="7.6" cy="16.8" r="1.7"/><circle cx="16.4" cy="16.8" r="1.7"/>',
+ van:'<path d="M2.5 16.8V8.5A1.5 1.5 0 0 1 4 7h10.6l3.6 4.1 2.3.7v5z"/><circle cx="7" cy="17" r="1.7"/><circle cx="16.6" cy="17" r="1.7"/><path d="M8.6 9.2v4.2M6.5 11.3h4.2"/>',
+ assu:'<path d="M2.5 16.8V5.5A1.5 1.5 0 0 1 4 4h10.2v12.8"/><path d="M14.2 8.6h3.4l2.9 4v4.2H2.5"/><circle cx="7" cy="17" r="1.7"/><circle cx="16.6" cy="17" r="1.7"/><path d="M8.3 7.4v5M5.8 9.9h5"/>',
  globe:'<circle cx="12" cy="12" r="8.5"/><path d="M3.5 12h17M12 3.5c2.5 2.6 3.6 5.4 3.6 8.5s-1.1 5.9-3.6 8.5c-2.5-2.6-3.6-5.4-3.6-8.5s1.1-5.9 3.6-8.5z"/>'
 };
 function ico(n,c){return '<svg class="i'+(c?" "+c:"")+'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+(ICP[n]||"")+'</svg>';}
@@ -523,6 +533,15 @@ if(!loaded){try{var o=JSON.parse(localStorage.getItem(OLDKEY)||"null");if(o&&Arr
 var ui={tab:"trajet",etat:null,destId:null,libre:"",form:null,confirm:null,search:null,pec:{q:"",etab:""},leg:1};
 try{var u=JSON.parse(sessionStorage.getItem(KEY+"-ui")||"null");if(u){ui.mid=u.mid||null;ui.etat=u.etat;ui.destId=u.destId;ui.libre=u.libre||"";ui.libreGeo=u.libreGeo||null;ui.libreOk=!!u.libreOk;ui.pec=u.pec||{q:"",etab:""};ui.leg=u.leg===2?2:1;ui.mode=u.mode||(u.etat==="programme"?"programme":(u.etat?"urgence":null));}}catch(e){}
 var FAVKEY="ambumaps-favoris",favs={};
+/* véhicule choisi sur l'accueil (gardé sur ce téléphone) : sa hauteur est envoyée au calcul d'itinéraire, qui évite les passages plus bas */
+var VEHKEY="ambumaps-vehicule",VEHS=[{id:"vsl",l:"VSL / Taxi",s:"Voiture",ic:"car",h:0},{id:"amb",l:"Ambulance",s:"2,12 m max",ic:"van",h:2.12},{id:"assu",l:"ASSU",s:"2,60 m max",ic:"assu",h:2.6}],vehId=null;
+try{vehId=localStorage.getItem(VEHKEY);}catch(e){}
+function vehOf(id){return VEHS.filter(function(v){return v.id===id;})[0]||null;}
+if(!vehOf(vehId))vehId=null;
+function setVeh(id){if(!vehOf(id))return;vehId=id;try{localStorage.setItem(VEHKEY,id);}catch(e){}}
+/* tant qu'aucun véhicule n'est choisi : hauteur du plus haut (ASSU), par sécurité */
+function vehH(){var v=vehOf(vehId);return v?v.h:2.6;}
+function vehOpt(o){var r=Object.assign({},o||{}),h=vehH();if(h)r.height=h;return r;}
 var DEPKEY="ambumaps-depot",depot=null;
 try{depot=JSON.parse(localStorage.getItem(DEPKEY)||"null");if(depot&&(typeof depot.lat!=="number"||typeof depot.lon!=="number"))depot=null;}catch(e){depot=null;}
 function saveDepot(x){depot=x||null;try{if(x)localStorage.setItem(DEPKEY,JSON.stringify(x));else localStorage.removeItem(DEPKEY);}catch(e){}}
@@ -591,6 +610,7 @@ function vComfortMini(R){
   var dt=Math.round((c.time-tmin)/60);
   h+='<button class="opt'+(i===R.sel?" on":"")+'" data-a="pickRoute" data-i="'+i+'"><b>'+(i===0?ico("star","yel")+" Conseillé":(c.time===tmin?"Le plus rapide":"Autre option"))+'</b>'+(dt>0?' <span class="tag">+'+dt+' min</span>':'')+'<small>'+parts.join(" · ")+'</small></button>';
  });
+ if(R.noH)h+='<div class="warnbox" style="margin-top:10px">'+ico("warn","wc")+' Aucun trajet ne respecte la hauteur du véhicule ('+R.noH.toFixed(2).replace(".",",")+' m) : vérifie les passages bas.</div>';
  return h;
 }
 function paintMission(el,e,d,addr){
@@ -982,7 +1002,8 @@ function computeRoute(e,dest,dep,step){
  var P=projFn(dep.lat);
  /* jamais de chemins non goudronnés, sauf s'il n'existe vraiment aucun autre trajet */
  var hard=hardPolys([[dep.lat,dep.lon],[dest.lat,dest.lon]]);zonePolys=zonePolys.concat(hard);
- var base={locations:[{lat:dep.lat,lon:dep.lon},{lat:dest.lat,lon:dest.lon}],costing:"auto",costing_options:{auto:{exclude_unpaved:true,use_tracks:0}},alternates:2,directions_type:"none"};
+ var base={locations:[{lat:dep.lat,lon:dep.lon},{lat:dest.lat,lon:dest.lon}],costing:"auto",costing_options:{auto:vehOpt({exclude_unpaved:true,use_tracks:0})},alternates:2,directions_type:"none"};
+ var noH=false;
  if(hard.length)base.exclude_polygons=hard;
  var cands=[],bumps={pts:[],ok:false};
  function add(j,tag){
@@ -993,7 +1014,7 @@ function computeRoute(e,dest,dep,step){
   });
  }
  step("Calcul des itinéraires possibles…");
- return valhalla("route",base).catch(function(){delete base.costing_options;return valhalla("route",base);}).catch(function(e){if(!base.exclude_polygons)throw e;delete base.exclude_polygons;zonePolys=zonePolys.filter(function(p){return hard.indexOf(p)<0;});return valhalla("route",base);}).then(function(j){add(j,"base");
+ return valhalla("route",base).catch(function(){base.costing_options={auto:vehOpt()};return valhalla("route",base);}).catch(function(e){if(!base.exclude_polygons)throw e;delete base.exclude_polygons;zonePolys=zonePolys.filter(function(p){return hard.indexOf(p)<0;});return valhalla("route",base);}).catch(function(e){if(!vehH())throw e;noH=true;delete base.costing_options;return valhalla("route",base);}).then(function(j){add(j,"base");
   if(zonePolys.length)return valhalla("route",Object.assign({},base,{exclude_polygons:zonePolys})).then(function(j2){add(j2,"zones");},function(){});
  }).then(function(){
   step("Recherche des ralentisseurs sur le secteur…");
@@ -1042,7 +1063,7 @@ function computeRoute(e,dest,dep,step){
   });
   var baseline=cands.filter(function(c){return c.baseline;})[0]||cands.slice().sort(function(a,b){return a.time-b.time;})[0];
   cands.sort(function(a,b){return a.score-b.score;});
-  return{cands:cands.slice(0,4),baseline:baseline,bumpsOk:bumps.ok,bumpPts:bumps.pts,userBumps:userBumps,zones:zs,dest:dest,dep:dep};
+  return{cands:cands.slice(0,4),baseline:baseline,noH:noH?vehH():0,bumpsOk:bumps.ok,bumpPts:bumps.pts,userBumps:userBumps,zones:zs,dest:dest,dep:dep};
  });
 }
 function routeWaypoints(ch,baseline){
@@ -1110,6 +1131,7 @@ function vComfort(R,fixedDep){
    var t=i===0?ico("star","yel")+(isB?" Le plus confortable et le plus rapide":" Le plus confortable"):(isB?"Le plus rapide":"Autre option");
    h+='<button class="opt'+(i===R.sel?" on":"")+'" data-a="pickRoute" data-i="'+i+'"><b>'+t+'</b>'+(dt>0?' <span class="tag">+'+dt+' min</span>':'')+'<small>'+parts.join(" · ")+'</small></button>';
   });
+  if(R.noH)h+='<div class="warnbox" style="margin-top:10px">'+ico("warn","wc")+' Aucun trajet ne respecte la hauteur du véhicule ('+R.noH.toFixed(2).replace(".",",")+' m) : celui-ci peut passer sous un passage plus bas. Vérifie avant de partir.</div>';
   if(!R.bumpsOk)h+='<div class="hint">Ralentisseurs indisponibles pour une partie du secteur (serveurs OpenStreetMap saturés) : recalcule plus tard pour un comptage complet.</div>';
   h+='<button class="btn small" style="margin-top:10px" data-a="calcRoute">'+ico("sync")+'<span>Recalculer</span></button>';
  }
@@ -2064,11 +2086,15 @@ function curStep(){if(ui.edit===1||ui.edit===2)return ui.edit;return !stepDone(1
 function doneRow(k,ic,label,val){return '<div class="done" data-k="d'+k+'"><span class="dic" title="'+esc(label)+'">'+ico(ic)+'</span><div class="k"><span class="sr">'+esc(label)+' : </span><b>'+esc(val)+'</b></div><button class="btn small" data-a="editStep" data-id="'+k+'">Modifier</button></div>';}
 function goStep(){ui.edit=null;ui.editFrom=null;ui.navDir=1;keepUi();render();scrollStep();}
 function scrollStep(){window.scrollTo({top:0,behavior:"smooth"});}
+function vehRow(){
+ return '<div class="vehs" data-k="vehs" role="radiogroup" aria-label="Véhicule">'+VEHS.map(function(v){var on=v.id===vehId;
+  return '<button class="veh'+(on?" on":"")+'" data-a="veh" data-id="'+v.id+'" role="radio" aria-checked="'+(on?"true":"false")+'"><span class="vic">'+ico(v.ic)+'</span><b>'+v.l+'</b><small>'+v.s+'</small></button>';}).join("")+'</div>'+
+  (vehId?'':'<div class="vhint" data-k="vh">Choisis ton véhicule : les trajets évitent les passages trop bas pour lui.</div>');}
 function vTrajet(){
  var md=ui.mode,prog=md==="programme",ua=md==="urgence"&&!u1(),ub=md==="urgence"&&!ua,pec=prog||ub;
  var depB='<button class="btn wide depotb" data-k="depb" data-a="depotGo">'+ico("home")+'<span>Retour au dépôt</span></button>';
  // accueil : deux grands boutons, la suite s'ouvre en page entière
- if(!md)return '<h1 class="ttl" data-k="tt">Nouveau trajet</h1><div class="bigmodes" data-k="modes">'+
+ if(!md)return '<h1 class="ttl" data-k="tt">Nouveau trajet</h1>'+vehRow()+'<div class="bigmodes" data-k="modes">'+
   '<button class="bigmode urg" data-a="mode" data-id="urgence"><span class="bic">'+ico("siren")+'</span><b>Urgence</b>'+ico("chev","chv")+'</button>'+
   '<button class="bigmode prog" data-a="mode" data-id="programme"><span class="bic">'+ico("clip")+'</span><b>Transport programmé</b>'+ico("chev","chv")+'</button></div>'+depB;
  var h="",cs=curStep(),n=state.etabs.length;
@@ -2235,7 +2261,7 @@ function clearDest(){ui.destId=null;ui.libre="";ui.libreGeo=null;ui.libreOk=fals
 function clearEtat(){ui.etat=null;ui.route=null;}
 function resetMission(){ui.mid=null;ui.edit=null;ui.editFrom=null;ui.etat=ui.mode==="programme"?"programme":null;ui.destId=null;ui.libre="";ui.libreGeo=null;ui.libreOk=false;ui.filtre="";ui.pecFiltre="";ui.pec={q:"",etab:""};ui.leg=1;ui.dep=null;ui.depEdit=false;ui.route=null;keepUi();}
 /* ===== GPS intégré (module gps.js chargé à la demande) ===== */
-var GPS_V="26",gpsP=null;
+var GPS_V="27",gpsP=null;
 function loadGps(){if(window.AmbuGPS)return Promise.resolve();if(gpsP)return gpsP;
  gpsP=new Promise(function(res,rej){var sc=document.createElement("script");sc.src="gps.js?v="+GPS_V;
   sc.onload=function(){if(window.AmbuGPS)res();else{gpsP=null;rej(new Error("GPS indisponible."));}};
@@ -2256,7 +2282,7 @@ function startGps(leg){
    label:(ug?"Urgence · aller au patient":pickup?"Prise en charge":({vitale:"Urgence vitale",rachis:"Trauma immobilisé",enceinte:"Femme enceinte",fragile:"Patient fragile",peu:"Peu urgent",programme:"Transport programmé"}[e.id]||e.label))+(cand?" · trajet confort":""),links:links(t.addr,"",t.lat,t.lon),sim:/[?&]sim\b/.test(location.search),stat:{k:sk,m:ui.mid,e:t.id||"",cf:!!cand}});
  },function(err){if(btn){btn.disabled=false;btn.innerHTML=ico("play")+"<span>Démarrer le guidage</span>";}if(msg)msg.textContent=netErr(err)?"Pas de connexion internet : utilise Waze ou Google Maps en secours.":err.message;});
 }
-window.AMB={get state(){return state;},ui:ui,api:api,isCloud:isCloud,netErr:netErr,valhalla:valhalla,decode6:decode6,distM:distM,linePolys:linePolys,circlePoly:circlePoly,midChemins:midChemins,edgeMid:edgeMid,
+window.AMB={get state(){return state;},vehH:vehH,ui:ui,api:api,isCloud:isCloud,netErr:netErr,valhalla:valhalla,decode6:decode6,distM:distM,linePolys:linePolys,circlePoly:circlePoly,midChemins:midChemins,edgeMid:edgeMid,
  statTrip:statTrip,statSig:statSig,zGeom:zGeom,zoneRow:zoneRow,enqueue:enqueue,save:save,uid:uid,esc:esc,nameOf:nameOf,me:function(){return sess?sess.email:"";},getBumps:getBumps,acFetch:acFetch,
  matchEtabs:matchEtabs,isFav:isFav,etab:etab,geocode:geocode,GEO:GEO,cleanPts:cleanPts,ZHARD:ZHARD,blockPolys:blockPolys,
  setDest:function(x,pickup){
@@ -2281,7 +2307,8 @@ document.addEventListener("click",function(ev){
  if(a==="menuClose"){closeMenu();return;}
  if(a==="menuGo"){closeMenu();return;}
  if(a==="back"){goBack();return;}
- if(a==="mode"){if(ui.mode!==id){ui.mid=uid();ui.edit=null;ui.editFrom=null;ui.mode=id;ui.route=null;ui.dep=null;ui.depEdit=false;ui.leg=1;ui.etat=id==="programme"?"programme":(ui.etat==="programme"?null:ui.etat);keepUi();render();}}
+ if(a==="veh"){setVeh(id);ui.route=null;render();}
+ else if(a==="mode"){if(ui.mode!==id){ui.mid=uid();ui.edit=null;ui.editFrom=null;ui.mode=id;ui.route=null;ui.dep=null;ui.depEdit=false;ui.leg=1;ui.etat=id==="programme"?"programme":(ui.etat==="programme"?null:ui.etat);keepUi();render();}}
  else if(a==="etat"){ui.etat=id;goStep();}
  else if(a==="dest"){ui.destId=id;ui.libre="";ui.libreGeo=null;ui.libreOk=false;ui.filtre="";goStep();}
  else if(a==="pecPick"){ui.pec={q:"",etab:id};ui.pecFiltre="";goStep();}
