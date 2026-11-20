@@ -1791,7 +1791,7 @@ function vEquipe(){
   '<div class="row"><button class="btn small" data-a="sync">'+ico("sync")+'<span>Synchroniser</span></button><button class="btn small danger" data-a="logout">Se déconnecter</button></div></div>';
  h+='<h2>Équipe ('+cloud.members.length+')</h2>';
  if(adm){
-  if(ui.invite)h+='<form class="form" data-f="invite"><label>E-mail du collègue</label><input name="email" type="email" required placeholder="prenom.nom@exemple.fr" autocomplete="off"><label>Nom (facultatif)</label><input name="nom" placeholder="Prénom N." autocomplete="off"><label>Rôle</label><select name="role"><option value="membre">Membre</option><option value="admin">Responsable (peut inviter)</option></select>'+
+  if(ui.invite)h+='<form class="form" data-f="invite"><label>E-mail du collègue</label><input name="email" type="email" required placeholder="prenom.nom@exemple.fr" autocomplete="off"><label>Nom (facultatif : « Anonymous » si vide)</label><input name="nom" placeholder="Prénom N." autocomplete="off"><label>Rôle</label><select name="role"><option value="membre">Membre</option><option value="admin">Responsable (peut inviter)</option></select>'+
    (ui.inviteErr?'<div class="warnbox">'+esc(ui.inviteErr)+'</div>':'')+'<div class="row" style="margin-top:14px"><button class="btn pri" type="submit">Ajouter</button><button class="btn" type="button" data-a="inviteCancel">Annuler</button></div></form>';
   else h+='<button class="btn pri wide" style="margin-bottom:12px" data-a="inviteShow">'+ico("plus")+'<span>Inviter un collègue</span></button>';
   if(ui.invited&&ui.invited.code)h+='<div class="infos" id="invBox" style="margin-bottom:12px">'+ico("check","okc")+' Code '+(ui.invited.reset?"pour changer le mot de passe de ":"d\'invitation de ")+'<b>'+esc(ui.invited.email)+'</b> :<div class="codebig">'+esc(ui.invited.code)+'</div>Valable 7 jours, une seule fois. Il n\'est montré qu\'ici : envoie-le maintenant.\n\n'+esc(inviteMsg(ui.invited))+
@@ -2133,7 +2133,7 @@ document.addEventListener("submit",function(ev){
   return;}
  if(k==="invite"){var ie=(f.elements.email.value||"").trim().toLowerCase(),inom=(f.elements.nom.value||"").trim(),irole=f.elements.role.value;
   if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(ie)){ui.inviteErr="Adresse e-mail invalide.";render();return;}
-  ui.inviteErr="";api("POST","membres",{email:ie,nom:inom||null,role:irole},"return=minimal").then(function(){ui.invite=false;return sync().then(function(){return makeCode(ie);});},function(e){ui.inviteErr=netErr(e)?"Pas de connexion internet.":(/23505|duplicate|409/i.test(e.message)?"Cette adresse est déjà dans l'équipe.":e.message);render();});
+  ui.inviteErr="";api("POST","membres",{email:ie,nom:inom||"Anonymous",role:irole},"return=minimal").then(function(){ui.invite=false;return sync().then(function(){return makeCode(ie);});},function(e){ui.inviteErr=netErr(e)?"Pas de connexion internet.":(/23505|duplicate|409/i.test(e.message)?"Cette adresse est déjà dans l'équipe.":e.message);render();});
   return;}
  if(k==="depart"){acHide();var dq=(f.elements.q.value||"").trim();ui.dep=dq?{mode:"addr",q:dq}:null;ui.depEdit=false;paintFeuille();return;}
  if(k==="ville"){var q=(f.elements.ville.value||"").trim();if(q&&ui.search){ui.search.q=q;searchCity(q);}return;}
