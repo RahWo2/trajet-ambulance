@@ -10,10 +10,12 @@ var ICONS={"GLY": {"bump": "<path d=\"M2 18.6h2.6c2.6 0 3.4-7.1 7.4-7.1s4.8 7.1 
 var GLY=ICONS.GLY,COL=ICONS.COL;
 /* bulle d'arrivée : drapeau à damier */
 COL.dest=["#00387B","#ffffff"];GLY.dest='<rect x="3.6" y="2.6" width="2.6" height="19" rx="1.3" fill="{fg}"></rect><path d="M6.9 3.6h13.8v10.2H6.9z" fill="none" stroke="{fg}" stroke-width="1.2" stroke-linejoin="round"></path><rect x="6.90" y="3.60" width="3.45" height="3.4" fill="{fg}"></rect><rect x="13.80" y="3.60" width="3.45" height="3.4" fill="{fg}"></rect><rect x="10.35" y="7.00" width="3.45" height="3.4" fill="{fg}"></rect><rect x="17.25" y="7.00" width="3.45" height="3.4" fill="{fg}"></rect><rect x="6.90" y="10.40" width="3.45" height="3.4" fill="{fg}"></rect><rect x="13.80" y="10.40" width="3.45" height="3.4" fill="{fg}"></rect>';
-var KIND={ralentisseur:"bump",degradee:"pothole",ralentissement:"slow",arret:"jam",accident:"crash",travaux:"cone",danger:"danger"};
-var NOM={ralentisseur:"Ralentisseur",degradee:"Route dégradée",ralentissement:"Ralentissement",arret:"Circulation à l'arrêt",accident:"Accident",travaux:"Travaux",danger:"Danger"};
-var DIT={ralentisseur:"Ralentisseur",degradee:"Route dégradée",ralentissement:"Ralentissement signalé",arret:"Circulation à l'arrêt signalée",accident:"Accident signalé",travaux:"Travaux signalés",danger:"Danger signalé"};
-var TEMP={ralentissement:1,arret:1,accident:1,travaux:1,danger:1};
+/* police : casquette à visière et écusson, sur fond bleu */
+COL.police=["#1864ab","#ffffff"];GLY.police='<path d="M3.4 9.5C3.4 6.8 7.4 4.8 12 4.8s8.6 2 8.6 4.7l-2.1 3.7H5.5z" fill="{fg}"></path><rect x="5.5" y="14" width="13" height="2.3" rx=".4" fill="{fg}"></rect><path d="M5 17.1c2.6 2.1 11.4 2.1 14 0l-.7-.8H5.7z" fill="{fg}"></path><path d="M12 6.4l2.1.9v1.7c0 1.3-.9 2.3-2.1 2.7-1.2-.4-2.1-1.4-2.1-2.7V7.3z" fill="{bg}"></path>';
+var KIND={ralentisseur:"bump",degradee:"pothole",ralentissement:"slow",arret:"jam",accident:"crash",travaux:"cone",danger:"danger",police:"police"};
+var NOM={ralentisseur:"Ralentisseur",degradee:"Route dégradée",ralentissement:"Ralentissement",arret:"Circulation à l'arrêt",accident:"Accident",travaux:"Travaux",danger:"Danger",police:"Police"};
+var DIT={ralentisseur:"Ralentisseur",degradee:"Route dégradée",ralentissement:"Ralentissement signalé",arret:"Circulation à l'arrêt signalée",accident:"Accident signalé",travaux:"Travaux signalés",danger:"Danger signalé",police:"Police signalée"};
+var TEMP={ralentissement:1,arret:1,accident:1,travaux:1,danger:1,police:1};
 var G=null;
 
 /* ---------- petits outils ---------- */
@@ -705,7 +707,7 @@ function tile(g,k,label,sub,wide){return'<button type="button" class="gtile'+(wi
 function openSignal(){
  closeCard();closeScrim();G.rp=reportPos();
  var s=el('<div class="gscrim" data-g="scrim"><div class="gsheet" role="dialog" aria-label="Signaler"><div class="ghandle"></div><div><h3>Signaler</h3><p>Position enregistrée au moment de l\'appui.</p></div><div class="ggrid">'+
-  tile("ralentisseur","bump","Ralentisseur")+tile("degradee","pothole","Route dégradée")+tile("ralentissement","slow","Ralentissement")+tile("arret","jam","À l'arrêt")+tile("accident","crash","Accident")+tile("travaux","cone","Travaux")+tile("danger","danger","Danger","objet, animal, obstacle…",true)+
+  tile("ralentisseur","bump","Ralentisseur")+tile("degradee","pothole","Route dégradée")+tile("ralentissement","slow","Ralentissement")+tile("arret","jam","À l'arrêt")+tile("accident","crash","Accident")+tile("travaux","cone","Travaux")+tile("police","police","Police","disparaît après 1 h")+tile("danger","danger","Danger","objet, animal, obstacle…")+
   '</div><button type="button" class="gsec" data-g="scrimClose">Annuler</button></div></div>');
  G.root.appendChild(s);
 }
