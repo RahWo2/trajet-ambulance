@@ -1453,12 +1453,14 @@ function goBack(){
  else if(ui.tab==="zones"&&ui.zfull)ui.zfull=false;
  else if(ui.tab==="trajet"&&ui.mode){
   if(ui.editFrom){ui.edit=ui.editFrom.e||null;ui.editFrom=null;}
-  else{var cs=curStep();
+  else{var cs=curStep(),ua=ui.mode==="urgence"&&ui.leg===2;ui.edit=null;
+   /* en revenant à l'étape précédente, ce qui y avait été saisi est effacé */
    if(cs===3&&ui.mode==="programme"&&ui.leg===2)ui.leg=1;
-   else if(cs===3&&u1())ui.edit=1;
-   else if(cs>1)ui.edit=cs-1;
-   else if(ui.mode==="urgence"&&ui.leg===2){ui.leg=1;ui.edit=null;}
-   else{ui.mode=null;ui.edit=null;}}
+   else if(cs===3&&u1())clearPec();
+   else if(cs===3)clearDest();
+   else if(cs===2){if(ua)clearEtat();else clearPec();}
+   else if(ua)ui.leg=1;
+   else{resetMission();ui.mode=null;}}
   keepUi();
  }else{try{history.back();}catch(e){}return;}
  ui.navDir=-1;render();window.scrollTo(0,0);
@@ -1716,6 +1718,9 @@ function fZone(z){
  '<div class="row" style="margin-top:14px"><button class="btn pri" type="submit">Enregistrer</button><button class="btn" type="button" data-a="cancel">Annuler</button></div></form>';
 }
 
+function clearPec(){ui.pec={q:"",etab:""};ui.pecFiltre="";ui.dep=null;ui.depEdit=false;ui.route=null;}
+function clearDest(){ui.destId=null;ui.libre="";ui.libreGeo=null;ui.libreOk=false;ui.filtre="";ui.route=null;}
+function clearEtat(){ui.etat=null;ui.route=null;}
 function resetMission(){ui.edit=null;ui.editFrom=null;ui.etat=ui.mode==="programme"?"programme":null;ui.destId=null;ui.libre="";ui.libreGeo=null;ui.libreOk=false;ui.filtre="";ui.pecFiltre="";ui.pec={q:"",etab:""};ui.leg=1;ui.dep=null;ui.depEdit=false;ui.route=null;keepUi();}
 /* ===== GPS intégré (module gps.js chargé à la demande) ===== */
 var GPS_V="19",gpsP=null;
