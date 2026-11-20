@@ -236,7 +236,7 @@ header.fh h1{font-size:clamp(19px,5.6vw,24px);letter-spacing:-.2px;font-weight:8
 /* accueil */
 .ttl{font-size:30px;font-weight:800;letter-spacing:-.3px;margin:16px 0 18px;display:block}
 .vehs{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:0 0 14px}
-.veh{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;min-height:86px;padding:8px 4px;border-radius:16px;border:2px solid var(--line);background:var(--card);color:var(--txt);font:inherit;cursor:pointer;text-align:center}
+.veh{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;min-height:76px;padding:8px 4px;border-radius:16px;border:2px solid var(--line);background:var(--card);color:var(--txt);font:inherit;cursor:pointer;text-align:center}
 .veh .vic{display:inline-flex;color:var(--mut)}.veh .vic svg.i{width:30px;height:30px}
 .veh b{font-size:15px;font-weight:800;line-height:1.15}.veh small{font-size:12px;color:var(--mut)}
 .veh.on{border-color:var(--acc);background:var(--card2);box-shadow:0 0 0 1px var(--acc) inset}
@@ -2088,7 +2088,7 @@ function goStep(){ui.edit=null;ui.editFrom=null;ui.navDir=1;keepUi();render();sc
 function scrollStep(){window.scrollTo({top:0,behavior:"smooth"});}
 function vehRow(){
  return '<div class="vehs" data-k="vehs" role="radiogroup" aria-label="Véhicule">'+VEHS.map(function(v){var on=v.id===vehId;
-  return '<button class="veh'+(on?" on":"")+'" data-a="veh" data-id="'+v.id+'" role="radio" aria-checked="'+(on?"true":"false")+'"><span class="vic">'+ico(v.ic)+'</span><b>'+v.l+'</b><small>'+v.s+'</small></button>';}).join("")+'</div>'+
+  return '<button class="veh'+(on?" on":"")+'" data-a="veh" data-id="'+v.id+'" role="radio" aria-checked="'+(on?"true":"false")+'" aria-label="'+v.l+(v.h?" ("+v.s+")":"")+'"><span class="vic">'+ico(v.ic)+'</span><b>'+v.l+'</b></button>';}).join("")+'</div>'+
   (vehId?'':'<div class="vhint" data-k="vh">Choisis ton véhicule : les trajets évitent les passages trop bas pour lui.</div>');}
 function vTrajet(){
  var md=ui.mode,prog=md==="programme",ua=md==="urgence"&&!u1(),ub=md==="urgence"&&!ua,pec=prog||ub;
