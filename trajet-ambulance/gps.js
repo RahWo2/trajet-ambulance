@@ -707,7 +707,7 @@ function tile(g,k,label,sub,wide){return'<button type="button" class="gtile'+(wi
 function openSignal(){
  closeCard();closeScrim();G.rp=reportPos();
  var s=el('<div class="gscrim" data-g="scrim"><div class="gsheet" role="dialog" aria-label="Signaler"><div class="ghandle"></div><div><h3>Signaler</h3><p>Position enregistrée au moment de l\'appui.</p></div><div class="ggrid">'+
-  tile("ralentisseur","bump","Ralentisseur")+tile("degradee","pothole","Route dégradée")+tile("ralentissement","slow","Ralentissement")+tile("arret","jam","À l'arrêt")+tile("accident","crash","Accident")+tile("travaux","cone","Travaux")+tile("police","police","Police","disparaît après 1 h")+tile("danger","danger","Danger","objet, animal, obstacle…")+
+  tile("ralentisseur","bump","Ralentisseur")+tile("degradee","pothole","Route dégradée")+tile("ralentissement","slow","Ralentissement")+tile("arret","jam","À l'arrêt")+tile("accident","crash","Accident")+tile("travaux","cone","Travaux")+tile("police","police","Police")+tile("danger","danger","Danger","objet, animal, obstacle…")+
   '</div><button type="button" class="gsec" data-g="scrimClose">Annuler</button></div></div>');
  G.root.appendChild(s);
 }
