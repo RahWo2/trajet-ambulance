@@ -549,6 +549,10 @@ function exclusions(){var polys=[],o=G.opts;
   if(g.k==="line")polys=polys.concat(A.linePolys(g.c,10));else polys.push(A.circlePoly(g.lat,g.lon,g.r));});
  (G.alerts||[]).forEach(function(al){if(al.type!=="arret"||!al.trace||al.trace.length<2)return;if(G.pos&&nearTrace(al.trace,G.pos,60))return;polys=polys.concat(A.linePolys(al.trace,12));});
  return polys.slice(0,60);}
+/* routes fermées / impraticables signalées par l'équipe : jamais empruntées (sauf si on est déjà dessus) */
+function hardEx(){var polys=[];if(!A.ZHARD||!A.blockPolys)return polys;
+ (A.state.zones||[]).forEach(function(z){if(!A.ZHARD[z.type])return;var g=A.zGeom(z);if(!g||g.k!=="line")return;if(G.pos&&nearTrace(g.c,G.pos,40))return;polys=polys.concat(A.blockPolys(g.c));});
+ return polys.slice(0,60);}
 /* sens de la marche réel : cap GPS si on roule, sinon la trace des dernières positions, sinon le sens de l'itinéraire suivi */
 function travelHeading(){
  var tn=now();if(G.gh!=null&&tn-G.ghT<4000&&(G.speed||0)>10)return G.gh;
@@ -562,9 +566,11 @@ function routeTries(start,extra){
  var base=vBody(Object.assign({locations:[{lat:r6(start[0]),lon:r6(start[1])},{lat:G.dest.lat,lon:G.dest.lon}]},extra||{}));
  /* départ toujours dans le sens où roule l'ambulance : pas de demi-tour */
  var hd=travelHeading();if(hd!=null){base.locations[0].heading=Math.round((hd+360)%360);base.locations[0].heading_tolerance=50;}
- var ex=exclusions(),np={costing_options:NOUNPAVED};
- /* ordre : zones évitées + routes goudronnées, puis goudronnées seules, puis (vraiment aucun autre choix) chemins autorisés */
- return(ex.length?[Object.assign({},base,np,{exclude_polygons:ex})]:[]).concat([Object.assign({},base,np)],ex.length?[Object.assign({},base,{exclude_polygons:ex})]:[],[base]);}
+ var ex=exclusions(),H=hardEx(),np={costing_options:NOUNPAVED};G._hardN=H.length;
+ function W(b,l){var all=(l||[]).concat(H);return all.length?Object.assign({},b,{exclude_polygons:all}):b;}
+ /* ordre : zones évitées + routes goudronnées, puis goudronnées seules, puis (vraiment aucun autre choix) chemins autorisés ;
+    les routes fermées / impraticables restent exclues partout, sauf en tout dernier recours */
+ return(ex.length?[W(Object.assign({},base,np),ex)]:[]).concat([W(Object.assign({},base,np))],ex.length?[W(base,ex)]:[],[W(base)],H.length?[base]:[]);}
 function routeFrom(start,ref){
  var tries=routeTries(start),hd=tries[0].locations[0].heading!=null;
  if(hd)tries=tries.concat([noHead(tries[tries.length-1])]);
@@ -575,7 +581,7 @@ function routeFrom(start,ref){
   /* demi-tour seulement s'il n'y a pas le choix : le trajet sans demi-tour rallonge de plus de 10 min et le demi-tour fait gagner plus de 5 min */
   if(o.b.locations[0].heading==null||ref==null||!(o.R.time>ref+Math.max(600,ref*0.5)))return o;
   var nb=noHead(o.b);return A.valhalla("route",nb).then(function(j){var R2=tripToRoute(j);return R2.time+300<o.R.time?{R:R2,b:nb}:o;},function(){return o;});
- }).then(function(o){return avoidChemins(o.R,o.b,0);});}
+ }).then(function(o){if(G&&G._hardN&&!o.b.exclude_polygons)toast("Aucun trajet n'évite les routes signalées fermées : passage par l'une d'elles.");return avoidChemins(o.R,o.b,0);});}
 /* même règle pour les chemins (pistes, accès privés, ruelles, allées de parking) : évités au milieu du trajet, sauf s'il n'y a aucun autre choix */
 function edgeAttrs(R){if(!R._attrP)R._attrP=A.valhalla("trace_attributes",{encoded_polyline:R.shape,shape_match:"edge_walk",costing:"auto",filters:{attributes:["edge.speed_limit","edge.names","edge.begin_shape_index","edge.end_shape_index","edge.use","edge.length","shape"],action:"include"}});return R._attrP;}
 function avoidChemins(R,body,depth){
