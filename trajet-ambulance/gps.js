@@ -720,8 +720,8 @@ function pickDest(i){
  var it=G.ditems&&G.ditems[i];if(!it)return;var x=it.x;
  var p=(x&&typeof x.lat==="number")?Promise.resolve({lat:x.lat,lon:x.lon}):(it.lat!=null?Promise.resolve({lat:it.lat,lon:it.lon}):A.geocode(x?x.adresse:it.label));
  var box=document.getElementById("gDestL");if(box)box.innerHTML='<div class="gwait">Recherche de l\'adresse…</div>';
- p.then(function(g){if(!G)return;G.dest={lat:g.lat,lon:g.lon,nom:it.main||it.label,addr:x?x.adresse:it.label};G.opts.destEtab=it.etab||"";G.arrived=false;if(G.st)G.st.e=it.etab||"";
-  try{A.setDest(it.etab?{etab:it.etab}:{label:it.label,lat:g.lat,lon:g.lon},G.opts.pickup);}catch(e){}
+ p.then(function(g){if(!G)return;G.dest={lat:g.lat,lon:g.lon,nom:it.gps?it.label:(it.main||it.label),addr:x?x.adresse:(it.q||it.label)};G.opts.destEtab=it.etab||"";G.arrived=false;if(G.st)G.st.e=it.etab||"";
+  try{A.setDest(it.etab?{etab:it.etab}:{label:it.label,q:it.q,lat:g.lat,lon:g.lon},G.opts.pickup);}catch(e){}
   fadeOut($(".gfull:not(.gout)"));paintPanel();reroute("dest");},
   function(e){if(box)box.innerHTML='<div class="gwait">'+esc(e.message||"Adresse introuvable.")+'</div>';});
 }
