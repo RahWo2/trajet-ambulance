@@ -479,6 +479,7 @@ function onFix(c){
  if(sp==null&&G.last){var dt=(t-G.last.t)/1000;if(dt>0.4&&dt<6)sp=A.distM(G.last.p,p)/dt;}
  if(sp!=null)G.speed=G.speed==null?sp*3.6:G.speed*0.35+sp*3.6*0.65;
  G.acc=c.acc||0;G.lastFixT=now();G.last={p:p,t:t};G.pos=p;try{A.ui.lastPos=p;}catch(e){}
+ if(G.st)statMove(c,p);
  var tr=G.trail||(G.trail=[]),lt=tr[tr.length-1];if(!lt||A.distM(lt.p,p)>=5){tr.push({p:p,w:now(),a:c.acc||0});if(tr.length>30)tr.shift();}
  if(c.heading!=null&&!isNaN(c.heading)&&(sp||0)>3){G.gh=c.heading;G.ghT=now();}
  if(!G.R){G.disp=G.disp||p;return;}
@@ -498,13 +499,13 @@ function update(){
  var k=-1;for(var i=0;i<R.man.length;i++){var t=R.man[i].type;if(t>=1&&t<=3)continue;if(R.man[i].d>G.along+2){k=i;break;}}G.next=k;
  paintBanner();paintChip();paintSpeed();paintPill();paintPanel();setPad();setRouteData();manArrow();voice();checkConfirm();
 }
-function arrive(){if(G.alt)closeAlt();G.arrived=true;say(G.opts.pickup?(G.opts.urg?"Vous êtes arrivé chez le patient. Touchez Patient à bord pour choisir l'état du patient et la destination.":"Vous êtes arrivé à la prise en charge. Touchez Patient à bord pour partir vers le rendez-vous."):"Vous êtes arrivé à destination.",true);paintBanner();paintChip();paintPanel();manArrow();}
+function arrive(){if(G.alt)closeAlt();G.arrived=true;if(G.st){G.st.ar=true;statSave();}say(G.opts.pickup?(G.opts.urg?"Vous êtes arrivé chez le patient. Touchez Patient à bord pour choisir l'état du patient et la destination.":"Vous êtes arrivé à la prise en charge. Touchez Patient à bord pour partir vers le rendez-vous."):"Vous êtes arrivé à destination.",true);paintBanner();paintChip();paintPanel();manArrow();}
 function patientAbord(){
  if(G.opts.urg){stop();A.onEnd("abord");return;}
  if(!G.opts.pickup)return;if(G.alt)closeAlt();
  var b=$("#gAbord");if(b){b.disabled=true;b.querySelector("span").textContent="Calcul du trajet…";}else toast("Calcul du trajet vers le rendez-vous…");
  A.nextLeg().then(function(t){if(!G)return;G.dest={lat:t.lat,lon:t.lon,nom:t.nom,addr:t.addr};G.opts.pickup=false;G.opts.destEtab=t.id;G.opts.label=t.label;G.opts.links=t.links;G.arrived=false;G.panMode=null;
-  say("Patient à bord. En route vers "+t.nom+".",true);paintPanel(true);if(G.rerouting)G._redo=true;else reroute("leg2");},
+  say("Patient à bord. En route vers "+t.nom+".",true);paintPanel(true);if(G.st){statSave();statOpen("p2",t.id||"");}if(G.rerouting)G._redo=true;else reroute("leg2");},
   function(e){if(!G)return;toast("Rendez-vous introuvable : "+(e&&e.message?e.message:"vérifie l'adresse."),3500);G.panMode=null;paintPanel(true);});
 }
 
@@ -613,6 +614,7 @@ function reportAlert(type,rp){
  var p=rp.p;if(!p){toast("Position GPS pas encore trouvée.");return;}
  var row={id:A.uid(),type:type,lat:r6(p[0]),lon:r6(p[1]),trace:null,expire_le:new Date(now()+3600e3).toISOString()};
  if((type==="arret"||type==="ralentissement")&&G.R&&rp.along!=null){var a=rp.along,b=nextNode(a);if(b-a>10)row.trace=simplify(slice(G.R,a,b),2).map(r5);}
+ if(!G.sim&&A.statSig)try{A.statSig(type);}catch(e){}
  var al=normAlert(Object.assign({},row,{cree_le:new Date().toISOString(),cree_par:A.me()}));al._local=true;al.asked=1;G.alerts.push(al);computeHazards();refreshFeatures();
  if(!A.isCloud()){toast("Signalé sur ce téléphone seulement (connecte-toi à l'équipe pour le partager).",3500);return;}
  A.api("POST","alertes",row,"return=minimal").then(function(){al._local=false;toast(NOM[type]+" : signalé à l'équipe pour 1 h.");},function(e){toast(A.netErr(e)?"Pas de réseau : signalement non envoyé.":"Envoi impossible : "+e.message,3500);});
@@ -718,7 +720,7 @@ function pickDest(i){
  var it=G.ditems&&G.ditems[i];if(!it)return;var x=it.x;
  var p=(x&&typeof x.lat==="number")?Promise.resolve({lat:x.lat,lon:x.lon}):(it.lat!=null?Promise.resolve({lat:it.lat,lon:it.lon}):A.geocode(x?x.adresse:it.label));
  var box=document.getElementById("gDestL");if(box)box.innerHTML='<div class="gwait">Recherche de l\'adresse…</div>';
- p.then(function(g){if(!G)return;G.dest={lat:g.lat,lon:g.lon,nom:it.main||it.label,addr:x?x.adresse:it.label};G.opts.destEtab=it.etab||"";G.arrived=false;
+ p.then(function(g){if(!G)return;G.dest={lat:g.lat,lon:g.lon,nom:it.main||it.label,addr:x?x.adresse:it.label};G.opts.destEtab=it.etab||"";G.arrived=false;if(G.st)G.st.e=it.etab||"";
   try{A.setDest(it.etab?{etab:it.etab}:{label:it.label,lat:g.lat,lon:g.lon},G.opts.pickup);}catch(e){}
   fadeOut($(".gfull:not(.gout)"));paintPanel();reroute("dest");},
   function(e){if(box)box.innerHTML='<div class="gwait">'+esc(e.message||"Adresse introuvable.")+'</div>';});
@@ -905,8 +907,16 @@ function boot(){
   });
  }).catch(function(e){if(!G)return;showErr(A.netErr(e)?"Pas de connexion internet, ou serveur de calcul indisponible.":(e.message||"Erreur inconnue."));});
 }
+/* ---------- statistiques (sur ce téléphone, sans aucune adresse) ---------- */
+function statOpen(k,e){var s=G.opts.stat;if(!s||G.sim||!A.statTrip){G.st=null;return;}var t=Date.now();
+ G.st={id:A.uid(),t0:t,t1:t,km:0,k:k||s.k,m:s.m||"",e:e!=null?e:(s.e||""),ar:false,cf:!!(s.cf&&!k)};G.stLast=null;A.statTrip(G.st);}
+function statSave(){if(G&&G.st){G.st.t1=Date.now();try{A.statTrip(G.st);}catch(e){}G.stSaved=now();}}
+/* distance roulée : points GPS précis, au moins 20 m d'écart, sans sauts impossibles */
+function statMove(c,p){var s=G.st;if(!s)return;if((c.acc||0)>35)return;var lp=G.stLast;if(!lp){G.stLast={p:p,t:now()};return;}
+ var d=A.distM(lp.p,p),dt=Math.max(.5,(now()-lp.t)/1000);if(d<20)return;G.stLast={p:p,t:now()};if(d/dt>70)return;s.km+=d/1000;}
 function stop(){
  if(!G)return;var g=G;G=null;
+ if(g.st){g.st.t1=Date.now();try{A.statTrip(g.st);}catch(e){}}
  try{if(g.watch!=null)navigator.geolocation.clearWatch(g.watch);}catch(e){}
  clearInterval(g.simT);clearInterval(g.pollT);clearInterval(g.tickT);clearInterval(g.cardT);if(g.raf)cancelAnimationFrame(g.raf);
  try{if(g.lock)g.lock.release();}catch(e){}try{speechSynthesis.cancel();}catch(e){}
@@ -920,9 +930,9 @@ function start(opts){
  var mute=false;try{mute=localStorage.getItem("ambumaps-gps-muet")==="1";}catch(e){}
  G={opts:opts||{},dest:opts.dest,sim:!!opts.sim,follow:true,mute:mute,alerts:[],haz:[],bumps:[],mk:{},along:0,next:-1};
  document.body.style.overflow="hidden";buildUi();paintPanel();
- startGeo();lockScreen();boot();pollAlerts();
+ startGeo();lockScreen();boot();pollAlerts();statOpen();
  G.pollT=setInterval(pollAlerts,30000);
- G.tickT=setInterval(function(){if(!G)return;paintSpeed();if(G.addr&&now()-G.addr.t>=9000)paintPill();if(G.alerts.some(function(a){return a.exp<=now();})){G.alerts=G.alerts.filter(function(a){return a.exp>now();});computeHazards();refreshFeatures();}},2000);
+ G.tickT=setInterval(function(){if(!G)return;paintSpeed();if(G.st&&now()-(G.stSaved||0)>15000)statSave();if(G.addr&&now()-G.addr.t>=9000)paintPill();if(G.alerts.some(function(a){return a.exp<=now();})){G.alerts=G.alerts.filter(function(a){return a.exp>now();});computeHazards();refreshFeatures();}},2000);
  document.addEventListener("visibilitychange",onVis);window.addEventListener("resize",onResize);
  try{history.pushState({gps:1},"");}catch(e){}window.addEventListener("popstate",onPop);
  if(G.sim)toast("Mode simulation : le trajet défile tout seul.",3500);
