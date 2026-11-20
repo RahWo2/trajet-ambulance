@@ -1899,7 +1899,7 @@ function clearDest(){ui.destId=null;ui.libre="";ui.libreGeo=null;ui.libreOk=fals
 function clearEtat(){ui.etat=null;ui.route=null;}
 function resetMission(){ui.mid=null;ui.edit=null;ui.editFrom=null;ui.etat=ui.mode==="programme"?"programme":null;ui.destId=null;ui.libre="";ui.libreGeo=null;ui.libreOk=false;ui.filtre="";ui.pecFiltre="";ui.pec={q:"",etab:""};ui.leg=1;ui.dep=null;ui.depEdit=false;ui.route=null;keepUi();}
 /* ===== GPS intégré (module gps.js chargé à la demande) ===== */
-var GPS_V="20",gpsP=null;
+var GPS_V="21",gpsP=null;
 function loadGps(){if(window.AmbuGPS)return Promise.resolve();if(gpsP)return gpsP;
  gpsP=new Promise(function(res,rej){var sc=document.createElement("script");sc.src="gps.js?v="+GPS_V;
   sc.onload=function(){if(window.AmbuGPS)res();else{gpsP=null;rej(new Error("GPS indisponible."));}};
@@ -1931,7 +1931,7 @@ window.AMB={get state(){return state;},ui:ui,api:api,isCloud:isCloud,netErr:netE
  nextLeg:function(){ui.leg=2;keepUi();var d=ui.destId?etab(ui.destId):null,addr=d?d.adresse:ui.libre.trim();
   if(!addr)return Promise.reject(new Error("aucun lieu de rendez-vous."));
   return resolveDest(d,addr).then(function(x){return{lat:x.lat,lon:x.lon,nom:x.nom||addr,addr:addr,id:x.id||"",label:"Transport programmé",links:links(addr,"",x.lat,x.lon)};});},
- onEnd:function(kind){if(kind==="abord"){ui.leg=2;ui.navDir=1;ui.edit=null;ui.editFrom=null;keepUi();}if(kind==="nouvelle"){resetMission();ui.mode=null;ui.etat=null;keepUi();if(location.hash!=="#trajet"&&location.hash!==""){location.hash="#trajet";return;}}render();window.scrollTo(0,0);}
+ onEnd:function(kind){if(kind==="abord"){ui.leg=2;ui.navDir=1;ui.edit=null;ui.editFrom=null;keepUi();}if(kind==="nouvelle"||kind==="termine"){resetMission();ui.mode=null;ui.etat=null;keepUi();if(location.hash!=="#trajet"&&location.hash!==""){location.hash="#trajet";return;}}render();window.scrollTo(0,0);}
 };
 document.addEventListener("click",function(ev){
  var b=ev.target.closest("[data-a]");if(!b)return;
