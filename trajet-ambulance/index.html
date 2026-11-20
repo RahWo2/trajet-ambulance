@@ -2095,7 +2095,7 @@ function vTrajet(){
  var depB='<button class="btn wide depotb" data-k="depb" data-a="depotGo">'+ico("home")+'<span>Retour au dépôt</span></button>';
  // accueil : deux grands boutons, la suite s'ouvre en page entière
  if(!md)return '<h1 class="ttl" data-k="tt">Nouveau trajet</h1>'+vehRow()+'<div class="bigmodes" data-k="modes">'+
-  '<button class="bigmode urg" data-a="mode" data-id="urgence"><span class="bic">'+ico("siren")+'</span><b>Urgence</b>'+ico("chev","chv")+'</button>'+
+  (vehId==="vsl"?'':'<button class="bigmode urg" data-a="mode" data-id="urgence"><span class="bic">'+ico("siren")+'</span><b>Urgence</b>'+ico("chev","chv")+'</button>')+
   '<button class="bigmode prog" data-a="mode" data-id="programme"><span class="bic">'+ico("clip")+'</span><b>Transport programmé</b>'+ico("chev","chv")+'</button></div>'+depB;
  var h="",cs=curStep(),n=state.etabs.length;
  // Étapes validées : regroupées dans un seul encadré
@@ -2308,7 +2308,7 @@ document.addEventListener("click",function(ev){
  if(a==="menuGo"){closeMenu();return;}
  if(a==="back"){goBack();return;}
  if(a==="veh"){setVeh(id);ui.route=null;render();}
- else if(a==="mode"){if(ui.mode!==id){ui.mid=uid();ui.edit=null;ui.editFrom=null;ui.mode=id;ui.route=null;ui.dep=null;ui.depEdit=false;ui.leg=1;ui.etat=id==="programme"?"programme":(ui.etat==="programme"?null:ui.etat);keepUi();render();}}
+ else if(a==="mode"){if(id==="urgence"&&vehId==="vsl")return;if(ui.mode!==id){ui.mid=uid();ui.edit=null;ui.editFrom=null;ui.mode=id;ui.route=null;ui.dep=null;ui.depEdit=false;ui.leg=1;ui.etat=id==="programme"?"programme":(ui.etat==="programme"?null:ui.etat);keepUi();render();}}
  else if(a==="etat"){ui.etat=id;goStep();}
  else if(a==="dest"){ui.destId=id;ui.libre="";ui.libreGeo=null;ui.libreOk=false;ui.filtre="";goStep();}
  else if(a==="pecPick"){ui.pec={q:"",etab:id};ui.pecFiltre="";goStep();}
