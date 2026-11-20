@@ -541,6 +541,8 @@ function patientAbord(){
 
 /* ---------- itinéraires ---------- */
 var NOUNPAVED={auto:{exclude_unpaved:true,use_tracks:0}};
+/* hauteur du véhicule choisi sur l'accueil (Ambulance 2,12 m, ASSU 2,60 m) : le calcul évite les passages plus bas */
+function vehOpts(o){var r=Object.assign({},o||{}),h=A.vehH?A.vehH():0;if(h)r.height=h;return{auto:r};}
 function vBody(x){return Object.assign({costing:"auto",language:"fr-FR",units:"kilometers",directions_options:{language:"fr-FR",units:"kilometers"}},x);}
 function tripToRoute(j){var leg=j&&j.trip&&j.trip.legs&&j.trip.legs[0];if(!leg||!leg.shape)throw new Error("Aucun itinéraire trouvé.");var pts=A.decode6(leg.shape);if(pts.length<2)throw new Error("Itinéraire vide.");return buildRoute(pts,leg.maneuvers||[],leg.summary||j.trip.summary,leg.shape);}
 function exclusions(){var polys=[],o=G.opts;
@@ -566,11 +568,13 @@ function routeTries(start,extra){
  var base=vBody(Object.assign({locations:[{lat:r6(start[0]),lon:r6(start[1])},{lat:G.dest.lat,lon:G.dest.lon}]},extra||{}));
  /* départ toujours dans le sens où roule l'ambulance : pas de demi-tour */
  var hd=travelHeading();if(hd!=null){base.locations[0].heading=Math.round((hd+360)%360);base.locations[0].heading_tolerance=50;}
- var ex=exclusions(),H=hardEx(),np={costing_options:NOUNPAVED};G._hardN=H.length;
+ var noh=Object.assign({},base),hh=!!(A.vehH&&A.vehH());base.costing_options=vehOpts();
+ var ex=exclusions(),H=hardEx(),np={costing_options:vehOpts(NOUNPAVED.auto)};G._hardN=H.length;G._vehH=hh?A.vehH():0;
  function W(b,l){var all=(l||[]).concat(H);return all.length?Object.assign({},b,{exclude_polygons:all}):b;}
  /* ordre : zones évitées + routes goudronnées, puis goudronnées seules, puis (vraiment aucun autre choix) chemins autorisés ;
     les routes fermées / impraticables restent exclues partout, sauf en tout dernier recours */
- return(ex.length?[W(Object.assign({},base,np),ex)]:[]).concat([W(Object.assign({},base,np))],ex.length?[W(base,ex)]:[],[W(base)],H.length?[base]:[]);}
+ /* tout dernier recours : sans la hauteur du véhicule (avec un avertissement) */
+ return(ex.length?[W(Object.assign({},base,np),ex)]:[]).concat([W(Object.assign({},base,np))],ex.length?[W(base,ex)]:[],[W(base)],H.length?[base]:[],hh?[W(noh)]:[],hh&&H.length?[noh]:[]);}
 function routeFrom(start,ref){
  var tries=routeTries(start),hd=tries[0].locations[0].heading!=null;
  if(hd)tries=tries.concat([noHead(tries[tries.length-1])]);
@@ -581,7 +585,9 @@ function routeFrom(start,ref){
   /* demi-tour seulement s'il n'y a pas le choix : le trajet sans demi-tour rallonge de plus de 10 min et le demi-tour fait gagner plus de 5 min */
   if(o.b.locations[0].heading==null||ref==null||!(o.R.time>ref+Math.max(600,ref*0.5)))return o;
   var nb=noHead(o.b);return A.valhalla("route",nb).then(function(j){var R2=tripToRoute(j);return R2.time+300<o.R.time?{R:R2,b:nb}:o;},function(){return o;});
- }).then(function(o){if(G&&G._hardN&&!o.b.exclude_polygons)toast("Aucun trajet n'évite les routes signalées fermées : passage par l'une d'elles.");return avoidChemins(o.R,o.b,0);});}
+ }).then(function(o){if(G&&G._hardN&&!o.b.exclude_polygons)toast("Aucun trajet n'évite les routes signalées fermées : passage par l'une d'elles.");
+  if(G&&G._vehH&&!(o.b.costing_options&&o.b.costing_options.auto&&o.b.costing_options.auto.height))toast("Aucun trajet ne respecte la hauteur du véhicule ("+G._vehH.toFixed(2).replace(".",",")+" m) : attention aux passages bas.");
+  return avoidChemins(o.R,o.b,0);});}
 /* même règle pour les chemins (pistes, accès privés, ruelles, allées de parking) : évités au milieu du trajet, sauf s'il n'y a aucun autre choix */
 function edgeAttrs(R){if(!R._attrP)R._attrP=A.valhalla("trace_attributes",{encoded_polyline:R.shape,shape_match:"edge_walk",costing:"auto",filters:{attributes:["edge.speed_limit","edge.names","edge.begin_shape_index","edge.end_shape_index","edge.use","edge.length","shape"],action:"include"}});return R._attrP;}
 function avoidChemins(R,body,depth){
