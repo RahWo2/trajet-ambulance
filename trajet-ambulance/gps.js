@@ -479,6 +479,8 @@ function onFix(c){
  if(sp==null&&G.last){var dt=(t-G.last.t)/1000;if(dt>0.4&&dt<6)sp=A.distM(G.last.p,p)/dt;}
  if(sp!=null)G.speed=G.speed==null?sp*3.6:G.speed*0.35+sp*3.6*0.65;
  G.acc=c.acc||0;G.lastFixT=now();G.last={p:p,t:t};G.pos=p;try{A.ui.lastPos=p;}catch(e){}
+ var tr=G.trail||(G.trail=[]),lt=tr[tr.length-1];if(!lt||A.distM(lt.p,p)>=5){tr.push({p:p,w:now(),a:c.acc||0});if(tr.length>30)tr.shift();}
+ if(c.heading!=null&&!isNaN(c.heading)&&(sp||0)>3){G.gh=c.heading;G.ghT=now();}
  if(!G.R){G.disp=G.disp||p;return;}
  var R=G.R,pr=project(R,p,G.prj?G.prj.i:null),tol=Math.max(30,Math.min(60,(c.acc||0)*1.3)),on=pr.off<=tol;G.prj=pr;
  if(on){G.offCount=0;var na=pr.along;if(na<G.along&&G.along-na<15)na=G.along;if((sp==null||sp<0.8)&&Math.abs(na-G.along)<10)na=G.along;G.along=na;}
@@ -516,16 +518,33 @@ function exclusions(){var polys=[],o=G.opts;
   if(g.k==="line")polys=polys.concat(A.linePolys(g.c,10));else polys.push(A.circlePoly(g.lat,g.lon,g.r));});
  (G.alerts||[]).forEach(function(al){if(al.type!=="arret"||!al.trace||al.trace.length<2)return;if(G.pos&&nearTrace(al.trace,G.pos,60))return;polys=polys.concat(A.linePolys(al.trace,12));});
  return polys.slice(0,60);}
+/* sens de la marche réel : cap GPS si on roule, sinon la trace des dernières positions, sinon le sens de l'itinéraire suivi */
+function travelHeading(){
+ var tn=now();if(G.gh!=null&&tn-G.ghT<4000&&(G.speed||0)>10)return G.gh;
+ var tr=G.trail||[],n=tr.length,c=tr[n-1];
+ if(c&&tn-c.w<45000)for(var i=n-2;i>=0;i--){if(c.w-tr[i].w>45000)break;if(A.distM(tr[i].p,c.p)>=Math.max(15,Math.min(40,(c.a||0)*1.5)))return brg(tr[i].p,c.p);}
+ if(G.gh!=null&&tn-G.ghT<4000)return G.gh;
+ if(G.R&&G.prj&&G.prj.off<=30&&(G.speed||0)>3)return bearingAt(G.R,G.along);
+ return null;}
+function noHead(b){var c=JSON.parse(JSON.stringify(b));delete c.locations[0].heading;delete c.locations[0].heading_tolerance;return c;}
 function routeTries(start,extra){
  var base=vBody(Object.assign({locations:[{lat:r6(start[0]),lon:r6(start[1])},{lat:G.dest.lat,lon:G.dest.lon}]},extra||{}));
- if(G.heading!=null&&(G.speed||0)>8){base.locations[0].heading=Math.round(G.heading);base.locations[0].heading_tolerance=60;}
+ /* départ toujours dans le sens où roule l'ambulance : pas de demi-tour */
+ var hd=travelHeading();if(hd!=null){base.locations[0].heading=Math.round((hd+360)%360);base.locations[0].heading_tolerance=50;}
  var ex=exclusions(),np={costing_options:NOUNPAVED};
  /* ordre : zones évitées + routes goudronnées, puis goudronnées seules, puis (vraiment aucun autre choix) chemins autorisés */
  return(ex.length?[Object.assign({},base,np,{exclude_polygons:ex})]:[]).concat([Object.assign({},base,np)],ex.length?[Object.assign({},base,{exclude_polygons:ex})]:[],[base]);}
-function routeFrom(start){
- var tries=routeTries(start);
- function tryAt(i){return A.valhalla("route",tries[i]).then(function(j){return{R:tripToRoute(j),b:tries[i]};}).catch(function(e){if(i+1<tries.length)return tryAt(i+1);throw e;});}
- return tryAt(0).then(function(o){return avoidChemins(o.R,o.b,0);});}
+function routeFrom(start,ref){
+ var tries=routeTries(start),hd=tries[0].locations[0].heading!=null;
+ if(hd)tries=tries.concat([noHead(tries[tries.length-1])]);
+ function tryAt(L,i){return A.valhalla("route",L[i]).then(function(j){return{R:tripToRoute(j),b:L[i]};}).catch(function(e){
+   if(L[i].locations[0].heading!=null&&/suitable edges/i.test((e&&e.message)||""))return tryAt(L.slice(i).map(noHead),0);
+   if(i+1<L.length)return tryAt(L,i+1);throw e;});}
+ return tryAt(tries,0).then(function(o){
+  /* demi-tour seulement s'il n'y a pas le choix : le trajet sans demi-tour rallonge de plus de 10 min et le demi-tour fait gagner plus de 5 min */
+  if(o.b.locations[0].heading==null||ref==null||!(o.R.time>ref+Math.max(600,ref*0.5)))return o;
+  var nb=noHead(o.b);return A.valhalla("route",nb).then(function(j){var R2=tripToRoute(j);return R2.time+300<o.R.time?{R:R2,b:nb}:o;},function(){return o;});
+ }).then(function(o){return avoidChemins(o.R,o.b,0);});}
 /* même règle pour les chemins (pistes, accès privés, ruelles, allées de parking) : évités au milieu du trajet, sauf s'il n'y a aucun autre choix */
 function edgeAttrs(R){if(!R._attrP)R._attrP=A.valhalla("trace_attributes",{encoded_polyline:R.shape,shape_match:"edge_walk",costing:"auto",filters:{attributes:["edge.speed_limit","edge.names","edge.begin_shape_index","edge.end_shape_index","edge.use","edge.length","shape"],action:"include"}});return R._attrP;}
 function avoidChemins(R,body,depth){
@@ -550,7 +569,7 @@ function setRoute(R){
 function reroute(why){
  if(!G||!G.pos||G.rerouting)return;G.rerouting=true;G.lastReroute=now();paintBanner();manArrow();
  if(why==="off")say("Recalcul de l'itinéraire.",true);
- routeFrom(G.pos).then(function(R){if(!G)return;G.rerouting=false;if(G._redo){G._redo=false;reroute("leg2");return;}setRoute(R);if(why==="jam")say("Bouchon signalé sur le trajet : nouvel itinéraire.",true);if(why==="dest")say("Nouvelle destination : "+(G.dest.nom||"")+".",true);},
+ routeFrom(G.pos,why==="off"&&G.R?remTime():null).then(function(R){if(!G)return;G.rerouting=false;if(G._redo){G._redo=false;reroute("leg2");return;}setRoute(R);if(why==="jam")say("Bouchon signalé sur le trajet : nouvel itinéraire.",true);if(why==="dest")say("Nouvelle destination : "+(G.dest.nom||"")+".",true);},
   function(){if(!G)return;G.rerouting=false;if(G._redo){G._redo=false;reroute("leg2");return;}G.offCount=0;paintBanner();toast("Recalcul impossible pour l'instant : réseau ou serveur indisponible.");});
 }
 function loadEdges(R){
