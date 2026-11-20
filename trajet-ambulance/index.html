@@ -459,6 +459,7 @@ var ETATS=[
  {id:"programme",ic:"clip",label:"Transport programmé",sous:"Dialyse, consultation, retour domicile",p:"standard"}
 ];
 var ZTYPES={paves:"Pavés",ralentisseurs:"Ralentisseurs / dos-d'âne",degradee:"Route dégradée / nids-de-poule",virages:"Virages serrés / route sinueuse",travaux:"Travaux / bouchon récurrent"};
+function cleanPts(a){var o=[];if(!Array.isArray(a))return o;a.forEach(function(p){if(Array.isArray(p)&&typeof p[0]==="number"&&typeof p[1]==="number"&&isFinite(p[0])&&isFinite(p[1])&&Math.abs(p[0])<=90&&Math.abs(p[1])<=180)o.push([p[0],p[1]]);});return o;}
 function zKind(t){return t==="ralentisseurs"?"pts":(t==="degradee"?"line":"circle");}
 function zGeom(z){var k=zKind(z.type);
  if(k!=="circle"&&z.trace&&z.trace.length)return{k:k,c:z.trace};
@@ -520,6 +521,7 @@ function stInfo(){
   else if(cloud.status==="error")o={t:"Erreur de synchro",s:"Erreur",ic:"warn",cl:"warn"};
   else if(cloud.status==="notmember")o={t:"Accès refusé",s:"Accès refusé",ic:"warn",cl:"warn"};
   else if(np)o={t:np+" modif. en attente",s:np+" en attente",ic:"sync",cl:"warn"};
+  else if(cloud.rej)o={t:"Une modification a été refusée",s:"Refusée",ic:"warn",cl:"warn"};
   else if(cloud.status==="ok")o={t:"Équipe à jour",s:"À jour",ic:"cloud",cl:"ok"};
  }
  else if(saveStatus==="ok")o={t:"Enregistré sur ce téléphone",s:"Enregistré",ic:"check",cl:"ok"};
@@ -783,7 +785,7 @@ function syncGroups(){var s=ui.search;if(!s||!s.results)return;GROUPS.forEach(fu
 
 /* ===== Carte et trajet confort ===== */
 var VALHALLA="https://valhalla1.openstreetmap.de/";
-var LEAFLET_JS="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js",LEAFLET_CSS="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css";
+var LEAFLET_JS="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js",LEAFLET_CSS="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css",LEAFLET_SRI="sha384-cxOPjt7s7Iz04uaHJceBmS+qpjv2JkIHNVcuOrM+YHwZOmJGBXI00mdUXEq65HTH",LEAFLET_CSS_SRI="sha384-sHL9NAb7lN7rfvG5lfHpm643Xkcjzp4jFvuavGOndn6pjVqS6ny56CAt3nsEVT4H";
 var TILES="https://tile.openstreetmap.org/{z}/{x}/{y}.png";
 var POIDS={confort:{b:45,r:0.6,z:900},regulier:{b:20,r:0.3,z:600},standard:{b:5,r:0.15,z:300}};
 var ROUGH={paved_rough:1,compacted:1,dirt:1,gravel:1,path:1,impassable:1};
@@ -793,8 +795,8 @@ function loadLeaflet(){
  if(window.L&&window.L.map)return Promise.resolve(window.L);
  if(leafletP)return leafletP;
  leafletP=new Promise(function(res,rej){
-  var l=document.createElement("link");l.rel="stylesheet";l.href=LEAFLET_CSS;document.head.appendChild(l);
-  var sc=document.createElement("script");sc.src=LEAFLET_JS;
+  var l=document.createElement("link");l.rel="stylesheet";l.href=LEAFLET_CSS;if(LEAFLET_CSS_SRI){l.integrity=LEAFLET_CSS_SRI;l.crossOrigin="anonymous";}document.head.appendChild(l);
+  var sc=document.createElement("script");sc.src=LEAFLET_JS;if(LEAFLET_SRI){sc.integrity=LEAFLET_SRI;sc.crossOrigin="anonymous";}
   sc.onload=function(){if(window.L&&window.L.map)res(window.L);else{leafletP=null;rej(new Error("Carte indisponible."));}};
   sc.onerror=function(){leafletP=null;sc.remove();rej(new Error("Carte indisponible : pas de connexion internet ?"));};
   document.head.appendChild(sc);
@@ -903,13 +905,13 @@ var CELL=0.05,BUMPKEY="ambumaps-ralentisseurs",BUMP_TTL=60*864e5;
 function cellKey(lat,lon){return Math.floor(lat/CELL)+"_"+Math.floor(lon/CELL);}
 function cellsFor(so,we,no,ea){var out=[];for(var a=Math.floor(so/CELL);a<=Math.floor(no/CELL);a++)for(var o=Math.floor(we/CELL);o<=Math.floor(ea/CELL);o++)out.push(a+"_"+o);return out;}
 function bumpCache(){try{return JSON.parse(localStorage.getItem(BUMPKEY)||"{}");}catch(e){return{};}}
-function saveBumpCache(c){try{localStorage.setItem(BUMPKEY,JSON.stringify(c));}catch(e){}}
+function saveBumpCache(c){var n=Date.now();Object.keys(c).forEach(function(k){if(!c[k]||!(n-c[k].t<BUMP_TTL))delete c[k];});try{localStorage.setItem(BUMPKEY,JSON.stringify(c));}catch(e){}}
 function getBumps(so,we,no,ea){
  var cells=cellsFor(so,we,no,ea),cache=bumpCache(),now=Date.now();
  function fresh(k){return cache[k]&&now-cache[k].t<BUMP_TTL;}
  var missing=cells.filter(function(k){return !fresh(k);}),pr=Promise.resolve();
  if(missing.length&&isCloud())pr=api("GET","osm_cache?select=cellule,donnees,maj_le&cellule=in.("+missing.join(",")+")").then(function(rows){
-  (rows||[]).forEach(function(r){var t=Date.parse(r.maj_le);if(now-t<BUMP_TTL)cache[r.cellule]={t:t,p:r.donnees||[]};});saveBumpCache(cache);
+  (rows||[]).forEach(function(r){var t=Date.parse(r.maj_le);if(now-t<BUMP_TTL&&/^-?\d+_-?\d+$/.test(String(r.cellule)))cache[r.cellule]={t:t,p:cleanPts(r.donnees)};});saveBumpCache(cache);
  }).catch(function(){});
  return pr.then(function(){
   missing=cells.filter(function(k){return !fresh(k);});
@@ -925,7 +927,7 @@ function getBumps(so,we,no,ea){
    if(isCloud())api("POST","osm_cache",rows,"resolution=merge-duplicates,return=minimal").catch(function(){});
   },function(){});
  }).then(function(){
-  var pts=[],ok=true;cells.forEach(function(k){if(cache[k])pts=pts.concat(cache[k].p);else ok=false;});
+  var pts=[],ok=true;cells.forEach(function(k){if(cache[k])pts=pts.concat(cleanPts(cache[k].p));else ok=false;});
   return{pts:pts,ok:ok};
  });
 }
@@ -1308,8 +1310,8 @@ function authErr(j,status){
  if(/invalid login credentials/i.test(m))return "E-mail ou mot de passe incorrect.";
  if(/already registered|already been registered|already exists/i.test(m))return "Ce compte existe déjà : utilise « Se connecter ».";
  if(/password should|weak password|at least/i.test(m))return "Mot de passe trop faible : 8 caractères minimum.";
- if(/not confirmed/i.test(m))return "Compte pas encore activé : la confirmation par e-mail est encore active dans Supabase.";
- if(/non invit|database error saving new user/i.test(m))return "Cette adresse n'a pas été invitée dans l'équipe.";
+ if(/not confirmed/i.test(m))return "Compte créé : ouvre le lien reçu par e-mail pour l'activer, puis connecte-toi.";
+ if(/non invit|database error saving new user/i.test(m))return "Cette adresse n'a pas été invitée dans l'équipe. Demande à ton responsable de t'ajouter (onglet Équipe).";
  if(/rate limit/i.test(m))return "Trop de tentatives, réessaie dans quelques minutes.";
  return m;
 }
@@ -1335,19 +1337,13 @@ function api(method,path,body,prefer){
   return r.text().then(function(t){if(!r.ok){var e=new Error("Serveur "+r.status+" : "+t.slice(0,140));e.status=r.status;throw e;}return t?JSON.parse(t):null;});
  });
 }
-function isInvited(email){
- return fetch(SB_URL+"/rest/v1/rpc/est_invite",{method:"POST",headers:{apikey:SB_KEY,"Content-Type":"application/json"},body:JSON.stringify({p_email:email})}).then(function(r){return r.json();});
-}
 function doLogin(email,pw){
  email=email.trim().toLowerCase();
  return authPost("token?grant_type=password",{email:email,password:pw}).then(function(j){setSession(j);return enterCloud();});
 }
 function doSignup(email,pw){
  email=email.trim().toLowerCase();
- return isInvited(email).then(function(ok){
-  if(ok!==true)throw new Error("Cette adresse n'a pas été invitée. Demande à ton responsable de t'ajouter dans l'équipe (onglet Équipe).");
-  return authPost("signup",{email:email,password:pw});
- }).then(function(j){
+ return authPost("signup",{email:email,password:pw}).then(function(j){
   if(j&&j.access_token){setSession(j);return enterCloud();}
   return doLogin(email,pw);
  });
@@ -1392,13 +1388,14 @@ function flush(){
   (function step(){
    if(!isCloud()||!state.pending.length){flushing=null;if(cloud.status==="sync"||cloud.status==="offline"||cloud.status==="error")cloud.status="ok";paintStatus();resolve();return;}
    runOp(state.pending[0]).then(function(){state.pending.shift();save();step();},function(e){
-    if(e.status&&e.status>=400&&e.status<500&&e.status!==401){cloud.err=e.message;state.pending.shift();save();step();return;}
+    if(e.status&&e.status>=400&&e.status<500&&e.status!==401){cloud.err=e.message;cloud.rej={why:rejWhy(e),t:Date.now()};state.pending.shift();save();softRender();step();return;}
     flushing=null;cloud.status=netErr(e)?"offline":"error";cloud.err=e.message;paintStatus();reject(e);
    });
   })();
  });
  return flushing;
 }
+function rejWhy(e){var m=String(e&&e.message||"");if(e.status===409||/23505|duplicate/i.test(m))return "elle existe déjà dans l'équipe";if(e.status===403||/42501|row-level security/i.test(m))return "accès refusé (vérifie que tu fais toujours partie de l'équipe)";return "erreur du serveur ("+(e.status||"?")+")";}
 function nameOf(email){var n=email;cloud.members.forEach(function(m){if(m.email===email&&m.nom)n=m.nom;});return n;}
 function softRender(){var ae=document.activeElement;if(ui.form||ui.invite||(ae&&/INPUT|TEXTAREA|SELECT/.test(ae.tagName))){paintStatus();return;}render();}
 function sync(first){
@@ -1414,7 +1411,7 @@ function sync(first){
   members.forEach(function(m){if(m.email===sess.email)cloud.me=m;});
   if(!cloud.me){cloud.status="notmember";state.etabs=[];state.zones=[];save();softRender();return;}
   state.etabs=(res[0]||[]).map(function(r){return{id:r.id,osm:r.osm||undefined,nom:r.nom,type:r.type,adresse:r.adresse,lat:r.lat==null?undefined:r.lat,lon:r.lon==null?undefined:r.lon,infos:r.infos||"",via:r.via||"",ordre:r.ordre,majPar:r.maj_par||""};});
-  state.zones=(res[1]||[]).map(function(r){var z={id:r.id,nom:r.nom,type:r.type,etab:r.etab||"",note:r.note||"",majPar:r.maj_par||""};if(r.lat!=null&&r.lon!=null){z.lat=r.lat;z.lon=r.lon;z.rayon=r.rayon||60;}if(Array.isArray(r.trace)&&r.trace.length)z.trace=r.trace;return z;});
+  state.zones=(res[1]||[]).map(function(r){var z={id:r.id,nom:r.nom,type:r.type,etab:r.etab||"",note:r.note||"",majPar:r.maj_par||""};if(typeof r.lat==="number"&&typeof r.lon==="number"){z.lat=r.lat;z.lon=r.lon;z.rayon=Math.max(10,Math.min(2000,+r.rayon||60));}var tr=cleanPts(r.trace);if(tr.length)z.trace=tr;return z;});
   state.team={members:members};
   if(ui.destId&&!etab(ui.destId))ui.destId=null;
   save();cloud.status="ok";cloud.last=Date.now();
@@ -1475,6 +1472,7 @@ function render0(){
  var flowP=ui.tab==="trajet"&&!!ui.mode;
  var html=flowP?flowHeader()+'<main class="flow '+(ui.mode==="programme"?"prog":"urg")+'">':headerHtml(true)+mo;
  if(isCloud()&&cloud.status==="notmember")html+='<div class="warnbox" style="margin:0 0 12px">Ton compte n\'est pas (ou plus) dans l\'équipe. Demande à ton responsable de t\'ajouter, ou déconnecte-toi depuis l\'onglet Équipe.</div>';
+ if(isCloud()&&cloud.rej&&ui.tab!=="trajet")html+='<div class="warnbox" style="margin:0 0 12px">Une modification n\'a pas été enregistrée dans l\'équipe : '+esc(cloud.rej.why)+'. La liste a été remise comme sur le serveur.<div class="row" style="margin-top:8px"><button class="btn small" data-a="rejOk">OK</button></div></div>';
  if(ui.tab==="trajet")html+=vTrajet();else if(ui.tab==="etablissements")html+=vEtabs();else if(ui.tab==="zones")html+=vZones();else if(ui.tab==="parametres")html+=vParams();else if(ui.tab==="statistiques")html+=vStats();else html+=vEquipe();
  html+="</main>";
  app.innerHTML=html;paintStatus();
@@ -1643,6 +1641,7 @@ function stTitle(per,off,r){var a=new Date(r.a);
  if(per==="jour")return off===0?"Aujourd'hui":(off===-1?"Hier":JOURS[a.getDay()]+" "+a.getDate()+" "+MOIS[a.getMonth()]);
  if(per==="semaine")return off===0?"Cette semaine":(off===-1?"La semaine dernière":"Semaine du "+a.getDate()+" "+MOIS[a.getMonth()].slice(0,4)+(MOIS[a.getMonth()].length>4?".":""));
  return off===0?"Ce mois-ci":MOIS[a.getMonth()]+" "+a.getFullYear();}
+function stReal(t){return !!t&&typeof t.t0==="number"&&(t.ar||(t.km||0)>=0.05||((t.t1||t.t0)-t.t0)>=120000);}
 function stAgg(o,a,b){
  var T=o.trips.filter(function(t){return t.t0>=a&&t.t0<b;}),km=0,ms=0,mp={},mu={},dep=0,cf=0,et={};
  T.forEach(function(t){km+=t.km||0;ms+=Math.min(5*3600e3,Math.max(0,(t.t1||t.t0)-t.t0));
@@ -1677,7 +1676,7 @@ function stTrophies(o,best){
   t("build","Habitué","25 fois au même lieu",maxEt,25),t("clip","Semaine chargée","30 missions en 7 jours",maxWeek,30),t("medal","Centenaire","100 missions au total",nMis,100)];}
 var KN={p1:["Prise en charge","pin","#45d08f","#163a28"],p2:["Transport programmé","clip","#45d08f","#163a28"],u1:["Urgence · vers le patient","siren","#ff8a8e","#3a1a1c"],u2:["Urgence · transport","siren","#ff8a8e","#3a1a1c"],dep:["Retour au dépôt","home","#9cc0ff","#1b2a45"]};
 function vStats(){
- var per=ui.stP||"jour",off=ui.stO||0,o=stLoad(),r=stRange(per,off),S=stAgg(o,r.a,r.b),pr=stRange(per,off-1),P=stAgg(o,pr.a,off===0?Math.min(pr.b,pr.a+(Date.now()-r.a)):pr.b),h="";
+ var per=ui.stP||"jour",off=ui.stO||0,o=stLoad();o.trips=o.trips.filter(stReal);var r=stRange(per,off),S=stAgg(o,r.a,r.b),pr=stRange(per,off-1),P=stAgg(o,pr.a,off===0?Math.min(pr.b,pr.a+(Date.now()-r.a)):pr.b),h="";
  h+='<div class="seg" role="tablist" data-k="stseg">'+[["jour","Jour"],["semaine","Semaine"],["mois","Mois"]].map(function(x){return '<button role="tab" aria-selected="'+(per===x[0])+'" class="'+(per===x[0]?"on":"")+'" data-a="stP" data-id="'+x[0]+'">'+x[1]+'</button>';}).join("")+'</div>';
  h+='<div class="stnav" data-k="stnav"><button class="menub" data-a="stO" data-id="-1" aria-label="Période précédente">'+ico("back")+'</button><b>'+esc(stTitle(per,off,r))+'</b><button class="menub" data-a="stO" data-id="1" aria-label="Période suivante"'+(off>=0?" disabled":"")+'>'+ico("chev")+'</button></div>';
  function delta(a,b,u){if(!b&&!a)return '<div class="kd">&nbsp;</div>';if(!b)return '<div class="kd up">Nouveau</div>';var d=Math.round((a-b)/b*100);return '<div class="kd'+(d>0?" up":(d<0?" down":""))+'">'+(d>0?"+":"")+d+' % '+(per==="jour"?"vs la veille":(per==="semaine"?"vs sem. préc.":"vs mois préc."))+'</div>';}
@@ -1954,7 +1953,7 @@ function clearDest(){ui.destId=null;ui.libre="";ui.libreGeo=null;ui.libreOk=fals
 function clearEtat(){ui.etat=null;ui.route=null;}
 function resetMission(){ui.mid=null;ui.edit=null;ui.editFrom=null;ui.etat=ui.mode==="programme"?"programme":null;ui.destId=null;ui.libre="";ui.libreGeo=null;ui.libreOk=false;ui.filtre="";ui.pecFiltre="";ui.pec={q:"",etab:""};ui.leg=1;ui.dep=null;ui.depEdit=false;ui.route=null;keepUi();}
 /* ===== GPS intégré (module gps.js chargé à la demande) ===== */
-var GPS_V="24",gpsP=null;
+var GPS_V="25",gpsP=null;
 function loadGps(){if(window.AmbuGPS)return Promise.resolve();if(gpsP)return gpsP;
  gpsP=new Promise(function(res,rej){var sc=document.createElement("script");sc.src="gps.js?v="+GPS_V;
   sc.onload=function(){if(window.AmbuGPS)res();else{gpsP=null;rej(new Error("GPS indisponible."));}};
@@ -1977,7 +1976,7 @@ function startGps(leg){
 }
 window.AMB={get state(){return state;},ui:ui,api:api,isCloud:isCloud,netErr:netErr,valhalla:valhalla,decode6:decode6,distM:distM,linePolys:linePolys,circlePoly:circlePoly,midChemins:midChemins,edgeMid:edgeMid,
  statTrip:statTrip,statSig:statSig,zGeom:zGeom,zoneRow:zoneRow,enqueue:enqueue,save:save,uid:uid,esc:esc,nameOf:nameOf,me:function(){return sess?sess.email:"";},getBumps:getBumps,acFetch:acFetch,
- matchEtabs:matchEtabs,isFav:isFav,etab:etab,geocode:geocode,GEO:GEO,
+ matchEtabs:matchEtabs,isFav:isFav,etab:etab,geocode:geocode,GEO:GEO,cleanPts:cleanPts,
  setDest:function(x,pickup){
   if(pickup){if(x.etab)ui.pec={q:"",etab:x.etab};else ui.pec={q:x.q||x.label,etab:"",gq:x.q||x.label,glat:x.lat,glon:x.lon,glabel:x.label,ok:true};}
   else if(x.etab){ui.destId=x.etab;ui.libre="";ui.libreGeo=null;ui.libreOk=false;}
@@ -1992,6 +1991,7 @@ document.addEventListener("click",function(ev){
  var b=ev.target.closest("[data-a]");if(!b)return;
  var a=b.getAttribute("data-a"),id=b.getAttribute("data-id");
  if(a==="menu"){openMenu();return;}
+ if(a==="rejOk"){cloud.rej=null;render();return;}
  if(a==="stP"){if(ui.stP!==id){ui.stP=id;ui.stO=0;ui.navDir=0;render();}return;}
  if(a==="stO"){var no=(ui.stO||0)+(+id);if(no>0)return;ui.stO=no;ui.navDir=+id;render();return;}
  if(a==="askStReset"){ui.confirm="stats";render();return;}
