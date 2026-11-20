@@ -839,7 +839,7 @@ function onClick(ev){
  else if(g==="changeDest")openDest();
  else if(g==="destClose")fadeOut($(".gfull:not(.gout)"));
  else if(g==="pickDest")pickDest(+b.getAttribute("data-i"));
- else if(g==="finish"){stop();A.onEnd("fin");}
+ else if(g==="finish"){stop();A.onEnd("termine");}
  else if(g==="abord")patientAbord();
  else if(g==="abordGo"){closeScrim();patientAbord();}
  else if(g==="mute"){G.mute=!G.mute;try{localStorage.setItem("ambumaps-gps-muet",G.mute?"1":"");if(G.mute)speechSynthesis.cancel();}catch(e){}paintMute();}
