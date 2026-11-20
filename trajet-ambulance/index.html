@@ -60,7 +60,7 @@ ul{margin:0;padding-left:20px}li{margin:4px 0}
 button.tag{border:0;font-family:inherit;cursor:pointer;margin:1px 0}
 .tags{display:flex;flex-wrap:wrap;gap:8px;margin:2px 0 4px}
 .tagb{padding:8px 13px;border-radius:20px;border:1.5px solid var(--line);background:var(--card);color:var(--txt);font:inherit;font-size:14.5px;font-weight:600;cursor:pointer}
-.tagb.on{background:#16284a;border-color:#4c8dff;color:#9cc0ff}.tagb.on::before{content:"✓ "}
+.tagb.on{background:#16284a;border-color:#4c8dff;color:#9cc0ff}.tagb.on::before{content:none}
 .tagadd{margin-top:10px;flex-wrap:nowrap}.tagadd input{flex:1;min-width:0}
 .item{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:10px}
 .item .t{font-weight:700;font-size:17.5px}
@@ -167,6 +167,120 @@ nav{position:relative}nav a.on{border-color:transparent}
 nav .tabind{position:absolute;left:0;bottom:0;width:0;height:3px;border-radius:3px 3px 0 0;background:var(--acc);pointer-events:none;opacity:0}
 .ac:not([hidden]){animation:acin .32s var(--spr);transform-origin:top center}@keyframes acin{from{opacity:0;transform:translateY(-6px) scale(.98)}to{opacity:1;transform:none}}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+
+/* ===== Nouvelle disposition : menu, pages entières, icônes dessinées ===== */
+svg.i{width:1.2em;height:1.2em;flex:0 0 auto;vertical-align:-.22em}
+.btn svg.i{width:1.25em;height:1.25em}
+.yel{color:#f5c518}.wc{color:var(--warn)}.okc{color:var(--ok)}.redc{color:#ff5a5f}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+#app{background:var(--bg);min-height:100vh}
+header{padding:10px 14px}
+header .top{min-height:48px}
+header .top h1{flex:1 1 auto;min-width:0}
+header .top h1 .logo{height:29px}
+h1.pt{font-size:22px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block}
+.menub{width:46px;height:46px;border-radius:14px;background:var(--card);border:1px solid var(--line);color:var(--txt);display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;cursor:pointer;padding:0;-webkit-tap-highlight-color:transparent;transition:transform .5s var(--spr),background-color .25s ease}
+.menub:active{transform:scale(.92)}
+.menub svg.i{width:24px;height:24px}
+.status{display:inline-flex;align-items:center;gap:6px;white-space:nowrap;font-size:13.5px;font-weight:600;max-width:150px;overflow:hidden}
+.status span{overflow:hidden;text-overflow:ellipsis}
+.status svg.i{width:17px;height:17px}
+.status:empty{display:none}
+button.status{background:none;border:0;font-family:inherit;cursor:pointer;padding:8px 2px;min-height:44px}
+/* en-tête des pages Urgence / Transport programmé */
+header.fh{padding:12px 14px 14px;background:var(--fbg);border-bottom:1px solid var(--fbd)}
+header.fh.urg{--fbg:#2a1416;--fbd:#5a2427;--fc:#d93a3f;--fl:#ff6b70;--ft:#ffd2d4;--fm:#c9a9ab}
+header.fh.prog{--fbg:#10241b;--fbd:#1f4d36;--fc:#2f9e6a;--fl:#45d08f;--ft:#c6f1db;--fm:#9fbfae}
+header.fh .top{justify-content:flex-start;gap:12px}
+header.fh .back{background:rgba(255,255,255,.08);border:0}
+.fic{width:40px;height:40px;border-radius:50%;background:var(--fc);color:#fff;display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto}
+.fic svg.i{width:22px;height:22px}
+header.fh h1{font-size:clamp(19px,5.6vw,24px);letter-spacing:-.2px;font-weight:800;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fsteps{display:grid;gap:8px;margin-top:14px}
+.fs i{display:block;height:5px;border-radius:3px;background:rgba(255,255,255,.16);transition:background-color .45s ease}
+.fs span{display:block;margin-top:7px;font-size:13.5px;font-weight:600;color:var(--fm);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fs.fsd i,.fs.on i{background:var(--fl)}
+.fs.on span{color:var(--ft);font-weight:800}
+/* accueil */
+.ttl{font-size:30px;font-weight:800;letter-spacing:-.3px;margin:16px 0 18px;display:block}
+.bigmodes{display:grid;gap:14px}
+.bigmode{display:flex;align-items:center;gap:18px;width:100%;min-height:150px;padding:0 22px;border-radius:24px;font:inherit;color:var(--txt);text-align:left;cursor:pointer}
+.bigmode.urg{background:#2a1416;border:1px solid #5a2427}
+.bigmode.prog{background:#10241b;border:1px solid #1f4d36}
+.bigmode .bic{width:68px;height:68px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;color:#fff}
+.bigmode.urg .bic{background:#d93a3f}.bigmode.prog .bic{background:#2f9e6a}
+.bigmode .bic svg.i{width:34px;height:34px}
+.bigmode b{flex:1 1 auto;font-size:27px;font-weight:800;line-height:1.12}
+.bigmode .chv{width:26px;height:26px}
+.bigmode.urg .chv{color:#e89a9d}.bigmode.prog .chv{color:#8fd3b0}
+.bigmode:active{transform:scale(.98)}
+.btn.depotb{margin-top:18px;min-height:60px;font-size:18px;border-radius:18px}
+.depotb svg.i{color:var(--mut)}
+/* pages entières : question, recherche, lieux */
+main.flow{--fl:#45d08f}
+main.flow.urg{--fl:#ff8a8e}
+main.flow section[data-k]>h2.q:first-child,h2.q{font-size:23px;font-weight:800;text-transform:none;letter-spacing:0;color:var(--txt);margin:10px 0 14px}
+.srow{display:flex;gap:10px}
+.srow .acw{flex:1 1 auto}
+.sfield{display:flex;align-items:center;gap:10px;min-height:58px;padding:0 14px;border-radius:16px;background:var(--card);border:1.5px solid #3a404c;transition:border-color .25s ease}
+.sfield:focus-within{border-color:var(--acc)}
+.sfield>svg.i{color:var(--mut);width:20px;height:20px}
+.sfield input{flex:1 1 auto;width:auto;min-width:0;background:none;border:0;outline:none;padding:0;min-height:54px;font-size:17.5px;border-radius:0}
+.btn.sgo{width:58px;min-height:58px;padding:0;border-radius:16px;flex:0 0 auto}
+.btn.sgo svg.i{width:24px;height:24px}
+main.flow.urg .btn.sgo{background:#d93a3f;border-color:#d93a3f}
+main.flow.prog .btn.sgo{background:#2f9e6a;border-color:#2f9e6a}
+.lockh{display:flex;align-items:center;gap:8px;margin-top:10px}
+.lockh svg.i{width:16px;height:16px}
+h3.lh{font-size:14.5px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;color:var(--mut);margin:24px 0 10px}
+.plist{display:flex;flex-direction:column;gap:8px}
+.prow{display:flex;gap:8px;align-items:stretch}
+.pbtn{flex:1 1 auto;min-width:0;display:flex;align-items:center;gap:14px;min-height:62px;padding:8px 14px;border-radius:16px;background:var(--card);border:1px solid var(--line);color:var(--txt);font:inherit;text-align:left;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:transform .5s var(--spr),background-color .25s ease,border-color .25s ease}
+.pbtn:active{transform:scale(.98)}
+.pbtn b{flex:1 1 auto;min-width:0;font-size:18px;font-weight:700;line-height:1.25}
+.pbtn.on{border-color:var(--acc);background:#1b2a47}
+.kic{width:38px;height:38px;border-radius:11px;display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto}
+.kic svg.i{width:22px;height:22px}
+.pfav{width:52px;flex:0 0 auto;border-radius:16px;background:var(--card);border:1px solid var(--line);color:#6b7486;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;padding:0;-webkit-tap-highlight-color:transparent;transition:transform .5s var(--spr),color .25s ease}
+.pfav:active{transform:scale(.9)}
+.pfav svg.i{width:22px;height:22px}
+.pfav.on{color:#f5c518}
+/* étapes validées */
+.donegrp{border-left:1px solid var(--line);border-radius:16px;margin:2px 0 6px}
+.done .dic{width:34px;height:34px;border-radius:10px;display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;background:#20242d;color:var(--fl,var(--ok))}
+.done .dic svg.i{width:20px;height:20px}
+.done b{font-size:17px}
+/* état du patient */
+.tile{border-left-width:2px;border-left-color:var(--line)}
+.tile.on{border-color:var(--c)}
+.tile .ic{width:46px;height:46px;border-radius:50%;background:var(--c);color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:0;flex:0 0 auto}
+.tile .ic svg.i{width:25px;height:25px}
+.check .box svg.i{width:22px;height:22px}
+.hero .big svg.i{width:56px;height:56px;color:var(--acc)}
+.band svg.i{margin-right:4px}
+.tagb.on::before{content:"";display:inline-block;width:.95em;height:.95em;margin-right:5px;vertical-align:-.12em;background:currentColor;-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7.5'/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7.5'/%3E%3C/svg%3E") center/contain no-repeat}
+/* menu latéral */
+#drawer{position:fixed;inset:0;z-index:30}
+#drawer[hidden]{display:none}
+.dscrim{position:absolute;inset:0;background:rgba(4,6,9,.62);opacity:0;transition:opacity .32s ease}
+.dpanel{position:absolute;top:0;left:0;bottom:0;width:min(304px,84vw);box-sizing:border-box;background:#14171d;border-right:1px solid var(--line);border-radius:0 26px 26px 0;box-shadow:18px 0 40px rgba(0,0,0,.45);display:flex;flex-direction:column;gap:6px;padding:12px 14px 20px;padding-top:max(12px,env(safe-area-inset-top));padding-bottom:max(20px,env(safe-area-inset-bottom));transform:translateX(-105%);transition:transform .44s var(--spr);overflow-y:auto}
+#drawer.open .dscrim{opacity:1}
+#drawer.open .dpanel{transform:none}
+.dtop{display:flex;align-items:center;gap:10px;padding:2px 2px 16px}
+.dtop .logo{height:31px;width:auto;flex:none}
+.dtop b{flex:1 1 auto;font-size:21px;font-weight:800}
+.dtop .menub{background:var(--card2);border:0}
+.dpanel a{display:flex;align-items:center;gap:14px;min-height:58px;padding:0 14px;border-radius:16px;color:var(--txt);text-decoration:none;font-size:19px;font-weight:700;-webkit-tap-highlight-color:transparent;transition:background-color .25s ease}
+.dpanel a svg.i{width:24px;height:24px;color:var(--mut)}
+.dpanel a.on{background:#1b2a45;color:#d6e4ff;font-weight:800}
+.dpanel a.on svg.i{color:#7fb0ff}
+.dpanel a:active{background:#20242d}
+.dpanel hr{border:0;height:1px;background:var(--line);margin:8px 6px;width:auto}
+.dfill{flex:1 1 auto;min-height:12px}
+.dstat{display:flex;align-items:center;gap:10px;width:100%;padding:14px;border-radius:16px;background:var(--card);border:1px solid var(--line);font:inherit;font-size:15.5px;font-weight:600;color:var(--txt);text-align:left}
+button.dstat{cursor:pointer}
+.dstat .status{max-width:none;font-size:15.5px}
+@media (prefers-reduced-motion:reduce){.dscrim,.dpanel{transition:none}}
 </style></head><body><div id="app"></div><script id="state" type="application/json">{"rev":0,"etabs":[],"zones":[],"setupDone":false}</script><script id="main">
 (function(){
 "use strict";
@@ -189,13 +303,63 @@ var PROFILS={
   pourquoi:"Waze pour éviter les bouchons.",
   consignes:["Conduite souple, trajet habituel.","Évite les routes dégradées que tu connais.","Pense aux infos d'accès de l'établissement (entrée, parking, code)."]}
 };
+/* ===== Icônes dessinées (remplacent les emojis) ===== */
+var ICP={
+ menu:'<path d="M4 7h16M4 12h16M4 17h16"/>',
+ back:'<path d="M15 5l-7 7 7 7"/>',
+ chev:'<path d="M9 5l7 7-7 7"/>',
+ up:'<path d="M6 15l6-6 6 6"/>',down:'<path d="M6 9l6 6 6-6"/>',
+ x:'<path d="M6.5 6.5l11 11M17.5 6.5l-11 11"/>',
+ plus:'<path d="M12 5v14M5 12h14"/>',
+ search:'<circle cx="11" cy="11" r="7"/><path d="M20 20l-3.6-3.6"/>',
+ go:'<path d="M5 12h14M13 6l6 6-6 6"/>',
+ siren:'<path d="M7 17v-5a5 5 0 0 1 10 0v5"/><path d="M5 17h14v3H5z"/><path d="M12 3v2M4.5 6.5l1.4 1.4M19.5 6.5l-1.4 1.4"/>',
+ clip:'<rect x="5.5" y="4.5" width="13" height="16.5" rx="2"/><path d="M9 3h6v3H9z"/><path d="M9 11h6M9 15h4"/>',
+ home:'<path d="M4 11l8-7 8 7"/><path d="M6 10v10h12V10"/><path d="M10 20v-5h4v5"/>',
+ route:'<circle cx="6" cy="18.5" r="2.2"/><circle cx="18" cy="5.5" r="2.2"/><path d="M8.2 18.5H15a3.5 3.5 0 0 0 0-7H9a3.5 3.5 0 0 1 0-7h6.8"/>',
+ build:'<path d="M5 21V5.5A1.5 1.5 0 0 1 6.5 4h7A1.5 1.5 0 0 1 15 5.5V21"/><path d="M15 9.5h3.5A1.5 1.5 0 0 1 20 11v10"/><path d="M3 21h18"/><path d="M10 8v4M8 10h4"/>',
+ warn:'<path d="M12 3.5l9 16H3z"/><path d="M12 10v4.5M12 17.2v.3"/>',
+ team:'<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><circle cx="17" cy="9" r="2.5"/><path d="M16.5 14.5a5 5 0 0 1 5 5.5"/>',
+ gear:'<circle cx="12" cy="12" r="3.2"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1"/>',
+ check:'<path d="M5 12.5l4.5 4.5L19 7.5"/>',
+ lock:'<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/>',
+ pin:'<path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/>',
+ flag:'<path d="M5.5 21V4"/><path d="M5.5 4.5h11.5l-2.4 4 2.4 4H5.5"/>',
+ locate:'<circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="2.2"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/>',
+ map:'<path d="M9 4L3.5 6v14L9 18l6 2 5.5-2V4L15 6z"/><path d="M9 4v14M15 6v14"/>',
+ play:'<path d="M7.5 4.8v14.4L19.5 12z" fill="currentColor"/>',
+ copy:'<rect x="8.5" y="8.5" width="11.5" height="11.5" rx="2"/><path d="M15.5 8.5V6A1.5 1.5 0 0 0 14 4.5H6A1.5 1.5 0 0 0 4.5 6v8A1.5 1.5 0 0 0 6 15.5h2.5"/>',
+ sync:'<path d="M19.5 12a7.5 7.5 0 0 1-13.3 4.8"/><path d="M4.5 12A7.5 7.5 0 0 1 17.8 7.2"/><path d="M18.3 3v4.4h-4.4M5.7 21v-4.4h4.4"/>',
+ undo:'<path d="M9 14L4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 0 12h-3"/>',
+ cloud:'<path d="M7 18.5h10a4.5 4.5 0 0 0 .6-9A6 6 0 0 0 6.2 10 4.3 4.3 0 0 0 7 18.5z"/><path d="M9.5 13.8l2 2 3.5-3.6"/>',
+ star:'<path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8-5.2-2.8-5.2 2.8 1-5.8-4.3-4.1 5.9-.9z" fill="currentColor"/>',
+ staro:'<path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8-5.2-2.8-5.2 2.8 1-5.8-4.3-4.1 5.9-.9z"/>',
+ bolt:'<path d="M13 2.5L4.5 14H11l-1 7.5L19.5 10H13z"/>',
+ spine:'<rect x="9" y="2.5" width="6" height="3.6" rx="1.2"/><rect x="8.2" y="7.6" width="7.6" height="3.8" rx="1.2"/><rect x="8.6" y="12.9" width="6.8" height="3.8" rx="1.2"/><rect x="9.6" y="18.2" width="4.8" height="3.3" rx="1.2"/>',
+ preg:'<circle cx="11" cy="4.5" r="2.2"/><path d="M10 8.5c-1.6.9-2.3 2.7-2.3 4.8V21M10 8.5c1.8 0 3 1.4 3.2 3 2.2.6 3.8 2.3 3.8 4.4 0 2-1.6 3.1-3.6 3.1H12V21"/>',
+ band:'<path d="M5.4 13.4l8-8a3.4 3.4 0 0 1 4.8 4.8l-8 8a3.4 3.4 0 0 1-4.8-4.8z"/><path d="M9.5 9.5l5 5"/>',
+ calm:'<circle cx="12" cy="12" r="8.5"/><path d="M8 12.5l2.7 2.7L16 10"/>',
+ road:'<path d="M8 3L5 21M16 3l3 18"/><path d="M12 4v3M12 10.5v3M12 17v3"/>',
+ hop:'<path d="M5 4.5h14v15H5z"/><path d="M9.5 8v8M14.5 8v8M9.5 12h5"/>',
+ cli:'<path d="M10 4h4v6h6v4h-6v6h-4v-6H4v-4h6z"/>',
+ dia:'<path d="M12 3.5s-6 6.6-6 11a6 6 0 0 0 12 0c0-4.4-6-11-6-11z"/>',
+ ehp:'<path d="M4 11l8-7 8 7"/><path d="M6 10v10h12V10"/>',
+ rad:'<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/>'
+};
+function ico(n,c){return '<svg class="i'+(c?" "+c:"")+'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+(ICP[n]||"")+'</svg>';}
+/* type d'établissement : une petite icône de couleur au lieu d'un sous-texte */
+var KC={hop:["#7fb0ff","#16233a"],cli:["#4fd1c1","#12302d"],dia:["#b8a2ff","#261f3d"],ehp:["#ffc061","#3a2a14"],rad:["#f48fc4","#3a1a2c"],pin:["#aab3c2","#232833"]};
+function etKind(x){var t=norm((x&&x.type)||"")+" "+norm((x&&x.nom)||"");
+ if(/dialys/.test(t))return "dia";if(/ehpad|retraite|ssr|readaptation|repos/.test(t))return "ehp";if(/radioth|onco|cancer/.test(t))return "rad";
+ if(/clinique|polyclinique/.test(t))return "cli";if(/hopital|chu|centre hospitalier|urgence/.test(t))return "hop";return "pin";}
+function kindIco(x){var k=etKind(x),c=KC[k];return '<span class="kic" style="color:'+c[0]+';background:'+c[1]+'">'+ico(k)+'</span>';}
 var ETATS=[
- {id:"vitale",ic:"⚡",label:"Urgence vitale",sous:"Détresse, AVC, douleur thoracique, hémorragie…",p:"rapide"},
- {id:"rachis",ic:"🦴",label:"Trauma rachis / bassin / fracture",sous:"Patient immobilisé, matelas coquille",p:"confort"},
- {id:"enceinte",ic:"🤰",label:"Femme enceinte",sous:"Contractions, fin de grossesse",p:"regulier"},
- {id:"fragile",ic:"🤕",label:"Douleur, nausées, patient fragile",sous:"Personne âgée, post-op, malaise",p:"regulier"},
- {id:"peu",ic:"🟢",label:"Peu urgent",sous:"Itinéraire classique, sans contrainte",p:"standard"},
- {id:"programme",ic:"📋",label:"Transport programmé",sous:"Dialyse, consultation, retour domicile",p:"standard"}
+ {id:"vitale",ic:"bolt",label:"Urgence vitale",sous:"Détresse, AVC, douleur thoracique, hémorragie…",p:"rapide"},
+ {id:"rachis",ic:"spine",label:"Trauma rachis / bassin / fracture",sous:"Patient immobilisé, matelas coquille",p:"confort"},
+ {id:"enceinte",ic:"preg",label:"Femme enceinte",sous:"Contractions, fin de grossesse",p:"regulier"},
+ {id:"fragile",ic:"band",label:"Douleur, nausées, patient fragile",sous:"Personne âgée, post-op, malaise",p:"regulier"},
+ {id:"peu",ic:"calm",label:"Peu urgent",sous:"Itinéraire classique, sans contrainte",p:"standard"},
+ {id:"programme",ic:"clip",label:"Transport programmé",sous:"Dialyse, consultation, retour domicile",p:"standard"}
 ];
 var ZTYPES={paves:"Pavés",ralentisseurs:"Ralentisseurs / dos-d'âne",degradee:"Route dégradée / nids-de-poule",virages:"Virages serrés / route sinueuse",travaux:"Travaux / bouchon récurrent"};
 function zKind(t){return t==="ralentisseurs"?"pts":(t==="degradee"?"line":"circle");}
@@ -250,21 +414,24 @@ function save(){
  var ok=true;try{localStorage.setItem(KEY,JSON.stringify(state));}catch(e){ok=false;}
  keepUi();saveStatus=ok?"ok":"fail";paintStatus();
 }
-function paintStatus(){
- var el=document.getElementById("status");if(!el)return;
- var t="",cl="status";
+function stInfo(){
+ var o={t:"",s:"",ic:"",cl:""};
  if(state.mode==="cloud"&&sess){
   var np=(state.pending||[]).length;
-  if(cloud.status==="sync")t="↻ Synchro…";
-  else if(cloud.status==="offline"){t="⚠ Hors ligne"+(np?" · "+np+" en attente":"");cl+=" warn";}
-  else if(cloud.status==="error"){t="⚠ Erreur de synchro";cl+=" warn";}
-  else if(cloud.status==="notmember"){t="⚠ Accès refusé";cl+=" warn";}
-  else if(np){t=np+" modif. en attente";cl+=" warn";}
-  else if(cloud.status==="ok"){t="☁️ Équipe à jour";cl+=" ok";}
+  if(cloud.status==="sync")o={t:"Synchronisation…",s:"Synchro…",ic:"sync",cl:""};
+  else if(cloud.status==="offline")o={t:"Hors ligne"+(np?" · "+np+" en attente":""),s:"Hors ligne",ic:"warn",cl:"warn"};
+  else if(cloud.status==="error")o={t:"Erreur de synchro",s:"Erreur",ic:"warn",cl:"warn"};
+  else if(cloud.status==="notmember")o={t:"Accès refusé",s:"Accès refusé",ic:"warn",cl:"warn"};
+  else if(np)o={t:np+" modif. en attente",s:np+" en attente",ic:"sync",cl:"warn"};
+  else if(cloud.status==="ok")o={t:"Équipe à jour",s:"À jour",ic:"cloud",cl:"ok"};
  }
- else if(saveStatus==="ok"){t="✓ Enregistré sur ce téléphone";cl+=" ok";}
- else if(saveStatus==="fail"){t="⚠ Enregistrement impossible";cl+=" warn";}
- el.className=cl;el.textContent=t;
+ else if(saveStatus==="ok")o={t:"Enregistré sur ce téléphone",s:"Enregistré",ic:"check",cl:"ok"};
+ else if(saveStatus==="fail")o={t:"Enregistrement impossible",s:"Erreur",ic:"warn",cl:"warn"};
+ return o;}
+function paintStatus(){
+ var o=stInfo(),el=document.getElementById("status"),d=document.getElementById("dstatus");
+ if(el){el.className="status"+(o.cl?" "+o.cl:"");el.innerHTML=o.t?ico(o.ic)+"<span>"+esc(o.s)+"</span>":"";if(o.t)el.setAttribute("title",o.t);}
+ if(d){var t=o.t||(state.mode==="cloud"&&sess?"Équipe":"Données sur ce téléphone");d.className="status"+(o.cl?" "+o.cl:"");d.innerHTML=ico(o.ic||(state.mode==="cloud"&&sess?"cloud":"lock"))+"<span>"+esc(t)+"</span>";}
 }
 
 var UA=navigator.userAgent||"";
@@ -278,18 +445,18 @@ function goBtns(L,reco,wl,gl){
 function navBtns(L,reco,gl){var t=L.app?'':' target="_blank" rel="noopener"';
  return '<div class="nav2"><a class="btn'+(reco==="waze"?" pri":"")+'" href="'+L.waze+'"'+t+'>Waze</a><a class="btn'+(reco==="gmaps"?" pri":"")+'" href="'+L.gmaps+'"'+t+'>'+(gl||"Google Maps")+'</a></div>';}
 function secours(L){var t=L.app?'':' target="_blank" rel="noopener"';return '<div class="hint" style="margin-top:8px">En secours : <a href="'+L.waze+'"'+t+' style="color:var(--acc)">Waze</a> · <a href="'+L.gmaps+'"'+t+' style="color:var(--acc)">Google Maps</a></div>';}
-function gpsBtns(L,leg,confort){return '<div class="go"><button class="btn pri" data-a="gps" data-leg="'+leg+'">▶ Démarrer le guidage</button></div><div class="hint" id="gpsMsg">'+(confort?"Le GPS suit le trajet confort choisi ci-dessus.":"")+'</div>'+secours(L);}
+function gpsBtns(L,leg,confort){return '<div class="go"><button class="btn pri" data-a="gps" data-leg="'+leg+'">'+ico("play")+'<span>Démarrer le guidage</span></button></div><div class="hint" id="gpsMsg">'+(confort?"Le GPS suit le trajet confort choisi ci-dessus.":"")+'</div>'+secours(L);}
 function vComfortMini(R){
- if(!R)return '<button class="btn small" style="margin-top:12px" data-a="calcRoute">🗺️ Calculer un trajet confort</button>';
+ if(!R)return '<button class="btn small" style="margin-top:12px" data-a="calcRoute">'+ico("map")+'<span>Calculer un trajet confort</span></button>';
  if(R.status==="loading")return '<div class="spin" style="margin:14px auto 8px;width:30px;height:30px"></div><p class="center" id="rtStep">'+esc(R.step||"Calcul…")+'</p>';
  if(R.status==="error")return '<div class="warnbox">'+esc(R.msg)+'</div><button class="btn small" style="margin-top:10px" data-a="calcRoute">Réessayer</button>';
  var h='<div id="rmap" class="map" style="margin-top:12px"></div>',tmin=Math.min.apply(null,R.cands.map(function(c){return c.time;}));
  R.cands.forEach(function(c,i){
   var parts=[Math.round(c.time/60)+" min",c.km.toFixed(1).replace(".",",")+" km",(R.bumpsOk||c.bumps?c.bumps+" ralentisseur"+(c.bumps>1?"s":""):"ralentisseurs ?")];
   if(c.rough!=null&&c.rough>=20)parts.push(Math.round(c.rough)+" m pavés");
-  if(c.zoneHits)parts.push("⚠ "+c.zoneHits+" zone"+(c.zoneHits>1?"s":""));
+  if(c.zoneHits)parts.push(ico("warn","wc")+" "+c.zoneHits+" zone"+(c.zoneHits>1?"s":""));
   var dt=Math.round((c.time-tmin)/60);
-  h+='<button class="opt'+(i===R.sel?" on":"")+'" data-a="pickRoute" data-i="'+i+'"><b>'+(i===0?"⭐ Conseillé":(c.time===tmin?"Le plus rapide":"Autre option"))+'</b>'+(dt>0?' <span class="tag">+'+dt+' min</span>':'')+'<small>'+parts.join(" · ")+'</small></button>';
+  h+='<button class="opt'+(i===R.sel?" on":"")+'" data-a="pickRoute" data-i="'+i+'"><b>'+(i===0?ico("star","yel")+" Conseillé":(c.time===tmin?"Le plus rapide":"Autre option"))+'</b>'+(dt>0?' <span class="tag">+'+dt+' min</span>':'')+'<small>'+parts.join(" · ")+'</small></button>';
  });
  return h;
 }
@@ -297,10 +464,10 @@ function paintMission(el,e,d,addr){
  var p=PROFILS[e.p],pk=pecInfo();
  if(!pk.addr||!addr){clearRouteMap();el.innerHTML='<div class="empty">Indique la prise en charge et le rendez-vous.</div>';return;}
  var leg=ui.leg===2?2:1;
- var h='<div class="sheet"><div class="band" style="--c:'+p.c+'"><b>📋 Transport programmé</b></div>';
+ var h='<div class="sheet"><div class="band" style="--c:'+p.c+'"><b>'+ico("clip")+'Transport programmé</b></div>';
  if(leg===1){
   var L1=links(pk.addr,"",pk.lat,pk.lon);
-  h+='<div class="blk cur" id="leg1" data-k="leg1"><h3><span class="step-n">1</span>Aller chercher le patient</h3><div class="dest">'+esc(pk.label)+'</div>'+(pk.label!==pk.addr?'<div class="addr">'+esc(pk.addr)+'</div>':'')+(pk.infos?'<div class="infos">📍 '+esc(pk.infos)+'</div>':'')+
+  h+='<div class="blk cur" id="leg1" data-k="leg1"><h3><span class="step-n">1</span>Aller chercher le patient</h3><div class="dest">'+esc(pk.label)+'</div>'+(pk.label!==pk.addr?'<div class="addr">'+esc(pk.addr)+'</div>':'')+(pk.infos?'<div class="infos">'+ico("pin")+' '+esc(pk.infos)+'</div>':'')+
    gpsBtns(L1,1)+'</div>'+
    '<div class="blk next"><span class="step-n">2</span>Rendez-vous : <b>'+esc(d?d.nom:addr)+'</b> · <a href="#" data-a="leg2" style="color:var(--acc);white-space:nowrap">passer à l\'étape 2</a></div></div>';
  }else{
@@ -309,8 +476,8 @@ function paintMission(el,e,d,addr){
   var dl=d||libreLL(addr);
   var L2=links(addr,RD?"":via,dl&&dl.lat,dl&&dl.lon,{wps:wps,origin:RD?[RD.dep.lat,RD.dep.lon]:null,dest:RD?[RD.dest.lat,RD.dest.lon]:null});
   var zs=state.zones.filter(function(z){return p.zones.indexOf(z.type)>=0&&(!z.etab||(d&&z.etab===d.id));});
-  h+='<div class="blk" id="leg1"><button class="check on" style="margin-top:0" data-a="leg1"><span class="box">✓</span><span><b>Patient à bord</b></span></button></div>';
-  h+='<div class="blk cur" id="leg2" data-k="leg2"><h3><span class="step-n">2</span>Conduire au rendez-vous</h3><div class="dest">'+esc(d?d.nom:"Rendez-vous")+'</div><div class="addr">'+esc(addr)+'</div>'+(d&&d.infos?'<div class="infos">📍 '+esc(d.infos)+'</div>':'');
+  h+='<div class="blk" id="leg1"><button class="check on" style="margin-top:0" data-a="leg1"><span class="box">'+ico("check")+'</span><span><b>Patient à bord</b></span></button></div>';
+  h+='<div class="blk cur" id="leg2" data-k="leg2"><h3><span class="step-n">2</span>Conduire au rendez-vous</h3><div class="dest">'+esc(d?d.nom:"Rendez-vous")+'</div><div class="addr">'+esc(addr)+'</div>'+(d&&d.infos?'<div class="infos">'+ico("pin")+' '+esc(d.infos)+'</div>':'');
   if(zs.length){h+='<div style="margin-top:10px">';zs.forEach(function(z){h+='<div class="zone"><span class="tag">'+esc(ZTYPES[z.type]||z.type)+'</span><div><b>'+esc(z.nom)+'</b>'+(z.note?'<div class="addr">'+esc(z.note)+'</div>':"")+'</div></div>';});h+='</div>';}
   h+=vComfortMini(R)+gpsBtns(L2,2,!!RD)+'</div></div>';
  }
@@ -469,10 +636,10 @@ function addSelected(){
 function vSearch(){
  var s=ui.search,h="";
  if(s.step==="start"){
-  h+='<div class="hero"><div class="big">📍</div><h2>'+(state.setupDone?"Rechercher autour de moi":"Bienvenue !")+'</h2><p>Je peux trouver les hôpitaux, urgences, cliniques, centres de dialyse, imagerie et EHPAD autour de toi. Tu choisiras ensuite ceux à garder.</p></div>';
+  h+='<div class="hero"><div class="big">'+ico("pin")+'</div><h2>'+(state.setupDone?"Rechercher autour de moi":"Bienvenue !")+'</h2><p>Je peux trouver les hôpitaux, urgences, cliniques, centres de dialyse, imagerie et EHPAD autour de toi. Tu choisiras ensuite ceux à garder.</p></div>';
   h+='<label>Rayon de recherche</label><div class="chips radius">';
   RADII.forEach(function(r){h+='<button class="chip'+(s.radius===r?" on":"")+'" data-a="radius" data-v="'+r+'">'+r+' km</button>';});
-  h+='</div><button class="btn pri wide" style="margin-top:16px;min-height:60px;font-size:18px" data-a="locate">📍 Utiliser ma position</button>';
+  h+='</div><button class="btn pri wide" style="margin-top:16px;min-height:60px;font-size:18px" data-a="locate">'+ico("locate")+'<span>Utiliser ma position</span></button>';
   h+='<div class="hint">Ton téléphone va te demander l\'autorisation d\'accéder à ta position. Elle sert uniquement à cette recherche et n\'est pas enregistrée.</div>';
   if(s.err==="denied")h+='<div class="warnbox">Localisation refusée. Pour l\'autoriser : dans Chrome, <b>⋮ ▸ Paramètres ▸ Paramètres des sites ▸ Position</b> (ou Réglages Android ▸ Applications ▸ Trajet ▸ Autorisations), puis réessaie. Tu peux aussi chercher autour d\'une ville ci-dessous.</div>';
   else if(s.err==="fail")h+='<div class="warnbox">Position introuvable. Vérifie que la localisation du téléphone est activée, puis réessaie, ou cherche autour d\'une ville ci-dessous.</div>';
@@ -486,7 +653,7 @@ function vSearch(){
  }else if(s.step==="loading"){
   h+='<div class="spin"></div><p class="center">Recherche des établissements à moins de '+s.radius+' km de '+esc(s.center.label)+'…<br>Ça peut prendre jusqu\'à 30 secondes.</p><button class="btn wide" style="margin-top:20px" data-a="searchBack">Annuler</button>';
  }else if(s.step==="error"){
-  h+='<div class="hero"><div class="big">⚠️</div><h2>La recherche n\'a pas abouti</h2><p>Les serveurs OpenStreetMap sont peut-être saturés, ou la connexion est coupée.</p></div><button class="btn pri wide" data-a="retry">Réessayer</button><button class="btn wide" style="margin-top:10px" data-a="searchBack">Retour</button>';
+  h+='<div class="hero"><div class="big">'+ico("warn")+'</div><h2>La recherche n\'a pas abouti</h2><p>Les serveurs OpenStreetMap sont peut-être saturés, ou la connexion est coupée.</p></div><button class="btn pri wide" data-a="retry">Réessayer</button><button class="btn wide" style="margin-top:10px" data-a="searchBack">Retour</button>';
  }else if(s.step==="adding"){
   h+='<div class="spin"></div><p class="center">Ajout des établissements et récupération des adresses…<br><b id="prog">'+s.done+' / '+s.total+'</b></p>';
  }else if(s.step==="review"){
@@ -732,23 +899,23 @@ function startRoute(){
 }
 function vComfort(R,fixedDep){
  var dep=ui.dep&&ui.dep.mode==="addr"?ui.dep:null,h='<div class="blk"><h3>Trajet confort sur carte</h3>';
- if(fixedDep)h+='<div class="addr" style="margin-bottom:8px">Départ : 🏠 lieu de prise en charge ('+esc(fixedDep)+')</div>';
- else h+='<div class="addr" style="margin-bottom:8px">Départ : '+(dep?esc(dep.label||dep.q):"📍 ta position actuelle")+' · <a href="#" data-a="depEdit" style="color:var(--acc)">changer</a>'+(dep?' · <a href="#" data-a="depPos" style="color:var(--acc)">ma position</a>':'')+'</div>';
+ if(fixedDep)h+='<div class="addr" style="margin-bottom:8px">Départ : lieu de prise en charge ('+esc(fixedDep)+')</div>';
+ else h+='<div class="addr" style="margin-bottom:8px">Départ : '+(dep?esc(dep.label||dep.q):"ta position actuelle")+' · <a href="#" data-a="depEdit" style="color:var(--acc)">changer</a>'+(dep?' · <a href="#" data-a="depPos" style="color:var(--acc)">ma position</a>':'')+'</div>';
  if(ui.depEdit&&!fixedDep)h+='<form data-f="depart" class="row" style="flex-wrap:nowrap;margin-bottom:10px"><div class="acw" style="flex:1 1 auto"><input name="q" data-ac="dep" placeholder="Adresse de départ (ex. domicile du patient)" value="'+esc(dep?dep.q:"")+'" autocomplete="off"></div><button class="btn" type="submit">OK</button></form>';
- if(!R)h+='<button class="btn pri wide" data-a="calcRoute">🗺️ Calculer le trajet le plus confortable</button><div class="hint">Compare les itinéraires possibles selon les ralentisseurs, les pavés et routes dégradées (OpenStreetMap) et tes zones placées sur la carte. Compte 5 à 30 secondes.</div>';
+ if(!R)h+='<button class="btn pri wide" data-a="calcRoute">'+ico("map")+'<span>Calculer le trajet le plus confortable</span></button><div class="hint">Compare les itinéraires possibles selon les ralentisseurs, les pavés et routes dégradées (OpenStreetMap) et tes zones placées sur la carte. Compte 5 à 30 secondes.</div>';
  else if(R.status==="loading")h+='<div class="spin" style="margin:14px auto 8px;width:30px;height:30px"></div><p class="center" id="rtStep">'+esc(R.step||"Calcul…")+'</p>';
  else if(R.status==="error")h+='<div class="warnbox">'+esc(R.msg)+'</div><button class="btn wide" style="margin-top:10px" data-a="calcRoute">Réessayer</button>';
  else{
   h+='<div id="rmap" class="map"></div><div class="hint" style="margin-top:6px">En bleu : le trajet choisi. En gris : les autres options (touche-les pour comparer). Points orange : ralentisseurs. Cercles rouges : tes zones.</div>';
   R.cands.forEach(function(c,i){
    var parts=[Math.round(c.time/60)+" min",c.km.toFixed(1).replace(".",",")+" km",(R.bumpsOk||c.bumps?c.bumps+" ralentisseur"+(c.bumps>1?"s":""):"ralentisseurs : ?"),(c.rough==null?"revêtement : ?":(c.rough<20?"pas de pavés ni route dégradée":Math.round(c.rough)+" m pavés / dégradé"))];
-   if(R.zones.length)parts.push(c.zoneHits?"⚠ traverse "+c.zoneHits+" de tes zones":"évite tes zones");
+   if(R.zones.length)parts.push(c.zoneHits?ico("warn","wc")+" traverse "+c.zoneHits+" de tes zones":"évite tes zones");
    var dt=Math.round((c.time-R.baseline.time)/60),isB=c===R.baseline;
-   var t=i===0?(isB?"⭐ Le plus confortable et le plus rapide":"⭐ Le plus confortable"):(isB?"Le plus rapide":"Autre option");
+   var t=i===0?ico("star","yel")+(isB?" Le plus confortable et le plus rapide":" Le plus confortable"):(isB?"Le plus rapide":"Autre option");
    h+='<button class="opt'+(i===R.sel?" on":"")+'" data-a="pickRoute" data-i="'+i+'"><b>'+t+'</b>'+(dt>0?' <span class="tag">+'+dt+' min</span>':'')+'<small>'+parts.join(" · ")+'</small></button>';
   });
   if(!R.bumpsOk)h+='<div class="hint">Ralentisseurs indisponibles pour une partie du secteur (serveurs OpenStreetMap saturés) : recalcule plus tard pour un comptage complet.</div>';
-  h+='<button class="btn small" style="margin-top:10px" data-a="calcRoute">↻ Recalculer</button>';
+  h+='<button class="btn small" style="margin-top:10px" data-a="calcRoute">'+ico("sync")+'<span>Recalculer</span></button>';
  }
  return h+'</div>';
 }
@@ -778,14 +945,14 @@ function zTrace(f){try{var t=JSON.parse(f.elements.trace.value||"[]");return Arr
 function zSetTrace(f,t){f.elements.trace.value=t.length?JSON.stringify(t):"";}
 function zHintTxt(k){return k==="pts"?"Touche la carte sur chaque dos-d'âne (un point par dos-d'âne).":(k==="line"?"Touche le début puis la fin de la portion abîmée : elle sera surlignée en rouge. Ajoute un point au milieu si la route tourne.":"Touche la carte à l'endroit à éviter : la zone sera contournée dans le calcul du trajet confort.");}
 function zCtl(k,zr){
- var b='<button type="button" class="btn small" data-a="zLocate">📍 Ma position</button>';
+ var b='<button type="button" class="btn small" data-a="zLocate">'+ico("locate")+'<span>Ma position</span></button>';
  if(k==="circle")return '<select name="rayon" style="width:auto;min-width:140px">'+[30,60,100,200].map(function(r){return '<option value="'+r+'"'+(zr===r?" selected":"")+'>Rayon '+r+' m</option>';}).join("")+'</select>'+b+'<button type="button" class="btn small" data-a="zClear">Effacer</button>';
- return '<input type="hidden" name="rayon" value="15"><button type="button" class="btn small" data-a="zUndo">↶ Annuler le dernier</button>'+b+'<button type="button" class="btn small" data-a="zClear">Tout effacer</button>';
+ return '<input type="hidden" name="rayon" value="15"><button type="button" class="btn small" data-a="zUndo">'+ico("undo")+'<span>Annuler le dernier</span></button>'+b+'<button type="button" class="btn small" data-a="zClear">Tout effacer</button>';
 }
 function zStatus(f){var el=document.getElementById("zpos");if(!el)return;var k=f.getAttribute("data-k"),t=zTrace(f);
- if(k==="pts")el.textContent=t.length?"✓ "+t.length+" dos-d'âne placé"+(t.length>1?"s":"")+" sur la carte.":"Aucun dos-d'âne placé pour l'instant.";
- else if(k==="line")el.textContent=ui.zbusy?"Tracé du tronçon le long de la route…":(t.length>1?"✓ Tronçon de "+Math.round(lenM(t))+" m surligné en rouge.":((ui.zv||[]).length===1?"Touche maintenant la fin du tronçon.":(isNaN(parseFloat(f.elements.lat.value))?"Aucun tronçon tracé pour l'instant.":"Ancienne zone en cercle (pointillés) : trace le tronçon pour le surligner en rouge.")));
- else{var la=parseFloat(f.elements.lat.value);el.textContent=isNaN(la)?"Pas encore placée : sans position, la zone sert seulement de rappel.":"✓ Zone placée sur la carte.";}}
+ if(k==="pts")el.innerHTML=t.length?ico("check","okc")+" "+t.length+" dos-d'âne placé"+(t.length>1?"s":"")+" sur la carte.":"Aucun dos-d'âne placé pour l'instant.";
+ else if(k==="line")el.innerHTML=ui.zbusy?"Tracé du tronçon le long de la route…":(t.length>1?ico("check","okc")+" Tronçon de "+Math.round(lenM(t))+" m surligné en rouge.":((ui.zv||[]).length===1?"Touche maintenant la fin du tronçon.":(isNaN(parseFloat(f.elements.lat.value))?"Aucun tronçon tracé pour l'instant.":"Ancienne zone en cercle (pointillés) : trace le tronçon pour le surligner en rouge.")));
+ else{var la=parseFloat(f.elements.lat.value);el.innerHTML=isNaN(la)?"Pas encore placée : sans position, la zone sert seulement de rappel.":ico("check","okc")+" Zone placée sur la carte.";}}
 function zSnap(f){
  var v=(ui.zv||[]).slice(),my=ui.zsnap=(ui.zsnap||0)+1;
  if(v.length<2){zSetTrace(f,v);if(ui.zdraw)ui.zdraw();return;}
@@ -839,7 +1006,7 @@ function initZoneMap(){
 }
 /* ===== Carte plein écran de toutes les zones signalées par l'équipe ===== */
 function vFullMap(){
- return '<div class="fullmap"><div class="fmbar"><b>🗺️ Zones signalées</b><button class="btn small" data-a="zFullLocate">📍</button><button class="btn small" data-a="zFullClose">✕ Fermer</button></div>'+
+ return '<div class="fullmap"><div class="fmbar"><b>'+ico("map")+' Zones signalées</b><button class="btn small" data-a="zFullLocate" aria-label="Ma position">'+ico("locate")+'</button><button class="btn small" data-a="zFullClose">'+ico("x")+'<span>Fermer</span></button></div>'+
   '<div id="fmap"></div><div class="fmleg"><span><i style="background:#f08c00;border-radius:50%"></i>Dos-d\'âne</span><span><i style="background:#ff2d2d;height:5px"></i>Route dégradée</span><span><i style="background:rgba(217,58,63,.35);border:2px solid #d93a3f;border-radius:50%"></i>Autre zone</span><span><i style="background:#2f6fe0;border-radius:50%"></i>Établissement</span></div></div>';
 }
 function initFullMap(){
@@ -912,8 +1079,8 @@ function acHide(){AC.seq++;clearTimeout(AC.t);AC.items=[];Array.prototype.forEac
 function acPaint(inp,items,msg){var b=acBox(inp),was=b.hidden;AC.items=items;
  if(!items.length&&!msg){b.hidden=true;b.innerHTML="";return;}
  var h="";items.forEach(function(it,i){
-  var pick='<button type="button" data-a="acPick" data-i="'+i+'">'+(it.etab?(it.fav?"⭐ ":"🏥 "):"📍 ")+'<b>'+esc(it.main)+'</b>'+((it.sub||it.etab)?'<small>'+(it.etab?"Lieu enregistré · ":"")+esc(it.sub)+'</small>':'')+'</button>';
-  if(it.etab&&AC.field!=="dep"){var t=it.fav?"Retirer des favoris":"Ajouter aux favoris";h+='<div class="acrow">'+pick+'<button type="button" class="fav'+(it.fav?" on":"")+'" data-a="acFav" data-i="'+i+'" aria-label="'+t+'" title="'+t+'">'+(it.fav?"★":"☆")+'</button></div>';}
+  var pick='<button type="button" data-a="acPick" data-i="'+i+'">'+(it.etab?(it.fav?ico("star","yel"):ico("build")):ico("pin"))+" "+'<b>'+esc(it.main)+'</b>'+((it.sub||it.etab)?'<small>'+(it.etab?"Lieu enregistré · ":"")+esc(it.sub)+'</small>':'')+'</button>';
+  if(it.etab&&AC.field!=="dep"){var t=it.fav?"Retirer des favoris":"Ajouter aux favoris";h+='<div class="acrow">'+pick+'<button type="button" class="fav'+(it.fav?" on":"")+'" data-a="acFav" data-i="'+i+'" aria-label="'+t+'" title="'+t+'">'+ico(it.fav?"star":"staro")+'</button></div>';}
   else h+=pick;});
  if(msg)h+='<div class="wait">'+esc(msg)+'</div>';
  else if(items.some(function(it){return !it.etab;}))h+='<div class="src">Adresses © contributeurs OpenStreetMap · IGN</div>';
@@ -955,18 +1122,20 @@ function acPick(i){
 }
 document.addEventListener("mousedown",function(ev){if(ev.target.closest&&ev.target.closest(".ac"))ev.preventDefault();});
 document.addEventListener("focusout",function(ev){var t=ev.target;if(t&&t.getAttribute&&t.getAttribute("data-ac"))setTimeout(function(){if(document.activeElement!==t)acHide();},250);});
-document.addEventListener("keydown",function(ev){if(ev.key==="Enter"&&ev.target&&ev.target.id==="tagNew"){ev.preventDefault();addTagFromInput(ev.target.form);return;}if(ev.key==="Escape")acHide();
+document.addEventListener("keydown",function(ev){if(ev.key==="Enter"&&ev.target&&ev.target.id==="tagNew"){ev.preventDefault();addTagFromInput(ev.target.form);return;}if(ev.key==="Escape"){acHide();if(ui.menu)closeMenu();}
  if(ev.key==="Enter"&&ev.target&&(ev.target.id==="pec"||ev.target.id==="libre")){ev.preventDefault();var bt=document.querySelector('[data-a="'+ev.target.id+'Ok"]');if(bt)bt.click();}});
 
 /* ===== Lieux enregistrés (rendez-vous et prise en charge) : favoris affichés, recherche dans tous les lieux ===== */
-function chipHtml(x,k){var f=isFav(x.id),t=f?"Retirer des favoris":"Ajouter aux favoris",cur=k==="pec"?ui.pec.etab:ui.destId;
- return '<div class="chipw"><button class="chip'+(cur===x.id?" on":"")+'" data-a="'+(k==="pec"?"pecPick":"dest")+'" data-id="'+x.id+'">'+esc(x.nom)+'<small>'+esc(x.type)+'</small></button><button type="button" class="fav'+(f?" on":"")+'" data-a="fav" data-id="'+x.id+'" aria-label="'+t+'" title="'+t+'">'+(f?"★":"☆")+'</button></div>';}
+function placeRow(x,k){var f=isFav(x.id),t=f?"Retirer des favoris":"Ajouter aux favoris",cur=k==="pec"?ui.pec.etab:ui.destId;
+ return '<div class="prow"><button class="pbtn'+(cur===x.id?" on":"")+'" data-a="'+(k==="pec"?"pecPick":"dest")+'" data-id="'+x.id+'">'+kindIco(x)+'<b>'+esc(x.nom)+'</b></button><button type="button" class="pfav'+(f?" on":"")+'" data-a="fav" data-id="'+x.id+'" aria-label="'+t+' : '+esc(x.nom)+'" title="'+t+'">'+ico(f?"star":"staro")+'</button></div>';}
 function placeList(k){
  var cur=k==="pec"?ui.pec.etab:ui.destId,h="";
- var nf=state.etabs.filter(function(x){return isFav(x.id);}).length;
- var list=state.etabs.filter(function(x){return isFav(x.id)||x.id===cur;});
- h+=nf?'<div class="sub">⭐ Tes favoris</div>':'<div class="sub">Aucun favori : tape le nom d\'un lieu enregistré dans la barre et touche ☆ pour le garder ici.</div>';
- if(list.length){h+='<div class="chips">';list.forEach(function(x){h+=chipHtml(x,k);});h+='</div>';}
+ var favs=state.etabs.filter(function(x){return isFav(x.id)||x.id===cur;});
+ h+='<h3 class="lh">Favoris</h3>';
+ if(favs.length)h+='<div class="plist">'+favs.map(function(x){return placeRow(x,k);}).join("")+'</div>';
+ else h+='<div class="sub">'+(k==="pec"?"Aucun favori : cherche un lieu enregistré dans la barre et touche son étoile pour le garder ici.":"Aucun favori : touche l'étoile d'un lieu pour le garder en haut.")+'</div>';
+ if(k==="dest"){var rest=state.etabs.filter(function(x){return !isFav(x.id)&&x.id!==cur;}).sort(function(a,b){return String(a.nom).localeCompare(String(b.nom),"fr");});
+  if(rest.length)h+='<h3 class="lh">Tous les lieux</h3><div class="plist">'+rest.map(function(x){return placeRow(x,k);}).join("")+'</div>';}
  return h;}
 function destList(){return placeList("dest");}
 function paintDest(){var el=document.getElementById("destList");if(el)el.innerHTML=placeList("dest");var el2=document.getElementById("pecList");if(el2)el2.innerHTML=placeList("pec");}
@@ -1106,8 +1275,36 @@ function sync(first){
 }
 function inviteMsg(email){return "Salut ! Je t'ai ajouté dans l'appli Ambumaps de l'équipe. Ouvre ce lien sur ton téléphone avec Chrome : "+APP_URL+" puis choisis « Première connexion » avec l'adresse "+email+" et crée ton mot de passe. Ensuite, menu ⋮ ▸ « Installer l'application ».";}
 
+var PAGE_T={etablissements:"Établissements",zones:"Zones à éviter",equipe:"Équipe",parametres:"Paramètres"};
 function headerHtml(nav){
- return '<header><div class="top"'+(nav?'':' style="padding-bottom:10px"')+'><h1>'+LOGO+'Ambumaps</h1><div class="hr"><div id="status" class="status"></div>'+(nav?'<a href="#parametres" class="gear'+(ui.tab==="parametres"?" on":"")+'" aria-label="Paramètres">⚙️</a>':'')+(isCloud()&&!ui.auth?'<button class="sync" data-a="sync" aria-label="Synchroniser">↻</button>':'')+'</div></div>'+(nav||'')+'</header>';
+ var title=nav&&ui.tab!=="trajet"?PAGE_T[ui.tab]:"",cl=isCloud()&&!ui.auth;
+ return '<header><div class="top">'+(nav?'<button class="menub" data-a="menu" aria-label="Ouvrir le menu" aria-haspopup="true">'+ico("menu")+'</button>':'')+
+  (title?'<h1 class="pt">'+esc(title)+'</h1>':'<h1>'+LOGO+'Ambumaps</h1>')+
+  '<div class="hr">'+(cl?'<button id="status" class="status" data-a="sync" aria-label="Synchroniser"></button>':'<div id="status" class="status"></div>')+'</div></div></header>';
+}
+/* page Urgence / Transport programmé : titre du bouton choisi, retour, étapes */
+function flowHeader(){
+ var prog=ui.mode==="programme",steps=prog?["Patient","Rendez-vous","Départ"]:["Patient","Destination"],act=prog?curStep():(u1()?1:2),s="";
+ steps.forEach(function(l,i){var n=i+1;s+='<div class="fs'+(n<act?" fsd":(n===act?" on":""))+'"><i></i><span>'+n+' · '+l+'</span></div>';});
+ return '<header class="fh '+(prog?"prog":"urg")+'"><div class="top"><button class="menub back" data-a="back" aria-label="Retour">'+ico("back")+'</button><span class="fic">'+ico(prog?"clip":"siren")+'</span><h1>'+(prog?"Transport programmé":"Urgence")+'</h1></div>'+
+  '<div class="fsteps" style="grid-template-columns:repeat('+steps.length+',minmax(0,1fr))">'+s+'</div></header>';
+}
+/* menu latéral (bouton en haut à gauche) */
+function drawerHtml(){
+ var it=function(k,ic,l){var on=ui.tab===k;return '<a href="#'+k+'" data-a="menuGo"'+(on?' class="on" aria-current="page"':'')+'>'+ico(ic)+'<span>'+l+'</span></a>';},cl=state.mode==="cloud"&&sess;
+ return '<div class="dscrim" data-a="menuClose"></div><div class="dpanel" role="navigation" aria-label="Menu principal"><div class="dtop">'+LOGO+'<b>Ambumaps</b><button class="menub" data-a="menuClose" aria-label="Fermer le menu">'+ico("x")+'</button></div>'+
+  it("trajet","route","Trajet")+it("etablissements","build","Établissements")+it("zones","warn","Zones à éviter")+(isCloud()?it("equipe","team","Équipe"):"")+'<hr>'+it("parametres","gear","Paramètres")+
+  '<div class="dfill"></div>'+(cl?'<button class="dstat" data-a="sync" aria-label="Synchroniser"><span id="dstatus"></span></button>':'<div class="dstat"><span id="dstatus"></span></div>')+'</div>';
+}
+function openMenu(){
+ var d=document.getElementById("drawer");if(!d){d=document.createElement("div");d.id="drawer";d.hidden=true;document.body.appendChild(d);}
+ d.innerHTML=drawerHtml();ui.menu=true;d.hidden=false;paintStatus();void d.offsetWidth;d.classList.add("open");ensureTrap();
+ try{d.querySelector(".dtop .menub").focus({preventScroll:true});}catch(e){}
+}
+function closeMenu(){
+ var d=document.getElementById("drawer");ui.menu=false;if(!d||d.hidden)return;d.classList.remove("open");
+ var done=function(){if(!ui.menu){d.hidden=true;d.innerHTML="";}};if(RM)done();else setTimeout(done,420);
+ var mb=document.querySelector('[data-a="menu"]');try{if(mb)mb.focus({preventScroll:true});}catch(e){}
 }
 /* logo : repère bleu avec l'étoile de vie */
 var LOGO='<svg class="logo" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="112 66 288 380"><path d="M256 76c-74 0-134 60-134 134 0 98 134 226 134 226s134-128 134-226c0-74-60-134-134-134z" fill="#2f6fe0"/><circle cx="256" cy="210" r="86" fill="#fff"/><rect x="232.5" y="138.0" width="47.0" height="144.0" fill="#1e4fb0" transform="rotate(0 256.0 210.0)"/><rect x="232.5" y="138.0" width="47.0" height="144.0" fill="#1e4fb0" transform="rotate(60 256.0 210.0)"/><rect x="232.5" y="138.0" width="47.0" height="144.0" fill="#1e4fb0" transform="rotate(120 256.0 210.0)"/><path d="M256.0 153.8 L256.0 268.2" stroke="#fff" stroke-width="7.8" stroke-linecap="round" fill="none"/><path d="M259.1 257.8 C240.4 253.7 238.3 239.1 256.0 235.0 C273.7 230.8 273.7 216.2 256.0 212.1 C238.3 207.9 238.3 193.4 256.0 189.2 C269.5 186.1 271.6 176.7 263.3 170.5" stroke="#fff" stroke-width="6.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/><ellipse cx="265.4" cy="167.4" rx="7.8" ry="5.2" fill="#fff" transform="rotate(-35 265.4 167.4)"/></svg>';
@@ -1122,8 +1319,8 @@ function render0(){
  if(ui.auth){app.innerHTML=headerHtml("")+mo+'<div data-k="au-'+ui.auth.step+'">'+vAuth()+'</div></main>';paintStatus();return;}
  if(!ui.search&&state.mode==="local"&&!state.setupDone)ui.search={step:"start",radius:20};
  if(ui.search){app.innerHTML=headerHtml("")+mo+'<div data-k="se-'+ui.search.step+'">'+vSearch()+'</div></main>';paintStatus();if(ui.search.step==="review")syncGroups();return;}
- var nav='<nav>'+tabLink("trajet","Trajet")+tabLink("etablissements","Établissements")+tabLink("zones","Zones")+(isCloud()?tabLink("equipe","Équipe"):"")+'<i class="tabind"></i></nav>';
- var html=headerHtml(nav)+mo;
+ var flowP=ui.tab==="trajet"&&!!ui.mode;
+ var html=flowP?flowHeader()+'<main class="flow '+(ui.mode==="programme"?"prog":"urg")+'">':headerHtml(true)+mo;
  if(isCloud()&&cloud.status==="notmember")html+='<div class="warnbox" style="margin:0 0 12px">Ton compte n\'est pas (ou plus) dans l\'équipe. Demande à ton responsable de t\'ajouter, ou déconnecte-toi depuis l\'onglet Équipe.</div>';
  if(ui.tab==="trajet")html+=vTrajet();else if(ui.tab==="etablissements")html+=vEtabs();else if(ui.tab==="zones")html+=vZones();else if(ui.tab==="parametres")html+=vParams();else html+=vEquipe();
  html+="</main>";
@@ -1148,20 +1345,37 @@ function placeInd(app,prev,anim){var nav=app.querySelector("nav"),ind=nav&&nav.q
  ind.style.width=w+"px";ind.style.transform="translateX("+l+"px)";ind.style.opacity="1";
  if(anim){if(prev&&(prev.l!==l||prev.w!==w))ind.animate([{transform:"translateX("+prev.l+"px)",width:prev.w+"px"},{transform:"translateX("+l+"px)",width:w+"px"}],{duration:DUR,easing:SPR});
   else if(!prev)ind.animate([{opacity:0},{opacity:1}],{duration:260,easing:"ease-out"});}}
+function pageKey(){if(ui.auth)return "auth";if(ui.search)return "search";return ui.tab==="trajet"&&ui.mode?"flow":ui.tab;}
+var RPAGE=null;
+/* entrée dans Urgence / Transport programmé : la page arrive de la droite ; retour : elle repart vers la droite */
+function pageSlide(oh,ohr,om,omr,dir){
+ var app=document.getElementById("app"),g=document.createElement("div");g.setAttribute("aria-hidden","true");
+ g.style.cssText="position:fixed;left:0;top:0;right:0;bottom:0;pointer-events:none;overflow:hidden;background:var(--bg);z-index:"+(dir>0?"-1":"6");
+ if(om&&omr&&omr.height>0){var gm=toGhost(om,{left:omr.left,top:omr.top,width:omr.width,height:Math.min(omr.height,innerHeight-Math.max(0,omr.top)+40)});gm.style.overflow="hidden";g.appendChild(gm);}
+ if(oh&&ohr&&ohr.height>0)g.appendChild(toGhost(oh,ohr));
+ document.body.appendChild(g);
+ var o={duration:DUR+60,easing:SPR},a;
+ if(dir>0){app.animate([{transform:"translateX(100%)"},{transform:"none"}],o);a=g.animate([{transform:"none",opacity:1},{transform:"translateX(-24%)",opacity:.45}],{duration:DUR+60,easing:SPR,fill:"forwards"});}
+ else{app.animate([{transform:"translateX(-24%)",opacity:.45},{transform:"none",opacity:1}],o);a=g.animate([{transform:"none"},{transform:"translateX(100%)"}],{duration:DUR+60,easing:SPR,fill:"forwards"});}
+ var end=function(){if(g.parentNode)g.remove();};a.onfinish=a.oncancel=end;setTimeout(end,DUR+600);
+}
 function render(){
  var app=document.getElementById("app"),first=RTAB===null,oldTab=ui.tab,anim=!first&&canAnim(),dir=ui.navDir||0;ui.navDir=0;
- var before={},oldMain=null,oldMainR=null,indR=null;
+ var before={},oldMain=null,oldMainR=null,indR=null,oldPK=RPAGE,oldHd=null,oldHdR=null;
  if(anim){
   Array.prototype.forEach.call(app.querySelectorAll("main [data-k]"),function(x){before[x.getAttribute("data-k")]={el:x,r:x.getBoundingClientRect(),top:!!(x.parentElement&&x.parentElement.tagName==="MAIN")};});
   oldMain=app.querySelector("main");if(oldMain)oldMainR=oldMain.getBoundingClientRect();indR=navRect(app);
+  oldHd=app.querySelector("header");if(oldHd)oldHdR=oldHd.getBoundingClientRect();
  }
  render0();
+ var pk=pageKey(),slide=!!oldPK&&oldPK!==pk&&(oldPK==="flow"||pk==="flow")&&oldTab===ui.tab;
  Array.prototype.forEach.call(app.querySelectorAll(".confirm:not([data-k])"),function(x){x.setAttribute("data-k","cf-"+ui.confirm);});
  Array.prototype.forEach.call(app.querySelectorAll("form.form:not([data-k])"),function(x){x.setAttribute("data-k","fm-"+x.getAttribute("data-f")+(ui.form&&ui.form.id||""));});
  placeInd(app,indR,anim);
  var mn=app.querySelector("main");
- if(anim&&mn){try{if(oldTab!==ui.tab)crossMain(oldMain,oldMainR,mn);else flip(before,app,dir);}catch(e){}}
- RTAB=ui.tab;ensureTrap();
+ if(slide)window.scrollTo(0,0);
+ if(anim&&mn){try{if(slide)pageSlide(oldHd,oldHdR,oldMain,oldMainR,pk==="flow"?1:-1);else if(oldTab!==ui.tab)crossMain(oldMain,oldMainR,mn);else flip(before,app,dir);}catch(e){}}
+ RTAB=ui.tab;RPAGE=pk;ensureTrap();
 }
 /* changement d'onglet : fondu enchaîné */
 function crossMain(old,r,mn){
@@ -1191,6 +1405,7 @@ function flip(before,app,dir){
 }
 /* Bouton retour du téléphone : revient d'une étape au lieu de quitter l'appli */
 function canBack(){
+ if(ui.menu)return true;
  if(ui.auth||ui.search)return false;
  if(ui.form||ui.invite||ui.confirm)return true;
  if(ui.tab==="zones"&&ui.zfull)return true;
@@ -1202,6 +1417,7 @@ function ensureTrap(){
  try{history.pushState({ambTrap:1},"",location.href);TRAP.on=true;TRAP.href=location.href;}catch(e){}
 }
 function goBack(){
+ if(ui.menu){closeMenu();ensureTrap();return;}
  acHide();
  if(ui.confirm)ui.confirm=null;
  else if(ui.form)ui.form=null;
@@ -1253,14 +1469,14 @@ function vAuth(){
 function vParams(){
  var h='<h2 data-k="pd">Dépôt</h2>';
  if(depot&&!ui.depotEdit){
-  h+='<div class="donegrp" data-k="dep1"><div class="done"><span class="step-n">✓</span><div class="k"><small>Adresse du dépôt</small><b>'+esc(depot.nom&&depot.nom!==depot.addr?depot.nom+" · "+depot.addr:depot.addr)+'</b></div><button class="btn small" data-a="depotEdit">Modifier</button></div></div>'+
+  h+='<div class="donegrp" data-k="dep1"><div class="done"><span class="dic">'+ico("home")+'</span><div class="k"><small>Adresse du dépôt</small><b>'+esc(depot.nom&&depot.nom!==depot.addr?depot.nom+" · "+depot.addr:depot.addr)+'</b></div><button class="btn small" data-a="depotEdit">Modifier</button></div></div>'+
    '<button class="btn small danger" style="margin-top:12px" data-a="depotDel">Supprimer l\'adresse du dépôt</button>';
  }else{
   h+='<section data-k="dep2">'+(ui.depotThen==="go"?'<div class="infos" style="margin-bottom:10px;white-space:normal">Indique l\'adresse du dépôt une seule fois : le GPS partira juste après.</div>':'')+
-   searchRow("depot","🔍 Adresse du dépôt",ui.depotQ||"")+(depot?'<button class="btn small" style="margin-top:10px" data-a="depotCancel">Annuler</button>':'')+'</section>';
+   searchRow("depot","Adresse du dépôt",ui.depotQ||"")+(depot?'<button class="btn small" style="margin-top:10px" data-a="depotCancel">Annuler</button>':'')+'</section>';
  }
  if(ui.depotMsg)h+='<div class="warnbox" style="margin-top:10px">'+esc(ui.depotMsg)+'</div>';
- h+='<div class="hint">Enregistrée sur ce téléphone, tu ne la tapes qu\'une fois. Le bouton « 🏠 Retour au dépôt » de l\'onglet Trajet lance directement le GPS.</div>';
+ h+='<div class="hint">Enregistrée sur ce téléphone, tu ne la tapes qu\'une fois. Le bouton « Retour au dépôt » de l\'accueil lance directement le GPS.</div>';
  return h;}
 function setDepot(x){saveDepot(x);ui.depotEdit=false;ui.depotQ="";ui.depotMsg="";acHide();
  if(ui.depotThen==="go"){ui.depotThen=null;if(location.hash!=="#trajet"){location.hash="#trajet";}else render();startDepotGps();return;}
@@ -1270,7 +1486,7 @@ function startDepotGps(){
  if(!depot){ui.depotEdit=true;ui.depotThen="go";ui.depotFocus=true;location.hash="#parametres";return;}
  try{if(window.speechSynthesis){var su=new SpeechSynthesisUtterance(" ");su.volume=0;speechSynthesis.speak(su);}}catch(e){}
  var bs=document.querySelectorAll('[data-a="depotGo"]');Array.prototype.forEach.call(bs,function(b){b.disabled=true;b.textContent="Ouverture du GPS…";});
- var reset=function(){Array.prototype.forEach.call(document.querySelectorAll('[data-a="depotGo"]'),function(b){b.disabled=false;b.textContent="🏠 Retour au dépôt";});};
+ var reset=function(){Array.prototype.forEach.call(document.querySelectorAll('[data-a="depotGo"]'),function(b){b.disabled=false;b.innerHTML=ico("home")+"<span>Retour au dépôt</span>";});};
  loadGps().then(function(){reset();
   window.AmbuGPS.start({dest:{lat:depot.lat,lon:depot.lon,nom:depot.nom||"Dépôt",addr:depot.addr,id:""},shape:null,start:ui.lastPos||null,zoneTypes:PROFILS.standard.zones,destEtab:"",pickup:false,urg:false,
    label:"Retour au dépôt",links:links(depot.addr,"",depot.lat,depot.lon),sim:/[?&]sim\b/.test(location.search)});
@@ -1280,13 +1496,13 @@ function vEquipe(){
  var me=cloud.me,adm=isAdmin(),h="",np=(state.pending||[]).length;
  h+='<h2>Mon compte</h2><div class="item"><div class="t">'+esc((me&&me.nom)||sess.email)+(me?' <span class="tag blue">'+(adm?"Responsable":"Membre")+'</span>':'')+'</div><div class="m">'+esc(sess.email)+'</div>'+
   '<div class="m">'+(cloud.last?"Dernière synchro à "+new Date(cloud.last).toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit"}):"Pas encore synchronisé")+(np?" · "+np+" modification(s) en attente":"")+'</div>'+
-  '<div class="row"><button class="btn small" data-a="sync">↻ Synchroniser</button><button class="btn small danger" data-a="logout">Se déconnecter</button></div></div>';
+  '<div class="row"><button class="btn small" data-a="sync">'+ico("sync")+'<span>Synchroniser</span></button><button class="btn small danger" data-a="logout">Se déconnecter</button></div></div>';
  h+='<h2>Équipe ('+cloud.members.length+')</h2>';
  if(adm){
   if(ui.invite)h+='<form class="form" data-f="invite"><label>E-mail du collègue</label><input name="email" type="email" required placeholder="prenom.nom@exemple.fr" autocomplete="off"><label>Nom (facultatif)</label><input name="nom" placeholder="Prénom N." autocomplete="off"><label>Rôle</label><select name="role"><option value="membre">Membre</option><option value="admin">Responsable (peut inviter)</option></select>'+
    (ui.inviteErr?'<div class="warnbox">'+esc(ui.inviteErr)+'</div>':'')+'<div class="row" style="margin-top:14px"><button class="btn pri" type="submit">Ajouter</button><button class="btn" type="button" data-a="inviteCancel">Annuler</button></div></form>';
-  else h+='<button class="btn pri wide" style="margin-bottom:12px" data-a="inviteShow">＋ Inviter un collègue</button>';
-  if(ui.invited)h+='<div class="infos" style="margin-bottom:12px">✓ '+esc(ui.invited)+' peut maintenant créer son mot de passe. Envoie-lui ce message :<br><br>'+esc(inviteMsg(ui.invited))+'<div class="row" style="margin-top:8px"><button class="btn small" data-a="copyInvite">📋 Copier le message</button></div><div class="hint" id="invMsg"></div></div>';
+  else h+='<button class="btn pri wide" style="margin-bottom:12px" data-a="inviteShow">'+ico("plus")+'<span>Inviter un collègue</span></button>';
+  if(ui.invited)h+='<div class="infos" style="margin-bottom:12px">'+ico("check","okc")+' '+esc(ui.invited)+' peut maintenant créer son mot de passe. Envoie-lui ce message :<br><br>'+esc(inviteMsg(ui.invited))+'<div class="row" style="margin-top:8px"><button class="btn small" data-a="copyInvite">'+ico("copy")+'<span>Copier le message</span></button></div><div class="hint" id="invMsg"></div></div>';
  }
  if(ui.teamErr)h+='<div class="warnbox" style="margin-bottom:10px">'+esc(ui.teamErr)+'</div>';
  cloud.members.forEach(function(m){var self=m.email===sess.email;
@@ -1304,59 +1520,57 @@ function stepDone(k){
  if(k===1)return (ui.mode==="programme"||u1())?pecDone():!!(ui.etat&&ui.etat!=="programme");
  if(u1())return true;
  return !!(ui.destId&&etab(ui.destId))||!!(ui.libreOk&&ui.libre.trim());}
-function searchRow(id,ph,val){return '<div class="row nowrap"><div class="acw" style="flex:1 1 auto"><input id="'+id+'" data-ac="'+id+'" type="text" placeholder="'+esc(ph)+'" value="'+esc(val)+'" autocomplete="off" enterkeyhint="done"></div><button class="btn pri" data-a="'+id+'Ok">OK</button></div>';}
+function searchRow(id,ph,val){return '<div class="srow"><div class="acw"><div class="sfield">'+ico("search")+'<input id="'+id+'" data-ac="'+id+'" type="text" placeholder="'+esc(ph)+'" aria-label="'+esc(ph)+'" value="'+esc(val)+'" autocomplete="off" enterkeyhint="done"></div></div><button class="btn pri sgo" data-a="'+id+'Ok" aria-label="Valider">'+ico("go")+'</button></div>';}
 function curStep(){if(ui.edit===1||ui.edit===2)return ui.edit;return !stepDone(1)?1:(!stepDone(2)?2:3);}
-function doneRow(k,label,val){return '<div class="done" data-k="d'+k+'"><span class="step-n">✓</span><div class="k"><small>'+esc(label)+'</small><b>'+esc(val)+'</b></div><button class="btn small" data-a="editStep" data-id="'+k+'">Modifier</button></div>';}
+function doneRow(k,ic,label,val){return '<div class="done" data-k="d'+k+'"><span class="dic" title="'+esc(label)+'">'+ico(ic)+'</span><div class="k"><span class="sr">'+esc(label)+' : </span><b>'+esc(val)+'</b></div><button class="btn small" data-a="editStep" data-id="'+k+'">Modifier</button></div>';}
 function goStep(){ui.edit=null;ui.editFrom=null;ui.navDir=1;keepUi();render();scrollStep();}
 function scrollStep(){window.scrollTo({top:0,behavior:"smooth"});}
 function vTrajet(){
  var md=ui.mode,prog=md==="programme",ua=md==="urgence"&&!u1(),ub=md==="urgence"&&!ua,pec=prog||ub;
- // ua : urgence, patient à bord (même menu que l'urgence, sans le choix du type de transport)
- var h=ua?'':'<h2 data-k="tt">Type de transport</h2><div class="modes'+(md?" picked":"")+'" data-k="modes">'+
-  '<button class="mode'+(md==="urgence"?" on":"")+'" style="--c:#d93a3f" data-a="mode" data-id="urgence" data-k="mu" data-kh><span class="ic">🚨</span><b>Urgence</b></button>'+
-  '<button class="mode'+(prog?" on":"")+'" style="--c:#2f9e6a" data-a="mode" data-id="programme" data-k="mp" data-kh><span class="ic">📋</span><b>Transport programmé</b></button></div>';
- var depB='<button class="btn wide depotb" data-k="depb" data-a="depotGo">🏠 Retour au dépôt</button>';
- if(!md)return h+depB;
- var cs=curStep(),n=state.etabs.length;
+ var depB='<button class="btn wide depotb" data-k="depb" data-a="depotGo">'+ico("home")+'<span>Retour au dépôt</span></button>';
+ // accueil : deux grands boutons, la suite s'ouvre en page entière
+ if(!md)return '<h1 class="ttl" data-k="tt">Nouveau trajet</h1><div class="bigmodes" data-k="modes">'+
+  '<button class="bigmode urg" data-a="mode" data-id="urgence"><span class="bic">'+ico("siren")+'</span><b>Urgence</b>'+ico("chev","chv")+'</button>'+
+  '<button class="bigmode prog" data-a="mode" data-id="programme"><span class="bic">'+ico("clip")+'</span><b>Transport programmé</b>'+ico("chev","chv")+'</button></div>'+depB;
+ var h="",cs=curStep(),n=state.etabs.length;
  // Étapes validées : regroupées dans un seul encadré
  if(cs>1){
-  var g="",gc="";
-  if(pec){var pk=pecInfo();g+=doneRow(1,prog?"Prise en charge":"Adresse du patient",pk.label||pk.addr);if(ub)gc="#d93a3f";}
-  else{var e=curEtat();g+=doneRow(1,"État du patient",e.ic+" "+e.label);gc=PROFILS[e.p].c;}
-  if(cs>2&&!ub){var d=ui.destId?etab(ui.destId):null;g+=doneRow(2,prog?"Rendez-vous":"Destination",d?d.nom:ui.libre.trim());}
-  h+='<div class="donegrp" data-kh data-k="done'+(ua?"2":"")+'"'+(gc?' style="--c:'+gc+'"':'')+'>'+g+'</div>';
+  var g="";
+  if(pec){var pk=pecInfo();g+=doneRow(1,"pin",prog?"Prise en charge":"Adresse du patient",pk.label||pk.addr);}
+  else{var e=curEtat();g+=doneRow(1,e.ic,"État du patient",e.label);}
+  if(cs>2&&!ub){var d=ui.destId?etab(ui.destId):null;g+=doneRow(2,"flag",prog?"Rendez-vous":"Destination",d?d.nom:ui.libre.trim());}
+  h+='<div class="donegrp" data-kh data-k="done'+(ua?"2":"")+'">'+g+'</div>';
  }
  var sk=md+(ua?"2":"");
  // Étape en cours
  if(cs===1){
   h+='<section data-k="s1'+sk+'">';
   if(pec){
-   h+='<h2 id="stepCur">1 · '+(prog?"Prise en charge du patient":"Adresse du patient")+'</h2>'+searchRow("pec",n?"🔍 Adresse du patient ou lieu enregistré":"🔍 Adresse du patient",ui.pec.etab?"":ui.pec.q)+
-    '<div class="hint">L\'adresse du patient reste sur ce téléphone, jamais dans la base de l\'équipe.</div>';
-   if(n)h+='<div id="pecList" style="margin-top:12px">'+placeList("pec")+'</div>';
-   if(!ui.edit)h+=depB;
+   h+='<h2 id="stepCur" class="q">'+(prog?"Où récupérer le patient ?":"Où est le patient ?")+'</h2>'+searchRow("pec",n?"Adresse ou lieu enregistré":"Adresse du patient",ui.pec.etab?"":ui.pec.q)+
+    '<div class="hint lockh">'+ico("lock")+'<span>L\'adresse du patient reste sur ce téléphone, jamais dans la base de l\'équipe.</span></div>';
+   if(n)h+='<div id="pecList">'+placeList("pec")+'</div>';
   }else{
-   h+='<h2 id="stepCur">1 · État du patient</h2><div class="tiles">';
+   h+='<h2 id="stepCur" class="q">Quel est l\'état du patient ?</h2><div class="tiles">';
    ETATS.forEach(function(e){if(e.id==="programme")return;var p=PROFILS[e.p];
-    h+='<button class="tile'+(ui.etat===e.id?" on":"")+'" style="--c:'+p.c+'" data-a="etat" data-id="'+e.id+'"><span class="ic">'+e.ic+'</span><span><b>'+esc(e.label)+'</b><small>'+esc(e.sous)+'</small></span></button>';});
+    h+='<button class="tile'+(ui.etat===e.id?" on":"")+'" style="--c:'+p.c+'" data-a="etat" data-id="'+e.id+'"><span class="ic">'+ico(e.ic)+'</span><span><b>'+esc(e.label)+'</b><small>'+esc(e.sous)+'</small></span></button>';});
    h+='</div>';
   }
   return h+'</section>';
  }
  if(cs===2){
-  h+='<section data-k="s2'+sk+'"><h2 id="stepCur">2 · '+(prog?"Lieu du rendez-vous":"Destination")+'</h2>'+searchRow("libre",n?"🔍 Lieu enregistré ou adresse":"🔍 Adresse",ui.destId?"":ui.libre);
-  if(!n)h+='<div class="empty" style="margin-top:12px">Aucun établissement enregistré.<button class="btn pri wide" style="margin-top:10px" data-a="searchStart">📍 Rechercher autour de moi</button></div>';
-  else h+='<div id="destList" style="margin-top:12px">'+destList()+'</div>';
+  h+='<section data-k="s2'+sk+'"><h2 id="stepCur" class="q">Où va le patient ?</h2>'+searchRow("libre",n?"Lieu ou adresse":"Adresse",ui.destId?"":ui.libre);
+  if(!n)h+='<div class="empty" style="margin-top:12px">Aucun établissement enregistré.<button class="btn pri wide" style="margin-top:10px" data-a="searchStart">'+ico("locate")+'<span>Rechercher autour de moi</span></button></div>';
+  else h+='<div id="destList">'+destList()+'</div>';
   return h+'</section>';
  }
- return h+'<section data-k="s3'+sk+'"><h2 id="stepCur">'+(prog?"3 · Feuille de mission":(ub?"2 · Feuille d'intervention":"3 · Feuille de route"))+'</h2><div id="feuille"></div></section>';
+ return h+'<section data-k="s3'+sk+'"><h2 id="stepCur" class="q">'+(prog?"Feuille de mission":(ub?"Feuille d'intervention":"Feuille de route"))+'</h2><div id="feuille"></div></section>';
 }
 function paintUrgence(el){
  var pk=pecInfo();
  if(!pk.addr){clearRouteMap();el.innerHTML='<div class="empty">Indique l\'adresse du patient.</div>';return;}
  var L1=links(pk.addr,"",pk.lat,pk.lon);
- var h='<div class="sheet"><div class="band" style="--c:#d93a3f"><b>🚨 Urgence</b></div>'+
-  '<div class="blk cur" id="leg1" data-k="u1"><h3><span class="step-n">1</span>Aller chez le patient</h3><div class="dest">'+esc(pk.label)+'</div>'+(pk.label!==pk.addr?'<div class="addr">'+esc(pk.addr)+'</div>':'')+(pk.infos?'<div class="infos">📍 '+esc(pk.infos)+'</div>':'')+
+ var h='<div class="sheet"><div class="band" style="--c:#d93a3f"><b>'+ico("siren")+'Urgence</b></div>'+
+  '<div class="blk cur" id="leg1" data-k="u1"><h3><span class="step-n">1</span>Aller chez le patient</h3><div class="dest">'+esc(pk.label)+'</div>'+(pk.label!==pk.addr?'<div class="addr">'+esc(pk.addr)+'</div>':'')+(pk.infos?'<div class="infos">'+ico("pin")+' '+esc(pk.infos)+'</div>':'')+
   gpsBtns(L1,1)+'</div>'+
   '<div class="blk next"><span class="step-n">2</span>Patient à bord : état du patient et destination · <a href="#" data-a="leg2" style="color:var(--acc);white-space:nowrap">passer à l\'étape 2</a></div></div>';
  h+='<button class="btn reset" data-a="reset">Fin d\'intervention</button>';
@@ -1379,7 +1593,7 @@ function paintFeuille(){
  var zs=state.zones.filter(function(z){return p.zones.indexOf(z.type)>=0&&(!z.etab||(d&&z.etab===d.id));});
  var h='<div class="sheet"><div class="band" style="--c:'+p.c+'"><b>Profil : '+esc(p.nom)+'</b><span>'+esc(e.label)+' — '+esc(p.resume)+'</span></div>';
  h+='<div class="blk"><h3>Destination</h3><div class="dest">'+esc(d?d.nom:"Adresse ponctuelle")+'</div><div class="addr">'+esc(addr)+'</div>';
- if(d&&d.infos)h+='<div class="infos">📍 '+esc(d.infos)+'</div>';
+ if(d&&d.infos)h+='<div class="infos">'+ico("pin")+' '+esc(d.infos)+'</div>';
  h+='</div>';
  if(via)h+='<div class="blk"><h3>Passage conseillé</h3>Via <b>'+esc(via)+'</b> <span class="tag blue">inclus dans Google Maps</span></div>';
  h+='<div class="blk"><h3>Zones à éviter si elles sont sur ta route</h3>';
@@ -1390,8 +1604,8 @@ function paintFeuille(){
  h+='</ul></div></div>';
  if(!classic)h+=vComfort(R);
  var why=RD&&!classic?"Le GPS suit le trajet confort choisi ci-dessus.":(e.p==="rapide"?"Itinéraire le plus rapide, en évitant les bouchons signalés par l'équipe.":e.id==="peu"?"Itinéraire classique, en évitant les bouchons signalés par l'équipe.":"Calcule le trajet confort ci-dessus pour que le GPS le suive, ou démarre directement.");
- h+='<div class="go"><button class="btn pri" data-a="gps" data-leg="0">▶ Démarrer le guidage</button></div><div class="hint" id="gpsMsg">'+esc(why)+'</div>'+secours(L);
- h+='<button class="btn reset" data-a="copy" data-addr="'+esc(addr)+'">📋 Copier l\'adresse</button><div class="hint" id="copyMsg"></div>';
+ h+='<div class="go"><button class="btn pri" data-a="gps" data-leg="0">'+ico("play")+'<span>Démarrer le guidage</span></button></div><div class="hint" id="gpsMsg">'+esc(why)+'</div>'+secours(L);
+ h+='<button class="btn reset" data-a="copy" data-addr="'+esc(addr)+'">'+ico("copy")+'<span>Copier l\'adresse</span></button><div class="hint" id="copyMsg"></div>';
  h+='<button class="btn reset" data-a="reset">Fin d\'intervention</button>';
  h+='<div class="foot">Prépare le trajet avant de démarrer : ne manipule pas le téléphone en roulant. Les bouchons, accidents et dangers affichés dans le GPS viennent des signalements de l\'équipe. Itinéraires calculés avec Valhalla et les données © contributeurs OpenStreetMap. L\'appli ne remplace ni la régulation ni le code de la route.</div>';
  clearRouteMap();el.innerHTML=h;
@@ -1404,15 +1618,15 @@ function filterEtabs(){var q=norm(ui.etabQ||""),w=q?q.split(" "):[],shown=0,all=
 function vEtabs(){
  var h="";
  if(ui.form&&ui.form.kind==="etab")h+=fEtab(ui.form.id?etab(ui.form.id):null);
- else h+='<button class="btn pri wide" style="margin-bottom:10px" data-a="searchStart">📍 Rechercher autour de moi</button><button class="btn wide" style="margin-bottom:14px" data-a="newEtab">＋ Ajouter un établissement à la main</button>';
+ else h+='<button class="btn pri wide" style="margin-bottom:10px" data-a="searchStart">'+ico("locate")+'<span>Rechercher autour de moi</span></button><button class="btn wide" style="margin-bottom:14px" data-a="newEtab">'+ico("plus")+'<span>Ajouter un établissement à la main</span></button>';
  if(!state.etabs.length&&!ui.form)h+='<div class="empty">Aucun établissement. Lance une recherche autour de toi ou ajoute-les à la main. Pense ensuite à noter l\'entrée à prendre, le code du portail ou le parking : ils s\'afficheront sur la feuille de route.</div>';
  var n=state.etabs.length;
- if(n&&!ui.form)h+='<div class="acw" style="margin-bottom:12px"><input id="etabQ" type="search" placeholder="🔍 Rechercher un établissement" value="'+esc(ui.etabQ||"")+'" autocomplete="off" enterkeyhint="search"></div><div class="empty" id="etabNone" hidden>Aucun établissement ne correspond à ta recherche.</div>';
+ if(n&&!ui.form)h+='<div class="acw" style="margin-bottom:12px"><div class="sfield">'+ico("search")+'<input id="etabQ" type="search" placeholder="Rechercher un établissement" aria-label="Rechercher un établissement" value="'+esc(ui.etabQ||"")+'" autocomplete="off" enterkeyhint="search"></div></div><div class="empty" id="etabNone" hidden>Aucun établissement ne correspond à ta recherche.</div>';
  if(isCloud()&&isAdmin()&&state.localBackup&&state.localBackup.etabs&&state.localBackup.etabs.length)h+='<div class="infos" style="margin-bottom:12px;white-space:normal">Tu avais '+state.localBackup.etabs.length+' établissement(s) sur ce téléphone avant de te connecter.<div class="row" style="margin-top:8px"><button class="btn small pri" data-a="pushBackup">Les envoyer à l\'équipe</button><button class="btn small" data-a="dropBackup">Ignorer</button></div></div>';
  state.etabs.forEach(function(x,i){
   h+='<div class="item" data-q="'+esc(norm(x.nom+" "+x.type+" "+x.adresse+" "+(x.infos||"")))+'"><div class="t"><span style="color:var(--mut)">'+(i+1)+'.</span> '+esc(x.nom)+' '+tagsHtml(x,true)+'</div><div class="m">'+esc(x.adresse)+'</div>'+
-   (x.infos?'<div class="x">📍 '+esc(x.infos)+'</div>':"")+(x.via?'<div class="m">Passage confort : via '+esc(x.via)+'</div>':"")+(isCloud()&&x.majPar?'<div class="m" style="font-size:12.5px">Modifié par '+esc(nameOf(x.majPar))+'</div>':"")+
-   '<div class="row"><button class="btn small favb'+(isFav(x.id)?" on":"")+'" data-a="fav" data-id="'+x.id+'">'+(isFav(x.id)?"★ Favori":"☆ Favori")+'</button>'+(i>0?'<button class="btn small" data-a="up" data-id="'+x.id+'" aria-label="Monter">▲</button>':"")+(i<n-1?'<button class="btn small" data-a="down" data-id="'+x.id+'" aria-label="Descendre">▼</button>':"")+'<button class="btn small" data-a="editEtab" data-id="'+x.id+'">Modifier</button><button class="btn small danger" data-a="askDel" data-k="etab" data-id="'+x.id+'">Supprimer</button></div>'+
+   (x.infos?'<div class="x">'+ico("pin")+' '+esc(x.infos)+'</div>':"")+(x.via?'<div class="m">Passage confort : via '+esc(x.via)+'</div>':"")+(isCloud()&&x.majPar?'<div class="m" style="font-size:12.5px">Modifié par '+esc(nameOf(x.majPar))+'</div>':"")+
+   '<div class="row"><button class="btn small favb'+(isFav(x.id)?" on":"")+'" data-a="fav" data-id="'+x.id+'">'+(isFav(x.id)?ico("star")+"<span>Favori</span>":ico("staro")+"<span>Favori</span>")+'</button>'+(i>0?'<button class="btn small" data-a="up" data-id="'+x.id+'" aria-label="Monter">'+ico("up")+'</button>':"")+(i<n-1?'<button class="btn small" data-a="down" data-id="'+x.id+'" aria-label="Descendre">'+ico("down")+'</button>':"")+'<button class="btn small" data-a="editEtab" data-id="'+x.id+'">Modifier</button><button class="btn small danger" data-a="askDel" data-k="etab" data-id="'+x.id+'">Supprimer</button></div>'+
    (ui.confirm===x.id?'<div class="confirm">Supprimer « '+esc(x.nom)+' » ?<div class="row"><button class="btn small danger" data-a="delEtab" data-id="'+x.id+'">Oui, supprimer</button><button class="btn small" data-a="noDel">Annuler</button></div></div>':"")+'</div>';});
  if(n&&(!isCloud()||isAdmin())){h+='<button class="btn small danger" style="margin-top:6px" data-a="askDel" data-id="ALL">Vider toute la liste</button>'+
   (ui.confirm==="ALL"?'<div class="confirm">Supprimer les '+n+' établissements de ta liste ? Tes infos d\'arrivée seront perdues.<div class="row"><button class="btn small danger" data-a="delAll">Oui, tout supprimer</button><button class="btn small" data-a="noDel">Annuler</button></div></div>':"");}
@@ -1441,9 +1655,9 @@ function fEtab(x){
 function vZones(){
  var h="";
  if(ui.zfull)return vFullMap();
- if(!(ui.form&&ui.form.kind==="zone")&&state.zones.length)h+='<button class="btn wide" style="margin-bottom:10px" data-a="zFull">🗺️ Voir toutes les zones sur la carte</button>';
+ if(!(ui.form&&ui.form.kind==="zone")&&state.zones.length)h+='<button class="btn wide" style="margin-bottom:10px" data-a="zFull">'+ico("map")+'<span>Voir toutes les zones sur la carte</span></button>';
  if(ui.form&&ui.form.kind==="zone"){var z=null;state.zones.forEach(function(q){if(q.id===ui.form.id)z=q;});h+=fZone(z);}
- else h+='<button class="btn pri" style="width:100%;margin-bottom:14px" data-a="newZone">＋ Ajouter une zone à éviter</button>';
+ else h+='<button class="btn pri" style="width:100%;margin-bottom:14px" data-a="newZone">'+ico("plus")+'<span>Ajouter une zone à éviter</span></button>';
  if(!state.zones.length&&!ui.form)h+='<div class="empty">Note ici ce que tu connais du terrain et qu\'aucun GPS ne sait : rue pavée, série de dos-d\'âne, route défoncée, virages serrés… La feuille de route te les rappellera selon l\'état du patient.</div>';
  state.zones.forEach(function(z){var d=z.etab?etab(z.etab):null;
   h+='<div class="item"><div class="t">'+esc(z.nom)+'</div><div class="m"><span class="tag">'+esc(ZTYPES[z.type]||z.type)+'</span> · '+(d?"vers "+esc(d.nom):"toutes destinations")+'</div>'+zGeomTxt(z)+(z.note?'<div class="x">'+esc(z.note)+'</div>':"")+(isCloud()&&z.majPar?'<div class="m" style="font-size:12.5px">Ajouté par '+esc(nameOf(z.majPar))+'</div>':"")+
@@ -1452,9 +1666,9 @@ function vZones(){
  return h;
 }
 function zGeomTxt(z){var g=zGeom(z);if(!g)return "";
- if(g.k==="pts")return '<div class="m">📍 '+g.c.length+" dos-d'âne placé"+(g.c.length>1?"s":"")+' sur la carte</div>';
- if(g.k==="line")return '<div class="m">🟥 Tronçon de '+Math.round(lenM(g.c))+' m surligné sur la carte</div>';
- return '<div class="m">📍 Placée sur la carte · rayon '+g.r+' m</div>';}
+ if(g.k==="pts")return '<div class="m">'+ico("pin")+' '+g.c.length+" dos-d'âne placé"+(g.c.length>1?"s":"")+' sur la carte</div>';
+ if(g.k==="line")return '<div class="m">'+ico("road","redc")+' Tronçon de '+Math.round(lenM(g.c))+' m surligné sur la carte</div>';
+ return '<div class="m">'+ico("pin")+' Placée sur la carte · rayon '+g.r+' m</div>';}
 function fZone(z){
  z=z||{nom:"",type:"ralentisseurs",etab:"",note:""};
  var k=zKind(z.type),tr=(k!=="circle"&&z.trace&&z.trace.length)?z.trace:[],placed=typeof z.lat==="number"&&typeof z.lon==="number",zr=z.rayon||60;
@@ -1494,7 +1708,7 @@ function startGps(leg){
   if(btn){btn.disabled=false;paintFeuille();}
   window.AmbuGPS.start({dest:t,shape:cand?cand.shape:null,start:cand?[R.dep.lat,R.dep.lon]:(ui.lastPos||null),zoneTypes:p.zones,destEtab:t.id,pickup:pickup,urg:ug,
    label:(ug?"Urgence · aller au patient":pickup?"Prise en charge":({vitale:"Urgence vitale",rachis:"Trauma immobilisé",enceinte:"Femme enceinte",fragile:"Patient fragile",peu:"Peu urgent",programme:"Transport programmé"}[e.id]||e.label))+(cand?" · trajet confort":""),links:links(t.addr,"",t.lat,t.lon),sim:/[?&]sim\b/.test(location.search)});
- },function(err){if(btn){btn.disabled=false;btn.textContent="▶ Démarrer le guidage";}if(msg)msg.textContent=netErr(err)?"Pas de connexion internet : utilise Waze ou Google Maps en secours.":err.message;});
+ },function(err){if(btn){btn.disabled=false;btn.innerHTML=ico("play")+"<span>Démarrer le guidage</span>";}if(msg)msg.textContent=netErr(err)?"Pas de connexion internet : utilise Waze ou Google Maps en secours.":err.message;});
 }
 window.AMB={get state(){return state;},ui:ui,api:api,isCloud:isCloud,netErr:netErr,valhalla:valhalla,decode6:decode6,distM:distM,linePolys:linePolys,circlePoly:circlePoly,midChemins:midChemins,edgeMid:edgeMid,
  zGeom:zGeom,zoneRow:zoneRow,enqueue:enqueue,save:save,uid:uid,esc:esc,nameOf:nameOf,me:function(){return sess?sess.email:"";},getBumps:getBumps,acFetch:acFetch,
@@ -1512,6 +1726,10 @@ window.AMB={get state(){return state;},ui:ui,api:api,isCloud:isCloud,netErr:netE
 document.addEventListener("click",function(ev){
  var b=ev.target.closest("[data-a]");if(!b)return;
  var a=b.getAttribute("data-a"),id=b.getAttribute("data-id");
+ if(a==="menu"){openMenu();return;}
+ if(a==="menuClose"){closeMenu();return;}
+ if(a==="menuGo"){closeMenu();return;}
+ if(a==="back"){goBack();return;}
  if(a==="mode"){if(ui.mode!==id){ui.edit=null;ui.editFrom=null;ui.mode=id;ui.route=null;ui.dep=null;ui.depEdit=false;ui.leg=1;ui.etat=id==="programme"?"programme":(ui.etat==="programme"?null:ui.etat);keepUi();render();}}
  else if(a==="etat"){ui.etat=id;goStep();}
  else if(a==="dest"){ui.destId=id;ui.libre="";ui.libreGeo=null;ui.libreOk=false;ui.filtre="";goStep();}
@@ -1528,15 +1746,15 @@ document.addEventListener("click",function(ev){
  else if(a==="acPick"){acPick(+b.getAttribute("data-i"));}
  else if(a==="acFav"){var ai=AC.items[+b.getAttribute("data-i")];if(ai&&ai.etab){toggleFav(ai.etab);ai.fav=isFav(ai.etab);if(AC.input)acPaint(AC.input,AC.items,"");paintDest();}}
  else if(a==="copy"){var ad=b.getAttribute("data-addr");var msg=document.getElementById("copyMsg");
-  var ok=function(){if(msg)msg.textContent="✓ Adresse copiée : ouvre Waze ou Google Maps et colle-la dans la recherche.";};
+  var ok=function(){if(msg)msg.innerHTML=ico("check","okc")+" Adresse copiée : ouvre Waze ou Google Maps et colle-la dans la recherche.";};
   var ko=function(){if(msg)msg.textContent="Copie bloquée ici. Adresse : "+ad;};
   try{navigator.clipboard.writeText(ad).then(ok,ko);}catch(e){ko();}}
  else if(a==="exp"){var txt=JSON.stringify(state);var bm=document.getElementById("bkMsg");
-  try{navigator.clipboard.writeText(txt).then(function(){bm.textContent="✓ Données copiées : colle-les dans une note ou un message à toi-même.";},function(){bm.textContent="Copie bloquée.";});}catch(e){bm.textContent="Copie bloquée.";}}
+  try{navigator.clipboard.writeText(txt).then(function(){bm.innerHTML=ico("check","okc")+" Données copiées : colle-les dans une note ou un message à toi-même.";},function(){bm.textContent="Copie bloquée.";});}catch(e){bm.textContent="Copie bloquée.";}}
  else if(a==="impShow"){ui.imp=!ui.imp;render();}
  else if(a==="imp"){var bm2=document.getElementById("bkMsg");try{var d=JSON.parse(document.getElementById("impTxt").value);
   if(!d||!Array.isArray(d.etabs)||!Array.isArray(d.zones))throw 0;d.rev=Math.max(d.rev||0,state.rev||0);state=d;ui.imp=false;save();render();
-  var b3=document.getElementById("bkMsg");if(b3)b3.textContent="✓ Données restaurées.";}catch(e){bm2.textContent="Ces données ne sont pas valides.";}}
+  var b3=document.getElementById("bkMsg");if(b3)b3.innerHTML=ico("check","okc")+" Données restaurées.";}catch(e){bm2.textContent="Ces données ne sont pas valides.";}}
  else if(a==="searchStart"){startSearch();}
  else if(a==="searchSkip"){endSearch();}
  else if(a==="searchBack"){var s0=ui.search;if(s0){s0.step="start";s0.results=null;render();window.scrollTo(0,0);}}
@@ -1563,7 +1781,7 @@ document.addEventListener("click",function(ev){
  else if(a==="sync"){sync();}
  else if(a==="inviteShow"){ui.invite=true;ui.inviteErr="";ui.invited=null;render();}
  else if(a==="inviteCancel"){ui.invite=false;render();}
- else if(a==="copyInvite"){var im=document.getElementById("invMsg");try{navigator.clipboard.writeText(inviteMsg(ui.invited)).then(function(){if(im)im.textContent="✓ Message copié.";},function(){if(im)im.textContent="Copie bloquée : recopie le message à la main.";});}catch(e){}}
+ else if(a==="copyInvite"){var im=document.getElementById("invMsg");try{navigator.clipboard.writeText(inviteMsg(ui.invited)).then(function(){if(im)im.innerHTML=ico("check","okc")+" Message copié.";},function(){if(im)im.textContent="Copie bloquée : recopie le message à la main.";});}catch(e){}}
  else if(a==="role"){var mm=null;cloud.members.forEach(function(m){if(m.email===id)mm=m;});if(mm)teamAction(api("PATCH","membres?email=eq."+encodeURIComponent(id),{role:mm.role==="admin"?"membre":"admin"},"return=minimal"));}
  else if(a==="delMember"){ui.confirm=null;teamAction(api("DELETE","membres?email=eq."+encodeURIComponent(id)));}
  else if(a==="pushBackup"){var bk=state.localBackup||{etabs:[],zones:[]},ids={},osms={},base2=nextOrdre(),newE=[],newZ=[];
