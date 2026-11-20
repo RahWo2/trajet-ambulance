@@ -281,6 +281,33 @@ h3.lh{font-size:14.5px;font-weight:700;letter-spacing:.4px;text-transform:upperc
 button.dstat{cursor:pointer}
 .dstat .status{max-width:none;font-size:15.5px}
 @media (prefers-reduced-motion:reduce){.dscrim,.dpanel{transition:none}}
+
+/* feuille de mission : récapitulatif des 2 adresses puis départ */
+.recap{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:4px 14px}
+.rstop{position:relative;display:flex;align-items:flex-start;gap:14px;padding:16px 0}
+.rstop+.rstop{border-top:1px solid var(--line)}
+.rstop:first-child::after{content:"";position:absolute;left:19px;top:60px;bottom:-16px;width:2px;background:repeating-linear-gradient(to bottom,#4a5160 0 5px,transparent 5px 10px)}
+.rdot{position:relative;z-index:1;width:40px;height:40px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;background:#20242d;color:var(--mut);transition:background-color .35s ease,color .35s ease}
+.rdot svg.i{width:22px;height:22px}
+.rstop.cur .rdot{background:#2f9e6a;color:#fff;box-shadow:0 0 0 4px rgba(47,158,106,.22)}
+.rstop.fini .rdot{background:#163a28;color:#5fe39a}
+.rtx{flex:1 1 auto;min-width:0}
+.rtx small{display:block;font-size:12.5px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;color:var(--mut)}
+.rstop.cur .rtx small{color:#5fe39a}
+.rstop.fini .rtx small{color:#5fe39a}
+.rtx b{display:block;font-size:19px;font-weight:800;line-height:1.25;margin-top:3px;overflow-wrap:anywhere}
+.rstop.fini .rtx b{color:#c3c9d4}
+.ra{display:block;font-size:15px;color:#b4bcc8;margin-top:3px;overflow-wrap:anywhere}
+.ri{display:flex;gap:6px;align-items:flex-start;font-size:14.5px;color:#ffc061;margin-top:7px}
+.ri svg.i{width:16px;height:16px;margin-top:2px}
+.rstop .btn.small{flex:0 0 auto;align-self:center}
+.rz{margin-top:14px}
+.rz h3.lh{margin-top:0}
+.mgo .btn.pri{min-height:68px;font-size:20px;border-radius:18px}
+.btn.legb{margin-top:12px;min-height:56px;width:100%;font-size:16.5px}
+.btn.legb svg.i{color:var(--mut)}
+.rcomf{margin-top:18px}
+.rcomf>.btn.small{width:100%;min-height:52px}
 </style></head><body><div id="app"></div><script id="state" type="application/json">{"rev":0,"etabs":[],"zones":[],"setupDone":false}</script><script id="main">
 (function(){
 "use strict";
@@ -445,7 +472,7 @@ function goBtns(L,reco,wl,gl){
 function navBtns(L,reco,gl){var t=L.app?'':' target="_blank" rel="noopener"';
  return '<div class="nav2"><a class="btn'+(reco==="waze"?" pri":"")+'" href="'+L.waze+'"'+t+'>Waze</a><a class="btn'+(reco==="gmaps"?" pri":"")+'" href="'+L.gmaps+'"'+t+'>'+(gl||"Google Maps")+'</a></div>';}
 function secours(L){var t=L.app?'':' target="_blank" rel="noopener"';return '<div class="hint" style="margin-top:8px">En secours : <a href="'+L.waze+'"'+t+' style="color:var(--acc)">Waze</a> · <a href="'+L.gmaps+'"'+t+' style="color:var(--acc)">Google Maps</a></div>';}
-function gpsBtns(L,leg,confort){return '<div class="go"><button class="btn pri" data-a="gps" data-leg="'+leg+'">'+ico("play")+'<span>Démarrer le guidage</span></button></div><div class="hint" id="gpsMsg">'+(confort?"Le GPS suit le trajet confort choisi ci-dessus.":"")+'</div>'+secours(L);}
+function gpsBtns(L,leg,confort){return '<div class="go"><button class="btn pri" data-a="gps" data-leg="'+leg+'">'+ico("play")+'<span>Démarrer le guidage</span></button></div><div class="hint" id="gpsMsg">'+(confort?"Le GPS suit le trajet confort choisi.":"")+'</div>'+secours(L);}
 function vComfortMini(R){
  if(!R)return '<button class="btn small" style="margin-top:12px" data-a="calcRoute">'+ico("map")+'<span>Calculer un trajet confort</span></button>';
  if(R.status==="loading")return '<div class="spin" style="margin:14px auto 8px;width:30px;height:30px"></div><p class="center" id="rtStep">'+esc(R.step||"Calcul…")+'</p>';
@@ -463,27 +490,30 @@ function vComfortMini(R){
 function paintMission(el,e,d,addr){
  var p=PROFILS[e.p],pk=pecInfo();
  if(!pk.addr||!addr){clearRouteMap();el.innerHTML='<div class="empty">Indique la prise en charge et le rendez-vous.</div>';return;}
- var leg=ui.leg===2?2:1;
- var h='<div class="sheet"><div class="band" style="--c:'+p.c+'"><b>'+ico("clip")+'Transport programmé</b></div>';
- if(leg===1){
-  var L1=links(pk.addr,"",pk.lat,pk.lon);
-  h+='<div class="blk cur" id="leg1" data-k="leg1"><h3><span class="step-n">1</span>Aller chercher le patient</h3><div class="dest">'+esc(pk.label)+'</div>'+(pk.label!==pk.addr?'<div class="addr">'+esc(pk.addr)+'</div>':'')+(pk.infos?'<div class="infos">'+ico("pin")+' '+esc(pk.infos)+'</div>':'')+
-   gpsBtns(L1,1)+'</div>'+
-   '<div class="blk next"><span class="step-n">2</span>Rendez-vous : <b>'+esc(d?d.nom:addr)+'</b> · <a href="#" data-a="leg2" style="color:var(--acc);white-space:nowrap">passer à l\'étape 2</a></div></div>';
- }else{
-  var R=(ui.route&&ui.route.key===routeKey())?ui.route:null,RD=(R&&R.status==="done")?R:null,sel=RD?RD.cands[RD.sel]:null;
-  var wps=sel?routeWaypoints(sel,RD.baseline):[],via=(d&&d.via)?d.via:"";
-  var dl=d||libreLL(addr);
-  var L2=links(addr,RD?"":via,dl&&dl.lat,dl&&dl.lon,{wps:wps,origin:RD?[RD.dep.lat,RD.dep.lon]:null,dest:RD?[RD.dest.lat,RD.dest.lon]:null});
-  var zs=state.zones.filter(function(z){return p.zones.indexOf(z.type)>=0&&(!z.etab||(d&&z.etab===d.id));});
-  h+='<div class="blk" id="leg1"><button class="check on" style="margin-top:0" data-a="leg1"><span class="box">'+ico("check")+'</span><span><b>Patient à bord</b></span></button></div>';
-  h+='<div class="blk cur" id="leg2" data-k="leg2"><h3><span class="step-n">2</span>Conduire au rendez-vous</h3><div class="dest">'+esc(d?d.nom:"Rendez-vous")+'</div><div class="addr">'+esc(addr)+'</div>'+(d&&d.infos?'<div class="infos">'+ico("pin")+' '+esc(d.infos)+'</div>':'');
-  if(zs.length){h+='<div style="margin-top:10px">';zs.forEach(function(z){h+='<div class="zone"><span class="tag">'+esc(ZTYPES[z.type]||z.type)+'</span><div><b>'+esc(z.nom)+'</b>'+(z.note?'<div class="addr">'+esc(z.note)+'</div>':"")+'</div></div>';});h+='</div>';}
-  h+=vComfortMini(R)+gpsBtns(L2,2,!!RD)+'</div></div>';
+ var leg=ui.leg===2?2:1,R=null,RD=null,L,zs=[];
+ if(leg===1)L=links(pk.addr,"",pk.lat,pk.lon);
+ else{
+  R=(ui.route&&ui.route.key===routeKey())?ui.route:null;RD=(R&&R.status==="done")?R:null;var sel=RD?RD.cands[RD.sel]:null;
+  var wps=sel?routeWaypoints(sel,RD.baseline):[],via=(d&&d.via)?d.via:"",dl=d||libreLL(addr);
+  L=links(addr,RD?"":via,dl&&dl.lat,dl&&dl.lon,{wps:wps,origin:RD?[RD.dep.lat,RD.dep.lon]:null,dest:RD?[RD.dest.lat,RD.dest.lon]:null});
+  zs=state.zones.filter(function(z){return p.zones.indexOf(z.type)>=0&&(!z.etab||(d&&z.etab===d.id));});
  }
- h+='<button class="btn reset" data-a="reset">Fin de mission</button>';
+ // récapitulatif : les deux adresses, modifiables
+ var h='<div class="recap" data-k="recap">'+
+  '<div class="rstop'+(leg===2?" fini":" cur")+'"><span class="rdot">'+ico(leg===2?"check":"pin")+'</span><div class="rtx"><small>'+(leg===2?"Patient à bord":"Prise en charge")+'</small><b>'+esc(pk.label)+'</b>'+(pk.label!==pk.addr?'<span class="ra">'+esc(pk.addr)+'</span>':'')+(pk.infos?'<span class="ri">'+ico("pin")+'<span>'+esc(pk.infos)+'</span></span>':'')+'</div><button class="btn small" data-a="editStep" data-id="1" aria-label="Modifier la prise en charge">Modifier</button></div>'+
+  '<div class="rstop'+(leg===2?" cur":"")+'"><span class="rdot">'+ico("flag")+'</span><div class="rtx"><small>Rendez-vous</small><b>'+esc(d?d.nom:addr)+'</b>'+(d?'<span class="ra">'+esc(addr)+'</span>':'')+(d&&d.infos?'<span class="ri">'+ico("pin")+'<span>'+esc(d.infos)+'</span></span>':'')+'</div><button class="btn small" data-a="editStep" data-id="2" aria-label="Modifier le rendez-vous">Modifier</button></div>'+
+ '</div>';
+ if(zs.length){h+='<div class="rz" data-k="rz"><h3 class="lh">Zones à éviter sur ce trajet</h3>';zs.forEach(function(z){h+='<div class="zone"><span class="tag">'+esc(ZTYPES[z.type]||z.type)+'</span><div><b>'+esc(z.nom)+'</b>'+(z.note?'<div class="addr">'+esc(z.note)+'</div>':"")+'</div></div>';});h+='</div>';}
+ // puis le départ
+ h+='<div class="mgo" data-k="mgo'+leg+'">'+gpsBtns(L,leg,leg===2&&!!RD)+'</div>';
+ if(leg===1)h+='<button class="btn legb" data-k="lg1" data-a="leg2">'+ico("check")+'<span>Patient à bord, aller au rendez-vous</span></button>';
+ else{
+  h+='<div class="rcomf" data-k="rcomf">'+vComfortMini(R)+'</div>';
+  h+='<button class="btn legb" data-k="lg2" data-a="leg1">'+ico("undo")+'<span>Revenir à la prise en charge</span></button>';
+ }
+ h+='<button class="btn reset" data-k="rst" data-a="reset">Fin de mission</button>';
  clearRouteMap();el.innerHTML=h;
- if(leg===2&&ui.route&&ui.route.key===routeKey()&&ui.route.status==="done")initRouteMap();
+ if(leg===2&&RD)initRouteMap();
 }
 
 function links(addr,via,lat,lon,x){
@@ -1534,7 +1564,7 @@ function vTrajet(){
   '<button class="bigmode prog" data-a="mode" data-id="programme"><span class="bic">'+ico("clip")+'</span><b>Transport programmé</b>'+ico("chev","chv")+'</button></div>'+depB;
  var h="",cs=curStep(),n=state.etabs.length;
  // Étapes validées : regroupées dans un seul encadré
- if(cs>1){
+ if(cs>1&&!(prog&&cs===3)){
   var g="";
   if(pec){var pk=pecInfo();g+=doneRow(1,"pin",prog?"Prise en charge":"Adresse du patient",pk.label||pk.addr);}
   else{var e=curEtat();g+=doneRow(1,e.ic,"État du patient",e.label);}
