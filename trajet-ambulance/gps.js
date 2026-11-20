@@ -483,7 +483,7 @@ function frame(){
  if(a.at!=null&&(k>=1||now()-(G._cutT||0)>120))setRouteData();
  G.zoom=G.zoom==null?zoomFor(G.speed):G.zoom+(zoomFor(G.speed)-G.zoom)*0.03;
  var vw=G.view||"3d";
- if(G.follow&&G.map&&vw!=="nord"){try{var tpi=vw==="2d"?0:50,tz=G.zoom-(vw==="2d"?0.5:0),cam={center:[p[1],p[0]],bearing:h,zoom:tz,pitch:tpi},rc=G._rc;
+ if(G.follow&&G.map&&vw!=="nord"){try{var tpi=vw==="2d"?0:50,tz=G.zoom-(vw==="2d"?1.1:0),cam={center:[p[1],p[0]],bearing:h,zoom:tz,pitch:tpi},rc=G._rc;
   /* retour en douceur vers la vue de guidage (après un déplacement, une rotation à deux doigts ou la vue des itinéraires) */
   if(rc){var k2=Math.min(1,(tn-rc.t0)/RC_DUR),e2=1-Math.pow(1-k2,4),pt=G._padTop||0;
    if(k2<1){more=true;cam={center:[rc.c[1]+(p[1]-rc.c[1])*e2,rc.c[0]+(p[0]-rc.c[0])*e2],bearing:(rc.b+angDiff(rc.b,h)*e2+360)%360,zoom:rc.z+(tz-rc.z)*e2,pitch:rc.p+(tpi-rc.p)*e2,padding:{top:rc.pd.top+(pt-rc.pd.top)*e2,bottom:rc.pd.bottom*(1-e2),left:rc.pd.left*(1-e2),right:rc.pd.right*(1-e2)}};}
