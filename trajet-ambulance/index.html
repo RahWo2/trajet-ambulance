@@ -506,12 +506,10 @@ function paintMission(el,e,d,addr){
  if(zs.length){h+='<div class="rz" data-k="rz"><h3 class="lh">Zones à éviter sur ce trajet</h3>';zs.forEach(function(z){h+='<div class="zone"><span class="tag">'+esc(ZTYPES[z.type]||z.type)+'</span><div><b>'+esc(z.nom)+'</b>'+(z.note?'<div class="addr">'+esc(z.note)+'</div>':"")+'</div></div>';});h+='</div>';}
  // puis le départ
  h+='<div class="mgo" data-k="mgo'+leg+'">'+gpsBtns(L,leg,leg===2&&!!RD)+'</div>';
- if(leg===1)h+='<button class="btn legb" data-k="lg1" data-a="leg2">'+ico("check")+'<span>Patient à bord, aller au rendez-vous</span></button>';
- else{
+ if(leg===2){
   h+='<div class="rcomf" data-k="rcomf">'+vComfortMini(R)+'</div>';
   h+='<button class="btn legb" data-k="lg2" data-a="leg1">'+ico("undo")+'<span>Revenir à la prise en charge</span></button>';
  }
- h+='<button class="btn reset" data-k="rst" data-a="reset">Fin de mission</button>';
  clearRouteMap();el.innerHTML=h;
  if(leg===2&&RD)initRouteMap();
 }
@@ -1314,7 +1312,7 @@ function headerHtml(nav){
 }
 /* page Urgence / Transport programmé : titre du bouton choisi, retour, étapes */
 function flowHeader(){
- var prog=ui.mode==="programme",steps=prog?["Patient","Rendez-vous","Départ"]:["Patient","Destination"],act=prog?curStep():(u1()?1:2),s="";
+ var prog=ui.mode==="programme",steps=prog?["Patient","Rendez-vous"]:["Patient","Destination"],act=prog?curStep():(u1()?1:2),s="";
  steps.forEach(function(l,i){var n=i+1;s+='<div class="fs'+(n<act?" fsd":(n===act?" on":""))+'"><i></i><span>'+n+' · '+l+'</span></div>';});
  return '<header class="fh '+(prog?"prog":"urg")+'"><div class="top"><button class="menub back" data-a="back" aria-label="Retour">'+ico("back")+'</button><span class="fic">'+ico(prog?"clip":"siren")+'</span><h1>'+(prog?"Transport programmé":"Urgence")+'</h1></div>'+
   '<div class="fsteps" style="grid-template-columns:repeat('+steps.length+',minmax(0,1fr))">'+s+'</div></header>';
