@@ -718,17 +718,21 @@ function sameRoute(x,y){return Math.abs(x.total-y.total)<Math.max(80,0.03*Math.m
 function chemOk(R){if(!A.midChemins)return Promise.resolve(true);var lim=(G.R&&G.R._chem)||0;
  return edgeAttrs(R).then(function(t){R._chem=A.midChemins(t).reduce(function(s,e){return s+(e.length||0)*1000;},0);return R._chem<=lim+1;},function(){return true;});}
 function fetchAlts(){
- var tries=routeTries(G.pos,{alternates:2});
+ var tries=routeTries(G.pos,{alternates:3});
  function at(i){return A.valhalla("route",tries[i]).then(function(j){
    return[j.trip].concat((j.alternates||[]).map(function(a){return a&&a.trip;})).map(function(t){try{return tripToRoute({trip:t});}catch(e){return null;}}).filter(Boolean);
   }).catch(function(e){if(i+1<tries.length)return at(i+1);throw e;});}
  return at(0);}
+/* un itinéraire alternatif doit rester rapide : au plus 3 min de plus que le plus rapide (15 % sur les longs trajets, 8 min maximum) */
+function altMax(best){return Math.min(480,Math.max(180,best*0.15));}
+function quick(L,cur){var best=Math.min.apply(null,L.map(function(x){return x.time;}));return L.filter(function(x){return x===cur||x.time-best<=altMax(best);});}
 function findAlts(cur){
  return fetchAlts().then(function(Rs){
   var c=[];Rs.forEach(function(R){var x={R:R,a0:0,a1:R.total,time:R.time,total:R.total};
-   if(x.time>cur.time*1.8+300||sameRoute(x,cur)||c.some(function(y){return sameRoute(x,y);}))return;c.push(x);});
+   if(sameRoute(x,cur)||c.some(function(y){return sameRoute(x,y);}))return;c.push(x);});
+  c=quick([cur].concat(c),cur).filter(function(x){return x!==cur;});
   return Promise.all(c.slice(0,3).map(function(x){return chemOk(x.R).then(function(ok){return ok?x:null;});}));
- }).then(function(r){var L=[cur].concat(r.filter(Boolean));L.sort(function(a,b){return a.time-b.time;});assignVia(L);return L;});}
+ }).then(function(r){var L=quick([cur].concat(r.filter(Boolean)),cur);L.sort(function(a,b){return a.time-b.time;});assignVia(L);return L;});}
 /* « via … » : la rue la plus propre à chaque itinéraire */
 function streets(x){var s={};x.R.man.forEach(function(m){var n=m.street_names&&m.street_names[0];if(!n)return;var a=Math.max(m.d,x.a0),b=Math.min(m.e,x.a1);if(b>a)s[n]=(s[n]||0)+(b-a);});return s;}
 function assignVia(L){var S=L.map(streets);L.forEach(function(x,i){var best="",bv=-1e18,lg="",ll=0;
@@ -761,7 +765,7 @@ function paintAltList(fresh){
    '<span class="via">'+fmtDist(x.total)+' · '+(x.via?'via '+esc(x.via):'arrivée '+hhmm(now()+x.time*1000))+'</span></span></button>';});
  if(a.loading)h+='<div class="galtw"><i></i><span>Recherche d\'autres itinéraires…</span></div>';
  else if(a.err)h+='<div class="galtn">'+esc(a.err)+'</div>';
- else if(L.length<2)h+='<div class="galtn">Pas d\'autre itinéraire intéressant pour l\'instant.</div>';
+ else if(L.length<2)h+='<div class="galtn">Pas d\'autre itinéraire rapide pour l\'instant.</div>';
  box.innerHTML=h;
  if(fresh)Array.prototype.forEach.call(box.querySelectorAll(".galtc"),function(c,i){if(!L[i].cur)popIn(c,12);});
  paintAltBtn();}
