@@ -51,6 +51,8 @@ label{display:block;font-size:14px;color:var(--mut);margin:12px 0 5px}
 .blk h3{margin:0 0 8px;font-size:13.5px;text-transform:uppercase;letter-spacing:.5px;color:var(--mut)}
 .dest{font-size:19px;font-weight:700}
 .addr{color:var(--mut);font-size:15px}
+.codein{font:700 20px/1.2 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:2px;text-transform:uppercase}
+.codebig{font:800 26px/1.2 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:3px;margin:6px 0 2px;color:#fff}
 .infos{margin-top:10px;padding:10px 12px;background:#2a2410;border:1px solid #5b4a15;border-radius:10px;color:#ffe3a3;white-space:pre-wrap;font-size:15.5px}
 ul{margin:0;padding-left:20px}li{margin:4px 0}
 .zone{display:flex;gap:10px;align-items:flex-start;padding:8px 0;border-bottom:1px solid var(--line)}
@@ -414,7 +416,7 @@ var ICP={
  locate:'<circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="2.2"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/>',
  map:'<path d="M9 4L3.5 6v14L9 18l6 2 5.5-2V4L15 6z"/><path d="M9 4v14M15 6v14"/>',
  play:'<path d="M7.5 4.8v14.4L19.5 12z" fill="currentColor"/>',
- copy:'<rect x="8.5" y="8.5" width="11.5" height="11.5" rx="2"/><path d="M15.5 8.5V6A1.5 1.5 0 0 0 14 4.5H6A1.5 1.5 0 0 0 4.5 6v8A1.5 1.5 0 0 0 6 15.5h2.5"/>',
+ share:'<circle cx="18" cy="5.5" r="2.5"/><circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="18.5" r="2.5"/><path d="M8.2 10.8l7.6-4.1M8.2 13.2l7.6 4.1"/>',copy:'<rect x="8.5" y="8.5" width="11.5" height="11.5" rx="2"/><path d="M15.5 8.5V6A1.5 1.5 0 0 0 14 4.5H6A1.5 1.5 0 0 0 4.5 6v8A1.5 1.5 0 0 0 6 15.5h2.5"/>',
  sync:'<path d="M19.5 12a7.5 7.5 0 0 1-13.3 4.8"/><path d="M4.5 12A7.5 7.5 0 0 1 17.8 7.2"/><path d="M18.3 3v4.4h-4.4M5.7 21v-4.4h4.4"/>',
  undo:'<path d="M9 14L4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 0 12h-3"/>',
  cloud:'<path d="M7 18.5h10a4.5 4.5 0 0 0 .6-9A6 6 0 0 0 6.2 10 4.3 4.3 0 0 0 7 18.5z"/><path d="M9.5 13.8l2 2 3.5-3.6"/>',
@@ -1311,7 +1313,7 @@ function authErr(j,status){
  if(/already registered|already been registered|already exists/i.test(m))return "Ce compte existe déjà : utilise « Se connecter ».";
  if(/password should|weak password|at least/i.test(m))return "Mot de passe trop faible : 8 caractères minimum.";
  if(/not confirmed/i.test(m))return "Compte créé : ouvre le lien reçu par e-mail pour l'activer, puis connecte-toi.";
- if(/non invit|database error saving new user/i.test(m))return "Cette adresse n'a pas été invitée dans l'équipe. Demande à ton responsable de t'ajouter (onglet Équipe).";
+ if(/non invit|code invalide|database error saving new user/i.test(m))return "Adresse ou code incorrect, ou code expiré. Demande un nouveau code à ton responsable (page Équipe).";
  if(/rate limit/i.test(m))return "Trop de tentatives, réessaie dans quelques minutes.";
  return m;
 }
@@ -1341,12 +1343,26 @@ function doLogin(email,pw){
  email=email.trim().toLowerCase();
  return authPost("token?grant_type=password",{email:email,password:pw}).then(function(j){setSession(j);return enterCloud();});
 }
-function doSignup(email,pw){
- email=email.trim().toLowerCase();
- return authPost("signup",{email:email,password:pw}).then(function(j){
+function codeNorm(c){return String(c||"").toUpperCase().replace(/[^A-Z0-9]/g,"");}
+function rpcAnon(fn,body){
+ return fetch(SB_URL+"/rest/v1/rpc/"+fn,{method:"POST",headers:{apikey:SB_KEY,"Content-Type":"application/json"},body:JSON.stringify(body)}).then(function(r){
+  return r.text().then(function(t){if(!r.ok){var e=new Error("Serveur "+r.status+" : "+t.slice(0,140));e.status=r.status;throw e;}return t?JSON.parse(t):null;});});
+}
+var CODE_MSG={invalide:"Adresse ou code incorrect. Vérifie l'adresse e-mail et le code envoyés par ton responsable.",expire:"Ce code a expiré (il dure 7 jours). Demande un nouveau code à ton responsable.",bloque:"Trop d'essais faux : ce code est bloqué. Demande un nouveau code à ton responsable.",pas_de_compte:"Tu n'as pas encore de compte avec cette adresse : choisis « Première connexion » avec ce code.",trop_court:"Mot de passe trop court : 8 caractères minimum."};
+function codeErr(r){var e=new Error(CODE_MSG[r]||("Erreur : "+r));e.code=r;return e;}
+function doSignup(email,pw,code){
+ email=email.trim().toLowerCase();code=codeNorm(code);
+ return rpcAnon("verifier_code",{p_email:email,p_code:code}).then(function(r){
+  if(r!=="ok")throw codeErr(r);
+  return authPost("signup",{email:email,password:pw,data:{code:code}});
+ }).then(function(j){
   if(j&&j.access_token){setSession(j);return enterCloud();}
   return doLogin(email,pw);
  });
+}
+function doReset(email,code,pw){
+ email=email.trim().toLowerCase();
+ return rpcAnon("reinit_mot_de_passe",{p_email:email,p_code:codeNorm(code),p_mdp:pw}).then(function(r){if(r!=="ok")throw codeErr(r);return doLogin(email,pw);});
 }
 function enterCloud(){
  var same=state.mode==="cloud"&&state.cloudEmail===sess.email;
@@ -1416,6 +1432,7 @@ function sync(first){
   if(ui.destId&&!etab(ui.destId))ui.destId=null;
   save();cloud.status="ok";cloud.last=Date.now();
   if(first&&!state.etabs.length&&!ui.search)ui.search={step:"start",radius:20};
+  if(cloud.me&&cloud.me.role==="admin")loadInscrits();
   softRender();
  }).catch(function(e){
   cloud.status=netErr(e)?"offline":"error";cloud.err=e.message;
@@ -1423,7 +1440,20 @@ function sync(first){
   softRender();
  });
 }
-function inviteMsg(email){return "Salut ! Je t'ai ajouté dans l'appli Ambumaps de l'équipe. Ouvre ce lien sur ton téléphone avec Chrome : "+APP_URL+" puis choisis « Première connexion » avec l'adresse "+email+" et crée ton mot de passe. Ensuite, menu ⋮ ▸ « Installer l'application ».";}
+function inviteMsg(v){
+ if(v.reset)return "Voici ton code pour changer ton mot de passe Ambumaps : "+v.code+" (valable 7 jours). Ouvre l'appli, « Se connecter » ▸ « Mot de passe oublié ? », mets ton adresse "+v.email+", ce code et ton nouveau mot de passe.";
+ return "Salut ! Je t'ai ajouté dans l'appli Ambumaps de l'équipe. Ouvre ce lien sur ton téléphone avec Chrome : "+APP_URL+" puis choisis « Première connexion », mets l'adresse "+v.email+", le code "+v.code+" (valable 7 jours) et crée ton mot de passe. Ensuite, menu ⋮ ▸ « Installer l'application ».";}
+function makeCode(email){
+ ui.codeBusy=email;ui.teamErr="";render();
+ return api("POST","rpc/creer_code",{p_email:email}).then(function(c){
+  ui.codeBusy=null;ui.invited={email:email,code:String(c||""),reset:!!(cloud.inscrits&&cloud.inscrits[email])};render();
+  var b=document.getElementById("invBox");if(b)b.scrollIntoView({behavior:"smooth",block:"center"});
+ },function(e){ui.codeBusy=null;ui.teamErr=netErr(e)?"Pas de connexion internet : réessaie plus tard.":(e.status===404?"La base de l'équipe n'est pas encore prête pour les codes.":e.message);render();});
+}
+function loadInscrits(){
+ if(!isAdmin())return;
+ api("POST","rpc/comptes_crees",{}).then(function(L){var o={};(L||[]).forEach(function(x){o[String(x)]=1;});cloud.inscrits=o;if(ui.tab==="equipe")softRender();},function(){});
+}
 
 var PAGE_T={statistiques:"Statistiques",etablissements:"Établissements",zones:"Zones à éviter",equipe:"Équipe",parametres:"Paramètres"};
 function headerHtml(nav){
@@ -1604,17 +1634,19 @@ function vAuth(){
   h+='<button class="btn wide" style="margin-top:26px" data-a="authLocal">Utiliser sans compte</button><div class="hint">Sans compte, tout reste sur ce téléphone et rien n\'est partagé.</div>';
   return h;
  }
- var sign=a.step==="signup";
- h+='<h2 style="margin-top:6px">'+(sign?"Première connexion":"Se connecter")+'</h2>';
+ var sign=a.step==="signup",rst=a.step==="reset",nw=sign||rst;
+ h+='<h2 style="margin-top:6px">'+(sign?"Première connexion":(rst?"Mot de passe oublié":"Se connecter"))+'</h2>';
  if(a.msg)h+='<div class="warnbox" style="margin-bottom:8px">'+esc(a.msg)+'</div>';
- if(sign)h+='<div class="hint" style="margin-bottom:6px">Utilise l\'adresse e-mail que ton responsable a ajoutée dans l\'équipe, puis choisis ton mot de passe.</div>';
+ if(sign)h+='<div class="hint" style="margin-bottom:6px">Mets l\'adresse e-mail et le code d\'invitation envoyés par ton responsable, puis choisis ton mot de passe.</div>';
+ if(rst)h+='<div class="hint" style="margin-bottom:6px">Demande un code à ton responsable (page Équipe, bouton « Code d\'accès »), puis choisis un nouveau mot de passe.</div>';
  h+='<form data-f="auth"><label>E-mail</label><input name="email" type="email" autocomplete="username" required value="'+esc(a.email||"")+'">'+
-  '<label>Mot de passe'+(sign?" (8 caractères minimum)":"")+'</label><input name="pw" type="password" autocomplete="'+(sign?"new-password":"current-password")+'" required>'+
-  (sign?'<label>Confirme le mot de passe</label><input name="pw2" type="password" autocomplete="new-password" required>':'')+
+  (nw?'<label>Code '+(sign?"d\'invitation":"reçu")+'</label><input name="code" class="codein" required autocomplete="one-time-code" autocapitalize="characters" spellcheck="false" maxlength="12" placeholder="ABCD-EF23" value="'+esc(a.code||"")+'">':'')+
+  '<label>'+(rst?"Nouveau mot de passe":"Mot de passe")+(nw?" (8 caractères minimum)":"")+'</label><input name="pw" type="password" autocomplete="'+(nw?"new-password":"current-password")+'" required>'+
+  (nw?'<label>Confirme le mot de passe</label><input name="pw2" type="password" autocomplete="new-password" required>':'')+
   (a.err?'<div class="warnbox">'+esc(a.err)+'</div>':'')+
-  '<button class="btn pri wide" style="margin-top:16px;min-height:56px" type="submit">'+(sign?"Créer mon compte":"Se connecter")+'</button></form>';
- h+='<button class="btn wide" style="margin-top:10px" data-a="authStep" data-v="'+(sign?"login":"signup")+'">'+(sign?"J\'ai déjà un compte : se connecter":"Première connexion ? Créer mon mot de passe")+'</button>';
- if(!sign)h+='<details style="margin-top:14px;color:var(--mut);font-size:14.5px"><summary>Mot de passe oublié ?</summary><p>Demande à ton responsable de réinitialiser ton accès, puis refais « Première connexion » avec la même adresse.</p></details>';
+  '<button class="btn pri wide" style="margin-top:16px;min-height:56px" type="submit">'+(sign?"Créer mon compte":(rst?"Changer mon mot de passe":"Se connecter"))+'</button></form>';
+ h+='<button class="btn wide" style="margin-top:10px" data-a="authStep" data-v="'+(nw?"login":"signup")+'">'+(nw?"J\'ai déjà un compte : se connecter":"Première connexion ? Créer mon mot de passe")+'</button>';
+ if(!nw)h+='<button class="btn wide" style="margin-top:10px" data-a="authStep" data-v="reset">Mot de passe oublié ?</button>';
  if(state.mode!=="cloud")h+='<button class="btn wide" style="margin-top:18px" data-a="authStep" data-v="choice">Retour</button>';
  else h+='<button class="btn wide" style="margin-top:18px" data-a="logout">Utiliser sans compte</button>';
  return h;
@@ -1762,14 +1794,16 @@ function vEquipe(){
   if(ui.invite)h+='<form class="form" data-f="invite"><label>E-mail du collègue</label><input name="email" type="email" required placeholder="prenom.nom@exemple.fr" autocomplete="off"><label>Nom (facultatif)</label><input name="nom" placeholder="Prénom N." autocomplete="off"><label>Rôle</label><select name="role"><option value="membre">Membre</option><option value="admin">Responsable (peut inviter)</option></select>'+
    (ui.inviteErr?'<div class="warnbox">'+esc(ui.inviteErr)+'</div>':'')+'<div class="row" style="margin-top:14px"><button class="btn pri" type="submit">Ajouter</button><button class="btn" type="button" data-a="inviteCancel">Annuler</button></div></form>';
   else h+='<button class="btn pri wide" style="margin-bottom:12px" data-a="inviteShow">'+ico("plus")+'<span>Inviter un collègue</span></button>';
-  if(ui.invited)h+='<div class="infos" style="margin-bottom:12px">'+ico("check","okc")+' '+esc(ui.invited)+' peut maintenant créer son mot de passe. Envoie-lui ce message :<br><br>'+esc(inviteMsg(ui.invited))+'<div class="row" style="margin-top:8px"><button class="btn small" data-a="copyInvite">'+ico("copy")+'<span>Copier le message</span></button></div><div class="hint" id="invMsg"></div></div>';
+  if(ui.invited&&ui.invited.code)h+='<div class="infos" id="invBox" style="margin-bottom:12px">'+ico("check","okc")+' Code '+(ui.invited.reset?"pour changer le mot de passe de ":"d\'invitation de ")+'<b>'+esc(ui.invited.email)+'</b> :<div class="codebig">'+esc(ui.invited.code)+'</div>Valable 7 jours, une seule fois. Il n\'est montré qu\'ici : envoie-le maintenant.\n\n'+esc(inviteMsg(ui.invited))+
+   '<div class="row" style="margin-top:8px"><button class="btn small" data-a="copyInvite">'+ico("copy")+'<span>Copier le message</span></button>'+(navigator.share?'<button class="btn small" data-a="shareInvite">'+ico("share")+'<span>Envoyer…</span></button>':'')+'<button class="btn small" data-a="invClose">Fermer</button></div><div class="hint" id="invMsg"></div></div>';
  }
  if(ui.teamErr)h+='<div class="warnbox" style="margin-bottom:10px">'+esc(ui.teamErr)+'</div>';
  cloud.members.forEach(function(m){var self=m.email===sess.email;
-  h+='<div class="item"><div class="t">'+esc(m.nom||m.email)+' <span class="tag'+(m.role==="admin"?" blue":"")+'">'+(m.role==="admin"?"Responsable":"Membre")+'</span>'+(self?' <span class="tag">toi</span>':'')+'</div>'+(m.nom?'<div class="m">'+esc(m.email)+'</div>':'')+
-   (adm&&!self?'<div class="row"><button class="btn small" data-a="role" data-id="'+esc(m.email)+'">'+(m.role==="admin"?"Passer membre":"Passer responsable")+'</button><button class="btn small danger" data-a="askDel" data-id="mb:'+esc(m.email)+'">Retirer</button></div>':'')+
+  var pas=adm&&cloud.inscrits&&!cloud.inscrits[m.email]&&!self;
+  h+='<div class="item"><div class="t">'+esc(m.nom||m.email)+' <span class="tag'+(m.role==="admin"?" blue":"")+'">'+(m.role==="admin"?"Responsable":"Membre")+'</span>'+(self?' <span class="tag">toi</span>':'')+(pas?' <span class="tag warn">pas encore inscrit</span>':'')+'</div>'+(m.nom?'<div class="m">'+esc(m.email)+'</div>':'')+
+   (adm&&!self?'<div class="row"><button class="btn small'+(pas?" pri":"")+'" data-a="codeFor" data-id="'+esc(m.email)+'"'+(ui.codeBusy===m.email?" disabled":"")+'>'+ico("lock")+'<span>'+(ui.codeBusy===m.email?"Création…":(pas?"Code d\'invitation":"Code d\'accès"))+'</span></button><button class="btn small" data-a="role" data-id="'+esc(m.email)+'">'+(m.role==="admin"?"Passer membre":"Passer responsable")+'</button><button class="btn small danger" data-a="askDel" data-id="mb:'+esc(m.email)+'">Retirer</button></div>':'')+
    (ui.confirm==="mb:"+m.email?'<div class="confirm">Retirer '+esc(m.nom||m.email)+' de l\'équipe ? Cette personne n\'aura plus accès aux données.<div class="row"><button class="btn small danger" data-a="delMember" data-id="'+esc(m.email)+'">Oui, retirer</button><button class="btn small" data-a="noDel">Annuler</button></div></div>':'')+'</div>';});
- if(adm)h+='<div class="foot">Un collègue a oublié son mot de passe ? Dans Supabase, ouvre Authentication ▸ Users et supprime son compte : il pourra refaire « Première connexion » avec la même adresse.</div>';
+ if(adm)h+='<div class="foot">Pour entrer dans l\'équipe, il faut l\'adresse invitée ET un code. Un collègue a oublié son mot de passe ? Appuie sur « Code d\'accès » à côté de son nom et envoie-lui le message : il choisira un nouveau mot de passe avec « Mot de passe oublié ? ».</div>';
  return h;
 }
 function teamAction(p){ui.teamErr="";p.then(function(){return sync();},function(e){ui.teamErr=netErr(e)?"Pas de connexion internet : réessaie plus tard.":(/23505|duplicate/i.test(e.message)?"Cette adresse est déjà dans l'équipe.":e.message);render();});}
@@ -2050,6 +2084,9 @@ document.addEventListener("click",function(ev){
  else if(a==="sync"){sync();}
  else if(a==="inviteShow"){ui.invite=true;ui.inviteErr="";ui.invited=null;render();}
  else if(a==="inviteCancel"){ui.invite=false;render();}
+ else if(a==="shareInvite"){try{navigator.share({text:inviteMsg(ui.invited)}).catch(function(){});}catch(e){}}
+ else if(a==="invClose"){ui.invited=null;render();}
+ else if(a==="codeFor"){if(!ui.codeBusy)makeCode(id);}
  else if(a==="copyInvite"){var im=document.getElementById("invMsg");try{navigator.clipboard.writeText(inviteMsg(ui.invited)).then(function(){if(im)im.innerHTML=ico("check","okc")+" Message copié.";},function(){if(im)im.textContent="Copie bloquée : recopie le message à la main.";});}catch(e){}}
  else if(a==="role"){var mm=null;cloud.members.forEach(function(m){if(m.email===id)mm=m;});if(mm)teamAction(api("PATCH","membres?email=eq."+encodeURIComponent(id),{role:mm.role==="admin"?"membre":"admin"},"return=minimal"));}
  else if(a==="delMember"){ui.confirm=null;teamAction(api("DELETE","membres?email=eq."+encodeURIComponent(id)));}
@@ -2089,13 +2126,14 @@ document.addEventListener("input",function(ev){
 document.addEventListener("submit",function(ev){
  var f=ev.target;var k=f.getAttribute("data-f");if(!k)return;ev.preventDefault();
  if(k==="auth"){var au=ui.auth,em=(f.elements.email.value||"").trim(),pw=f.elements.pw.value||"";au.email=em;au.err="";au.msg="";
-  if(au.step==="signup"){if(pw.length<8){au.err="Mot de passe trop court : 8 caractères minimum.";render();return;}if(pw!==f.elements.pw2.value){au.err="Les deux mots de passe ne sont pas identiques.";render();return;}}
-  var sb=f.querySelector('button[type="submit"]');if(sb){sb.disabled=true;sb.textContent="Connexion…";}
-  (au.step==="signup"?doSignup(em,pw):doLogin(em,pw)).then(function(){ui.auth=null;render();window.scrollTo(0,0);},function(e){au.err=netErr(e)?"Pas de connexion internet.":e.message;render();});
+  var cd=f.elements.code?f.elements.code.value:"";au.code=cd;
+  if(au.step==="signup"||au.step==="reset"){if(codeNorm(cd).length!==8){au.err="Le code fait 8 caractères (par exemple ABCD-EF23).";render();return;}if(pw.length<8){au.err="Mot de passe trop court : 8 caractères minimum.";render();return;}if(pw!==f.elements.pw2.value){au.err="Les deux mots de passe ne sont pas identiques.";render();return;}}
+  var sb=f.querySelector('button[type="submit"]');if(sb){sb.disabled=true;sb.textContent=au.step==="login"?"Connexion…":"Vérification…";}
+  (au.step==="signup"?doSignup(em,pw,cd):(au.step==="reset"?doReset(em,cd,pw):doLogin(em,pw))).then(function(){ui.auth=null;render();window.scrollTo(0,0);},function(e){au.err=netErr(e)?"Pas de connexion internet.":e.message;render();});
   return;}
  if(k==="invite"){var ie=(f.elements.email.value||"").trim().toLowerCase(),inom=(f.elements.nom.value||"").trim(),irole=f.elements.role.value;
   if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(ie)){ui.inviteErr="Adresse e-mail invalide.";render();return;}
-  ui.inviteErr="";api("POST","membres",{email:ie,nom:inom||null,role:irole},"return=minimal").then(function(){ui.invite=false;ui.invited=ie;return sync();},function(e){ui.inviteErr=netErr(e)?"Pas de connexion internet.":(/23505|duplicate|409/i.test(e.message)?"Cette adresse est déjà dans l'équipe.":e.message);render();});
+  ui.inviteErr="";api("POST","membres",{email:ie,nom:inom||null,role:irole},"return=minimal").then(function(){ui.invite=false;return sync().then(function(){return makeCode(ie);});},function(e){ui.inviteErr=netErr(e)?"Pas de connexion internet.":(/23505|duplicate|409/i.test(e.message)?"Cette adresse est déjà dans l'équipe.":e.message);render();});
   return;}
  if(k==="depart"){acHide();var dq=(f.elements.q.value||"").trim();ui.dep=dq?{mode:"addr",q:dq}:null;ui.depEdit=false;paintFeuille();return;}
  if(k==="ville"){var q=(f.elements.ville.value||"").trim();if(q&&ui.search){ui.search.q=q;searchCity(q);}return;}
