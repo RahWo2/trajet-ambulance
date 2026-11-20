@@ -1811,7 +1811,7 @@ function render(){
  var app=document.getElementById("app"),first=RTAB===null,oldTab=ui.tab,anim=!first&&canAnim(),dir=ui.navDir||0;ui.navDir=0;
  var before={},oldMain=null,oldMainR=null,indR=null,oldPK=RPAGE,oldHd=null,oldHdR=null;
  if(anim){
-  Array.prototype.forEach.call(app.querySelectorAll("main [data-k]"),function(x){before[x.getAttribute("data-k")]={el:x,r:x.getBoundingClientRect(),top:!!(x.parentElement&&x.parentElement.tagName==="MAIN")};});
+  Array.prototype.forEach.call(app.querySelectorAll("main [data-k]"),function(x){before[x.getAttribute("data-k")]={el:x,r:x.getBoundingClientRect(),top:!!(x.parentElement&&x.parentElement.tagName==="MAIN"),g:x.hasAttribute("data-kg")};});
   oldMain=app.querySelector("main");if(oldMain)oldMainR=oldMain.getBoundingClientRect();indR=navRect(app);
   oldHd=app.querySelector("header");if(oldHd)oldHdR=oldHd.getBoundingClientRect();
  }
@@ -1847,9 +1847,9 @@ function flip(before,app,dir){
   else{x.classList.add("kin");var from=dir>0?"translateX(36px)":dir<0?"translateX(-36px)":"translateY(14px) scale(.985)";
    var b=x.animate([{opacity:0,transform:from},{opacity:1,transform:"none"}],{duration:DUR,delay:d0+Math.min(n++,5)*45,easing:SPR,fill:"backwards"});b.onfinish=b.oncancel=function(){x.classList.remove("kin");};}
  });
- Object.keys(before).forEach(function(k){if(seen[k])return;var o=before[k];if(!o.top||o.r.height<1||o.r.bottom<0||o.r.top>innerHeight)return;
-  var g=toGhost(o.el,o.r),to=dir>0?"translateX(-20px)":dir<0?"translateX(20px)":"scale(.985)";
-  var a=g.animate([{opacity:1,transform:"none"},{opacity:0,transform:to}],{duration:130,easing:"ease-out",fill:"forwards"});a.onfinish=a.oncancel=function(){if(g.parentNode)g.remove();};setTimeout(function(){if(g.parentNode)g.remove();},700);});
+ Object.keys(before).forEach(function(k){if(seen[k])return;var o=before[k];if(!(o.top||o.g)||o.r.height<1||o.r.bottom<0||o.r.top>innerHeight)return;
+  var g=toGhost(o.el,o.r),to=dir>0?"translateX(-20px)":dir<0?"translateX(20px)":(o.g?"translateY(-10px) scale(.94)":"scale(.985)");
+  var a=g.animate([{opacity:1,transform:"none"},{opacity:0,transform:to}],{duration:o.g?240:130,easing:o.g?SPR:"ease-out",fill:"forwards"});a.onfinish=a.oncancel=function(){if(g.parentNode)g.remove();};setTimeout(function(){if(g.parentNode)g.remove();},700);});
 }
 /* Bouton retour du téléphone : revient d'une étape au lieu de quitter l'appli */
 function canBack(){
@@ -2095,8 +2095,8 @@ function vTrajet(){
  var depB='<button class="btn wide depotb" data-k="depb" data-a="depotGo">'+ico("home")+'<span>Retour au dépôt</span></button>';
  // accueil : deux grands boutons, la suite s'ouvre en page entière
  if(!md)return '<h1 class="ttl" data-k="tt">Nouveau trajet</h1>'+vehRow()+'<div class="bigmodes" data-k="modes">'+
-  (vehId==="vsl"?'':'<button class="bigmode urg" data-a="mode" data-id="urgence"><span class="bic">'+ico("siren")+'</span><b>Urgence</b>'+ico("chev","chv")+'</button>')+
-  '<button class="bigmode prog" data-a="mode" data-id="programme"><span class="bic">'+ico("clip")+'</span><b>Transport programmé</b>'+ico("chev","chv")+'</button></div>'+depB;
+  (vehId==="vsl"?'':'<button class="bigmode urg" data-k="m-urg" data-kg data-a="mode" data-id="urgence"><span class="bic">'+ico("siren")+'</span><b>Urgence</b>'+ico("chev","chv")+'</button>')+
+  '<button class="bigmode prog" data-k="m-prog" data-a="mode" data-id="programme"><span class="bic">'+ico("clip")+'</span><b>Transport programmé</b>'+ico("chev","chv")+'</button></div>'+depB;
  var h="",cs=curStep(),n=state.etabs.length;
  // Étapes validées : regroupées dans un seul encadré
  if(cs>1&&!(prog&&cs===3)){
@@ -2307,7 +2307,7 @@ document.addEventListener("click",function(ev){
  if(a==="menuClose"){closeMenu();return;}
  if(a==="menuGo"){closeMenu();return;}
  if(a==="back"){goBack();return;}
- if(a==="veh"){setVeh(id);ui.route=null;render();}
+ if(a==="veh"){var chg=id!==vehId;setVeh(id);ui.route=null;render();var vo=document.querySelector(".veh.on");if(chg&&vo&&canAnim())vo.animate([{transform:"scale(.92)"},{transform:"scale(1.03)",offset:.55},{transform:"none"}],{duration:DUR,easing:SPR});}
  else if(a==="mode"){if(id==="urgence"&&vehId==="vsl")return;if(ui.mode!==id){ui.mid=uid();ui.edit=null;ui.editFrom=null;ui.mode=id;ui.route=null;ui.dep=null;ui.depEdit=false;ui.leg=1;ui.etat=id==="programme"?"programme":(ui.etat==="programme"?null:ui.etat);keepUi();render();}}
  else if(a==="etat"){ui.etat=id;goStep();}
  else if(a==="dest"){ui.destId=id;ui.libre="";ui.libreGeo=null;ui.libreOk=false;ui.filtre="";goStep();}
