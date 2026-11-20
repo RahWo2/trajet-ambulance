@@ -210,6 +210,9 @@ header{padding:10px 14px}
 header .top{min-height:48px}
 header .top h1{flex:1 1 auto;min-width:0}
 header .top h1 .logo{height:29px}
+header .top{position:relative}
+header .top h1.hlogo{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);margin:0;pointer-events:none;flex:none}
+header .top h1.hlogo .logo{height:38px}
 h1.pt{font-size:22px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block}
 .menub{width:46px;height:46px;border-radius:14px;background:var(--card);border:1px solid var(--line);color:var(--txt);display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;cursor:pointer;padding:0;-webkit-tap-highlight-color:transparent;transition:transform .5s var(--spr),background-color .25s ease}
 .menub:active{transform:scale(.92)}
@@ -1725,7 +1728,7 @@ var PAGE_T={statistiques:"Statistiques",etablissements:"Établissements",zones:"
 function headerHtml(nav){
  var title=nav&&ui.tab!=="trajet"?PAGE_T[ui.tab]:"",cl=isCloud()&&!ui.auth;
  return '<header><div class="top">'+(nav?'<button class="menub" data-a="menu" aria-label="Ouvrir le menu" aria-haspopup="true">'+ico("menu")+'</button>':'')+
-  (title?'<h1 class="pt">'+esc(title)+'</h1>':'<h1>'+LOGO+'Ambumaps</h1>')+
+  (title?'<h1 class="pt">'+esc(title)+'</h1>':'<h1 class="hlogo"><span class="sr">Ambumaps</span>'+LOGO+'</h1>')+
   '<div class="hr">'+(cl?'<button id="status" class="status" data-a="sync" aria-label="Synchroniser"></button>':'<div id="status" class="status"></div>')+'</div></div></header>';
 }
 /* page Urgence / Transport programmé : titre du bouton choisi, retour, étapes */
