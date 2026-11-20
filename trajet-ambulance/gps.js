@@ -4,7 +4,7 @@
 (function(){
 "use strict";
 var A=window.AMB;
-var ML_JS="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js",ML_CSS="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css";
+var ML_JS="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js",ML_CSS="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css",ML_SRI="sha384-SYKAG6cglRMN0RVvhNeBY0r3FYKNOJtznwA0v7B5Vp9tr31xAHsZC0DqkQ/pZDmj",ML_CSS_SRI="sha384-MinO0mNliZ3vwppuPOUnGa+iq619pfMhLVUXfC4LHwSCvF9H+6P/KO4Q7qBOYV5V";
 var STYLE_URL="https://tiles.openfreemap.org/styles/dark";
 var ICONS={"GLY": {"bump": "<path d=\"M2 18.6h2.6c2.6 0 3.4-7.1 7.4-7.1s4.8 7.1 7.4 7.1H22a.9.9 0 0 1 .9.9v.9a.9.9 0 0 1-.9.9H2a.9.9 0 0 1-.9-.9v-.9a.9.9 0 0 1 .9-.9z\" fill=\"{fg}\"></path><path d=\"M8.1 18.6v-2.4a.7.7 0 0 1 .7-.7h.6a.7.7 0 0 1 .7.7v2.4z M11.1 18.6v-4.6a.7.7 0 0 1 .7-.7h.4a.7.7 0 0 1 .7.7v4.6z M13.9 18.6v-2.4a.7.7 0 0 1 .7-.7h.6a.7.7 0 0 1 .7.7v2.4z\" fill=\"{bg}\"></path><path d=\"M12 2.6v5.2 M9.6 5.2L12 2.6l2.4 2.6\" fill=\"none\" stroke=\"{fg}\" stroke-width=\"2.1\" stroke-linecap=\"round\" stroke-linejoin=\"round\"></path>", "pothole": "<path d=\"M2.5 9.5h7.8l-1.6 3.2 2.2 2.4-1.5 3.9H2.5a1 1 0 0 1-1-1V10.5a1 1 0 0 1 1-1z\" fill=\"{fg}\"></path><g transform=\"translate(0.8 1.2) rotate(5 17 14)\"><path d=\"M13 9.5h8.5a1 1 0 0 1 1 1v7a1 1 0 0 1-1 1h-9.7l1.5-3.9-2.2-2.4z\" fill=\"{fg}\"></path><path d=\"M16.2 14h3.4\" stroke=\"{bg}\" stroke-width=\"1.2\" stroke-linecap=\"round\"></path></g><path d=\"M4 14h3.4\" stroke=\"{bg}\" stroke-width=\"1.2\" stroke-linecap=\"round\"></path><path d=\"M11 6.2l.8-1.6 M13.6 6.6l1.2-1.2 M9 6.8l-.6-1.4\" stroke=\"{fg}\" stroke-width=\"1.6\" stroke-linecap=\"round\"></path>", "slow": "<g transform=\"translate(5.2 -3.2) rotate(0 12 13) scale(0.72)\"><path d=\"M6.2 11L7.6 6.9A2 2 0 0 1 9.5 5.5h5a2 2 0 0 1 1.9 1.4L17.8 11h.7a2 2 0 0 1 2 2v4a1.5 1.5 0 0 1-1.5 1.5H5A1.5 1.5 0 0 1 3.5 17v-4a2 2 0 0 1 2-2z\" fill=\"{fg}\"></path><path d=\"M5 18.4h3v1.9a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1z M16 18.4h3v1.9a1 1 0 0 1-1 1h-1a1 1 0 0 1-1-1z\" fill=\"{fg}\"></path><path d=\"M8.5 10.6l.9-2.7a.8.8 0 0 1 .8-.6h3.6a.8.8 0 0 1 .8.6l.9 2.7z\" fill=\"{bg}\"></path><circle cx=\"7.3\" cy=\"14.4\" r=\"1.35\" fill=\"{bg}\"></circle><circle cx=\"16.7\" cy=\"14.4\" r=\"1.35\" fill=\"{bg}\"></circle><path d=\"M10.3 15.6h3.4\" stroke=\"{bg}\" stroke-width=\"1.3\" stroke-linecap=\"round\"></path></g><g transform=\"translate(-1.2 1.6) rotate(0 12 13) scale(0.9)\"><path d=\"M6.2 11L7.6 6.9A2 2 0 0 1 9.5 5.5h5a2 2 0 0 1 1.9 1.4L17.8 11h.7a2 2 0 0 1 2 2v4a1.5 1.5 0 0 1-1.5 1.5H5A1.5 1.5 0 0 1 3.5 17v-4a2 2 0 0 1 2-2z\" fill=\"{fg}\" stroke=\"{bg}\" stroke-width=\"2.2\" paint-order=\"stroke\"></path><path d=\"M5 18.4h3v1.9a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1z M16 18.4h3v1.9a1 1 0 0 1-1 1h-1a1 1 0 0 1-1-1z\" fill=\"{fg}\"></path><path d=\"M8.5 10.6l.9-2.7a.8.8 0 0 1 .8-.6h3.6a.8.8 0 0 1 .8.6l.9 2.7z\" fill=\"{bg}\"></path><circle cx=\"7.3\" cy=\"14.4\" r=\"1.35\" fill=\"{bg}\"></circle><circle cx=\"16.7\" cy=\"14.4\" r=\"1.35\" fill=\"{bg}\"></circle><path d=\"M10.3 15.6h3.4\" stroke=\"{bg}\" stroke-width=\"1.3\" stroke-linecap=\"round\"></path></g>", "jam": "<g transform=\"translate(5.2 -3.2) rotate(0 12 13) scale(0.72)\"><path d=\"M6.2 11L7.6 6.9A2 2 0 0 1 9.5 5.5h5a2 2 0 0 1 1.9 1.4L17.8 11h.7a2 2 0 0 1 2 2v4a1.5 1.5 0 0 1-1.5 1.5H5A1.5 1.5 0 0 1 3.5 17v-4a2 2 0 0 1 2-2z\" fill=\"{fg}\"></path><path d=\"M5 18.4h3v1.9a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1z M16 18.4h3v1.9a1 1 0 0 1-1 1h-1a1 1 0 0 1-1-1z\" fill=\"{fg}\"></path><path d=\"M8.5 10.6l.9-2.7a.8.8 0 0 1 .8-.6h3.6a.8.8 0 0 1 .8.6l.9 2.7z\" fill=\"{bg}\"></path><circle cx=\"7.3\" cy=\"14.4\" r=\"1.35\" fill=\"{bg}\"></circle><circle cx=\"16.7\" cy=\"14.4\" r=\"1.35\" fill=\"{bg}\"></circle><path d=\"M10.3 15.6h3.4\" stroke=\"{bg}\" stroke-width=\"1.3\" stroke-linecap=\"round\"></path></g><g transform=\"translate(-1.2 1.6) rotate(0 12 13) scale(0.9)\"><path d=\"M6.2 11L7.6 6.9A2 2 0 0 1 9.5 5.5h5a2 2 0 0 1 1.9 1.4L17.8 11h.7a2 2 0 0 1 2 2v4a1.5 1.5 0 0 1-1.5 1.5H5A1.5 1.5 0 0 1 3.5 17v-4a2 2 0 0 1 2-2z\" fill=\"{fg}\" stroke=\"{bg}\" stroke-width=\"2.2\" paint-order=\"stroke\"></path><path d=\"M5 18.4h3v1.9a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1z M16 18.4h3v1.9a1 1 0 0 1-1 1h-1a1 1 0 0 1-1-1z\" fill=\"{fg}\"></path><path d=\"M8.5 10.6l.9-2.7a.8.8 0 0 1 .8-.6h3.6a.8.8 0 0 1 .8.6l.9 2.7z\" fill=\"{bg}\"></path><circle cx=\"7.3\" cy=\"14.4\" r=\"1.35\" fill=\"{bg}\"></circle><circle cx=\"16.7\" cy=\"14.4\" r=\"1.35\" fill=\"{bg}\"></circle><path d=\"M10.3 15.6h3.4\" stroke=\"{bg}\" stroke-width=\"1.3\" stroke-linecap=\"round\"></path></g>", "crash": "<g transform=\"translate(-1.6 2.2) rotate(-14 12 13) scale(0.86)\"><path d=\"M6.2 11L7.6 6.9A2 2 0 0 1 9.5 5.5h5a2 2 0 0 1 1.9 1.4L17.8 11h.7a2 2 0 0 1 2 2v4a1.5 1.5 0 0 1-1.5 1.5H5A1.5 1.5 0 0 1 3.5 17v-4a2 2 0 0 1 2-2z\" fill=\"{fg}\"></path><path d=\"M5 18.4h3v1.9a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1z M16 18.4h3v1.9a1 1 0 0 1-1 1h-1a1 1 0 0 1-1-1z\" fill=\"{fg}\"></path><path d=\"M8.5 10.6l.9-2.7a.8.8 0 0 1 .8-.6h3.6a.8.8 0 0 1 .8.6l.9 2.7z\" fill=\"{bg}\"></path><circle cx=\"7.3\" cy=\"14.4\" r=\"1.35\" fill=\"{bg}\"></circle><circle cx=\"16.7\" cy=\"14.4\" r=\"1.35\" fill=\"{bg}\"></circle><path d=\"M10.3 15.6h3.4\" stroke=\"{bg}\" stroke-width=\"1.3\" stroke-linecap=\"round\"></path></g><path d=\"M18.4 1.6l.9 2.6 2.6-.9-1.3 2.4 2.5 1.2-2.7.6.3 2.7-2-1.8-1.9 2-.1-2.7-2.7.1 2.1-1.7-1.5-2.3 2.7.6z\" fill=\"{fg}\"></path>", "cone": "<path d=\"M10.2 3h3.6l4.6 15.4H5.6z\" fill=\"{fg}\" stroke=\"{fg}\" stroke-width=\"1.2\" stroke-linejoin=\"round\"></path><path d=\"M8.75 8h6.5l.62 2.2H8.13z M7.25 13h9.5l.6 2.2H6.65z\" fill=\"{bg}\"></path><rect x=\"3\" y=\"18.6\" width=\"18\" height=\"2.6\" rx=\"1.2\" fill=\"{fg}\"></rect>", "danger": "<path d=\"M10.3 3.9a2 2 0 0 1 3.4 0l8.2 14.2a2 2 0 0 1-1.7 3H3.8a2 2 0 0 1-1.7-3z\" fill=\"{fg}\"></path><rect x=\"10.9\" y=\"8.4\" width=\"2.2\" height=\"6.8\" rx=\"1.1\" fill=\"{bg}\"></rect><circle cx=\"12\" cy=\"17.8\" r=\"1.3\" fill=\"{bg}\"></circle>"}, "COL": {"bump": ["#f59f00", "#ffffff"], "pothole": ["#f2c200", "#2b2300"], "slow": ["#f76707", "#ffffff"], "jam": ["#e03131", "#ffffff"], "crash": ["#a61e4d", "#ffffff"], "cone": ["#5c6370", "#ffffff"], "danger": ["#7048e8", "#ffffff"]}};
 var GLY=ICONS.GLY,COL=ICONS.COL;
@@ -95,8 +95,8 @@ function angDiff(a,b){var d=((b-a)%360+540)%360-180;return d;}
 var mlP=null;
 function loadML(){
  if(window.maplibregl)return Promise.resolve(window.maplibregl);if(mlP)return mlP;
- mlP=new Promise(function(res,rej){var l=document.createElement("link");l.rel="stylesheet";l.href=ML_CSS;document.head.appendChild(l);
-  var s=document.createElement("script");s.src=ML_JS;s.onload=function(){window.maplibregl?res(window.maplibregl):rej(new Error("Carte indisponible."));};
+ mlP=new Promise(function(res,rej){var l=document.createElement("link");l.rel="stylesheet";l.href=ML_CSS;if(ML_CSS_SRI){l.integrity=ML_CSS_SRI;l.crossOrigin="anonymous";}document.head.appendChild(l);
+  var s=document.createElement("script");s.src=ML_JS;if(ML_SRI){s.integrity=ML_SRI;s.crossOrigin="anonymous";}s.onload=function(){window.maplibregl?res(window.maplibregl):rej(new Error("Carte indisponible."));};
   s.onerror=function(){mlP=null;s.remove();rej(new Error("Carte indisponible : pas de connexion internet ?"));};document.head.appendChild(s);});
  return mlP;}
 function prepStyle(s){
@@ -508,7 +508,7 @@ function onFix(c){
  if(sp==null&&G.last){var dt=(t-G.last.t)/1000;if(dt>0.4&&dt<6)sp=A.distM(G.last.p,p)/dt;}
  if(sp!=null)G.speed=G.speed==null?sp*3.6:G.speed*0.35+sp*3.6*0.65;
  G.acc=c.acc||0;G.lastFixT=now();G.last={p:p,t:t};G.pos=p;try{A.ui.lastPos=p;}catch(e){}
- if(G.st)statMove(c,p);
+ if(G.st){if(!G.stLive&&G.R){G.stLive=true;G.st.t0=G.st.t1=Date.now();statSave();}statMove(c,p);}
  var tr=G.trail||(G.trail=[]),lt=tr[tr.length-1];if(!lt||A.distM(lt.p,p)>=5){tr.push({p:p,w:now(),a:c.acc||0});if(tr.length>30)tr.shift();}
  if(c.heading!=null&&!isNaN(c.heading)&&(sp||0)>3){G.gh=c.heading;G.ghT=now();}
  if(!G.R){G.disp=G.disp||p;return;}
@@ -623,11 +623,11 @@ function nextNode(a){var E=G.R&&G.R.edges,end=null;
  return Math.min(end,a+600,G.R.total);}
 
 /* ---------- alertes de l'équipe ---------- */
-function normAlert(r){var tr=Array.isArray(r.trace)&&r.trace.length>1?r.trace:null;return{id:r.id,type:r.type,lat:r.lat,lon:r.lon,trace:tr,cree:Date.parse(r.cree_le)||now(),par:r.cree_par||"",exp:Date.parse(r.expire_le)||now()+3600e3};}
+function normAlert(r){if(!r||!KIND[r.type]||typeof r.lat!=="number"||typeof r.lon!=="number"||!isFinite(r.lat)||!isFinite(r.lon))return null;var tc=A.cleanPts?A.cleanPts(r.trace):r.trace,tr=Array.isArray(tc)&&tc.length>1?tc:null;return{id:r.id,type:r.type,lat:r.lat,lon:r.lon,trace:tr,cree:Date.parse(r.cree_le)||now(),par:r.cree_par||"",exp:Date.parse(r.expire_le)||now()+3600e3};}
 function pollAlerts(){
  if(!G||!A.isCloud())return;var iso=new Date().toISOString();
  A.api("GET","alertes?select=*&expire_le=gt."+encodeURIComponent(iso)+"&order=cree_le.desc&limit=300").then(function(rows){if(!G)return;
-  var loc=(G.alerts||[]).filter(function(a){return a._local;}),ids={};var L=(rows||[]).map(normAlert);L.forEach(function(a){ids[a.id]=1;});
+  var loc=(G.alerts||[]).filter(function(a){return a._local;}),ids={};var L=(rows||[]).map(normAlert).filter(Boolean);L.forEach(function(a){ids[a.id]=1;});
   loc.forEach(function(a){if(!ids[a.id])L.push(a);});
   var before=(G.alerts||[]).map(function(a){return a.id;}).join(",");G.alerts=L;onAlerts(before);
  }).catch(function(){});
@@ -941,14 +941,14 @@ function boot(){
 }
 /* ---------- statistiques (sur ce téléphone, sans aucune adresse) ---------- */
 function statOpen(k,e){var s=G.opts.stat;if(!s||G.sim||!A.statTrip){G.st=null;return;}var t=Date.now();
- G.st={id:A.uid(),t0:t,t1:t,km:0,k:k||s.k,m:s.m||"",e:e!=null?e:(s.e||""),ar:false,cf:!!(s.cf&&!k)};G.stLast=null;A.statTrip(G.st);}
-function statSave(){if(G&&G.st){G.st.t1=Date.now();try{A.statTrip(G.st);}catch(e){}G.stSaved=now();}}
+ G.st={id:A.uid(),t0:t,t1:t,km:0,k:k||s.k,m:s.m||"",e:e!=null?e:(s.e||""),ar:false,cf:!!(s.cf&&!k)};G.stLast=null;G.stLive=false;}
+function statSave(){if(G&&G.st&&G.stLive){G.st.t1=Date.now();try{A.statTrip(G.st);}catch(e){}G.stSaved=now();}}
 /* distance roulée : points GPS précis, au moins 20 m d'écart, sans sauts impossibles */
 function statMove(c,p){var s=G.st;if(!s)return;if((c.acc||0)>35)return;var lp=G.stLast;if(!lp){G.stLast={p:p,t:now()};return;}
  var d=A.distM(lp.p,p),dt=Math.max(.5,(now()-lp.t)/1000);if(d<20)return;G.stLast={p:p,t:now()};if(d/dt>70)return;s.km+=d/1000;}
 function stop(){
  if(!G)return;var g=G;G=null;
- if(g.st){g.st.t1=Date.now();try{A.statTrip(g.st);}catch(e){}}
+ if(g.st&&g.stLive){g.st.t1=Date.now();try{A.statTrip(g.st);}catch(e){}}
  try{if(g.watch!=null)navigator.geolocation.clearWatch(g.watch);}catch(e){}
  clearInterval(g.simT);clearInterval(g.pollT);clearInterval(g.tickT);clearInterval(g.cardT);if(g.raf)cancelAnimationFrame(g.raf);
  try{if(g.lock)g.lock.release();}catch(e){}try{speechSynthesis.cancel();}catch(e){}
