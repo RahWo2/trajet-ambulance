@@ -323,6 +323,11 @@ h3.lh{font-size:14.5px;font-weight:700;letter-spacing:.4px;text-transform:upperc
 .nv.cur .vb{background:var(--acc);color:#fff}.nv .nt{font-size:17px}.nv .nd{margin-left:auto;font-size:13px;color:var(--mut)}
 .nv ul{margin:8px 0 0;padding-left:20px}.nv li{font-size:15px;line-height:1.4;color:var(--txt);margin:3px 0}.nv li::marker{color:var(--mut)}
 .nvold{font-size:13px;color:var(--mut);text-align:center;margin:4px 0 18px}
+.nv[data-a]{cursor:pointer;-webkit-tap-highlight-color:transparent;transition:border-color .25s ease}.nv[data-a]:active{transform:scale(.99)}
+.nv .nd{display:inline-flex;align-items:center;gap:4px}.nv .nch{width:18px;height:18px;color:var(--mut);transform:rotate(90deg);transition:transform .3s cubic-bezier(.32,.72,0,1)}
+.nv.open .nch{transform:rotate(-90deg)}.nv.open{border-color:var(--acc)}
+.nv .nx{margin:10px 0 0;padding:10px 0 0;border-top:1px solid var(--line)}.nv .nx b{font-size:13px;color:var(--mut);text-transform:uppercase;letter-spacing:.04em}
+.nv .nx li{font-size:14.5px}
 .dpanel a.on{background:#1b2a45;color:#d6e4ff;font-weight:800}
 .dpanel a.on svg.i{color:#7fb0ff}
 .dpanel a:active{background:#20242d}
@@ -1557,7 +1562,7 @@ function acPick(i){
 }
 document.addEventListener("mousedown",function(ev){if(ev.target.closest&&ev.target.closest(".ac"))ev.preventDefault();});
 document.addEventListener("focusout",function(ev){var t=ev.target;if(t&&t.getAttribute&&t.getAttribute("data-ac"))setTimeout(function(){if(document.activeElement!==t)acHide();},250);});
-document.addEventListener("keydown",function(ev){if(ev.key==="Enter"&&ev.target&&ev.target.id==="tagNew"){ev.preventDefault();addTagFromInput(ev.target.form);return;}if(ev.key==="Escape"){acHide();if(ui.menu)closeMenu();}
+document.addEventListener("keydown",function(ev){var kt=ev.target;if((ev.key==="Enter"||ev.key===" ")&&kt&&kt.tagName==="DIV"&&kt.getAttribute("role")==="button"&&kt.hasAttribute("data-a")){ev.preventDefault();kt.click();return;}if(ev.key==="Enter"&&ev.target&&ev.target.id==="tagNew"){ev.preventDefault();addTagFromInput(ev.target.form);return;}if(ev.key==="Escape"){acHide();if(ui.menu)closeMenu();}
  if(ev.key==="Enter"&&ev.target&&(ev.target.id==="pec"||ev.target.id==="libre")){ev.preventDefault();var bt=document.querySelector('[data-a="'+ev.target.id+'Ok"]');if(bt)bt.click();}});
 
 /* ===== Lieux enregistrés (rendez-vous et prise en charge) : favoris affichés, recherche dans tous les lieux ===== */
@@ -2049,25 +2054,40 @@ var KN={p1:["Prise en charge","pin","#45d08f","#163a28"],p2:["Transport programm
 /* ---------- Nouveautés ----------
    À chaque mise à jour : ajouter une entrée EN TÊTE de NEWS et changer APP_V.
    2.x = depuis l'arrivée du GPS ; nouvelle fonction -> 2e chiffre +1 ; petite retouche -> 3e chiffre (2.7.1). */
-var APP_V="2.9",NEWSKEY="ambumaps-vu",NEWS=[
- {v:"2.9",d:"21 nov. 2026",t:"Nouveautés",l:["Cette page : l'historique des mises à jour de l'appli."]},
- {v:"2.8",d:"20 nov. 2026",t:"Signalement police",l:["Nouvelle alerte « Police » dans le GPS, partagée avec l'équipe pendant 1 h."]},
- {v:"2.7.1",d:"20 nov. 2026",t:"Retouches de l'accueil",l:["Le bouton Urgence ou Transport programmé devient la bande du haut, et inversement au retour.","Logo centré ; état de synchro affiché seulement en cas de problème."]},
- {v:"2.7",d:"20 nov. 2026",t:"Choix du véhicule",l:["VSL / Taxi, Ambulance ou ASSU sur l'accueil : les trajets évitent les passages trop bas.","Pas de bouton Urgence en VSL / Taxi."]},
- {v:"2.6",d:"20 nov. 2026",t:"Carte des zones",l:["Appuyer sur une route pour la signaler : dégradée, en travaux, fermée ou impraticable.","Parkings ambulance reliés aux établissements, proposés comme point d'arrivée."]},
- {v:"2.5",d:"20 nov. 2026",t:"Sécurité de l'équipe",l:["Codes d'invitation pour rejoindre l'équipe et mot de passe oublié.","Corrections après un audit de sécurité."]},
- {v:"2.4",d:"20 nov. 2026",t:"Vues du GPS",l:["Vues 3D, 2D et trajet entier, nord en haut.","Coordonnées GPS acceptées comme adresse."]},
- {v:"2.3",d:"20 nov. 2026",t:"Nouvelle disposition",l:["Menu en haut à gauche, pages en plein écran.","Feuille de mission récapitulative et statistiques avec trophées.","Recalcul toujours dans le sens de la marche, sans demi-tour."]},
- {v:"2.2",d:"19 nov. 2026",t:"Nouveau style",l:["Transitions plus douces et étoile de vie comme icône.","Étiquettes pour les établissements.","Itinéraires alternatifs dans le GPS."]},
- {v:"2.1",d:"18 nov. 2026",t:"Guidage affiné",l:["Drapeau d'arrivée, ronds-points dessinés, flèche toujours sur le tracé.","Chemins non goudronnés évités s'il existe une autre route."]},
- {v:"2.0",d:"17 nov. 2026",t:"GPS intégré",l:["Guidage vocal dans l'appli, Waze et Google Maps en secours.","Signalements et alertes partagés avec l'équipe.","Mise à jour automatique de l'appli à l'ouverture."]}];
+var APP_V="2.9.1",NEWSKEY="ambumaps-vu",NEWS=[
+ {v:"2.9.1",d:"21 nov. 2026",t:"Détail des mises à jour",l:["Appuie sur une mise à jour pour en voir le détail."],
+  x:["Chaque fiche s'ouvre et se referme d'un appui.","La liste complète de ce qui a changé apparaît sous le résumé."]},
+ {v:"2.9",d:"21 nov. 2026",t:"Nouveautés",l:["Cette page : l'historique des mises à jour de l'appli."],
+  x:["Accessible depuis le menu, avec le numéro de la version actuelle.","Un point rouge sur le menu signale une nouvelle version pas encore consultée."]},
+ {v:"2.8",d:"20 nov. 2026",t:"Signalement police",l:["Nouvelle alerte « Police » dans le GPS, partagée avec l'équipe pendant 1 h."],
+  x:["Tuile « Police » dans Signaler, avec une casquette sur fond bleu.","Partagée avec toute l'équipe et effacée toute seule au bout d'1 h.","Annonce vocale à l'approche : « Police signalée dans … ».","En passant à côté : « Toujours là » la relance pour 1 h, « Plus là » la retire pour tous.","Ne change pas l'itinéraire."]},
+ {v:"2.7.1",d:"20 nov. 2026",t:"Retouches de l'accueil",l:["Le bouton Urgence ou Transport programmé devient la bande du haut, et inversement au retour.","Logo centré ; état de synchro affiché seulement en cas de problème."],
+  x:["Le bouton touché monte et devient la bande colorée de la page suivante ; au retour (flèche ou bouton du téléphone), la bande redescend et redevient le bouton.","Le bouton Urgence disparaît et réapparaît en douceur quand on change de véhicule.","Logo seul, centré et plus grand en haut de l'accueil.","« À jour » n'est plus affiché en haut à droite : seulement les problèmes (hors ligne, erreur de synchro…).","Établissements et zones : toute la fiche glisse quand on change l'ordre ou qu'on la supprime."]},
+ {v:"2.7",d:"20 nov. 2026",t:"Choix du véhicule",l:["VSL / Taxi, Ambulance ou ASSU sur l'accueil : les trajets évitent les passages trop bas.","Pas de bouton Urgence en VSL / Taxi."],
+  x:["Le véhicule choisi reste sélectionné sur le téléphone jusqu'au prochain choix.","Hauteurs prises en compte : Ambulance 2,12 m, ASSU 2,60 m ; VSL / Taxi comme une voiture.","Le trajet confort et le GPS évitent ponts, barres de hauteur et entrées de parking trop bas (données OpenStreetMap).","S'il n'existe aucun trajet assez haut, un avertissement s'affiche."]},
+ {v:"2.6",d:"20 nov. 2026",t:"Carte des zones",l:["Appuyer sur une route pour la signaler : dégradée, en travaux, fermée ou impraticable.","Parkings ambulance reliés aux établissements, proposés comme point d'arrivée."],
+  x:["Un appui sur une route sélectionne la portion d'un carrefour à l'autre (carte de l'IGN).","Fermée ou impraticable : aucun itinéraire n'y passe ; « impraticable » barre le nom de la rue.","Bouton « + » : parking ambulance, dos-d'âne ou travaux à ta position.","Le parking est relié aux établissements à moins de 600 m et proposé dans leur fiche, jamais par défaut.","Ta position en point bleu clair ; « Autre zone » retiré de la légende."]},
+ {v:"2.5",d:"20 nov. 2026",t:"Sécurité de l'équipe",l:["Codes d'invitation pour rejoindre l'équipe et mot de passe oublié.","Corrections après un audit de sécurité."],
+  x:["Pour créer son compte, il faut un code donné par un administrateur de l'équipe.","Mot de passe oublié : un administrateur donne un code pour en choisir un nouveau.","Nom « Anonymous » par défaut pour un équipier ajouté sans nom.","Alertes reçues vérifiées, fichiers de carte contrôlés, statistiques comptées seulement si le guidage démarre."]},
+ {v:"2.4",d:"20 nov. 2026",t:"Vues du GPS",l:["Vues 3D, 2D et trajet entier, nord en haut.","Coordonnées GPS acceptées comme adresse."],
+  x:["3D : vue inclinée derrière la flèche ; 2D : vue du dessus, plus dézoomée ; trajet entier avec le logo « N ».","Le bouton de recentrage n'apparaît que si la carte est décalée.","Coordonnées du type 43.3277, -0.3496 acceptées dans les adresses et pour changer de destination en route."]},
+ {v:"2.3",d:"20 nov. 2026",t:"Nouvelle disposition",l:["Menu en haut à gauche, pages en plein écran.","Feuille de mission récapitulative et statistiques avec trophées.","Recalcul toujours dans le sens de la marche, sans demi-tour."],
+  x:["Icônes redessinées et menu latéral.","Feuille de mission : les 2 adresses, modifiables, puis « Démarrer le guidage ».","Statistiques du jour, de la semaine et du mois : kilomètres, trajets, trophées.","« Terminer le guidage » ramène au menu principal.","Itinéraires alternatifs limités aux trajets rapides."]},
+ {v:"2.2",d:"19 nov. 2026",t:"Nouveau style",l:["Transitions plus douces et étoile de vie comme icône.","Étiquettes pour les établissements.","Itinéraires alternatifs dans le GPS."],
+  x:["Transitions façon iOS dans toute l'appli.","L'étoile de vie remplace la croix dans les icônes.","GPS : on peut passer au rendez-vous avant d'être arrivé à la prise en charge.","« Patient à bord » rangé dans le menu Arrêter du GPS."]},
+ {v:"2.1",d:"18 nov. 2026",t:"Guidage affiné",l:["Drapeau d'arrivée, ronds-points dessinés, flèche toujours sur le tracé.","Chemins non goudronnés évités s'il existe une autre route."],
+  x:["Waze proposé à l'arrivée.","Ronds-points dessinés avec leur flèche de sortie.","La flèche de position reste sur le tracé et tourne en douceur dans les virages serrés.","Chemins non goudronnés évités au départ, en route et à l'arrivée, sauf sans alternative."]},
+ {v:"2.0",d:"17 nov. 2026",t:"GPS intégré",l:["Guidage vocal dans l'appli, Waze et Google Maps en secours.","Signalements et alertes partagés avec l'équipe.","Mise à jour automatique de l'appli à l'ouverture."],
+  x:["Bouton « Démarrer le guidage » sur la feuille de mission.","Signalements (accident, travaux, bouchon…) partagés avec l'équipe et annoncés à l'approche.","« Patient à bord » directement dans le GPS à la prise en charge.","Urgence : adresse du patient d'abord, puis état et destination."]}];
 function newsSeen(){try{return localStorage.getItem(NEWSKEY)===APP_V;}catch(e){return true;}}
 function newsMark(){try{localStorage.setItem(NEWSKEY,APP_V);}catch(e){}}
 function vNews(){
- var h='<p class="sub" data-k="nw-i">Ce qui a changé dans Ambumaps, de la plus récente à la plus ancienne.</p>';
+ var h='<p class="sub" data-k="nw-i">Ce qui a changé dans Ambumaps, de la plus récente à la plus ancienne. Appuie sur une mise à jour pour le détail.</p>';
  NEWS.forEach(function(n,i){
-  h+='<div class="nv'+(i===0?" cur":"")+'" data-k="nw-'+esc(n.v)+'"><div class="nh"><span class="vb">'+esc(n.v)+'</span><b class="nt">'+esc(n.t)+'</b><span class="nd">'+esc(n.d)+'</span></div><ul>'+
-   n.l.map(function(x){return "<li>"+esc(x)+"</li>";}).join("")+'</ul></div>';});
+  var op=!!(ui.newsOpen&&ui.newsOpen[n.v]),hx=n.x&&n.x.length;
+  h+='<div class="nv'+(i===0?" cur":"")+(op?" open":"")+'" data-k="nw-'+esc(n.v)+'"'+(hx?' data-a="newsTog" data-id="'+esc(n.v)+'" role="button" tabindex="0" aria-expanded="'+op+'"':'')+'><div class="nh"><span class="vb">'+esc(n.v)+'</span><b class="nt">'+esc(n.t)+'</b><span class="nd">'+esc(n.d)+(hx?ico("chev","nch"):"")+'</span></div><ul>'+
+   n.l.map(function(x){return "<li>"+esc(x)+"</li>";}).join("")+'</ul>'+
+   (op&&hx?'<div class="nx" data-k="nwx-'+esc(n.v)+'" data-kg><b>En détail</b><ul>'+n.x.map(function(x){return "<li>"+esc(x)+"</li>";}).join("")+'</ul></div>':'')+'</div>';});
  return h+'<p class="nvold" data-k="nw-1">Versions 1.x (15 nov. 2026) : première version, avant le GPS.</p>';
 }
 function vStats(){
@@ -2403,7 +2423,9 @@ document.addEventListener("click",function(ev){
  if(a==="menuClose"){closeMenu();return;}
  if(a==="menuGo"){closeMenu();return;}
  if(a==="back"){goBack();return;}
- if(a==="veh"){var chg=id!==vehId;setVeh(id);ui.route=null;render();var vo=document.querySelector(".veh.on");if(chg&&vo&&canAnim())vo.animate([{transform:"scale(.92)"},{transform:"scale(1.03)",offset:.55},{transform:"none"}],{duration:DUR,easing:SPR});}
+ if(a==="newsTog"){ui.newsOpen=ui.newsOpen||{};var nop=ui.newsOpen[id]=!ui.newsOpen[id];render();
+  var nc=document.querySelector('.nv[data-id="'+id+'"] .nch');if(nc&&canAnim())nc.animate([{transform:"rotate("+(nop?90:-90)+"deg)"},{transform:"rotate("+(nop?-90:90)+"deg)"}],{duration:DUR,easing:SPR});}
+ else if(a==="veh"){var chg=id!==vehId;setVeh(id);ui.route=null;render();var vo=document.querySelector(".veh.on");if(chg&&vo&&canAnim())vo.animate([{transform:"scale(.92)"},{transform:"scale(1.03)",offset:.55},{transform:"none"}],{duration:DUR,easing:SPR});}
  else if(a==="mode"){if(id==="urgence"&&vehId==="vsl")return;if(ui.mode!==id){
   try{var cs=getComputedStyle(b),lb=b.querySelector("b"),ic=b.querySelector(".bic");ui.morph={el:b,r:b.getBoundingClientRect(),ri:ic?ic.getBoundingClientRect():null,rt:lb?lb.getBoundingClientRect():null,fs:lb?parseFloat(getComputedStyle(lb).fontSize):0,bg:cs.backgroundColor,bd:cs.borderTopColor};}catch(e){ui.morph=null;}ui.mid=uid();ui.edit=null;ui.editFrom=null;ui.mode=id;ui.route=null;ui.dep=null;ui.depEdit=false;ui.leg=1;ui.etat=id==="programme"?"programme":(ui.etat==="programme"?null:ui.etat);keepUi();render();}}
  else if(a==="etat"){ui.etat=id;goStep();}
