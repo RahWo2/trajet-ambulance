@@ -314,6 +314,15 @@ h3.lh{font-size:14.5px;font-weight:700;letter-spacing:.4px;text-transform:upperc
 .dtop .menub{background:var(--card2);border:0}
 .dpanel a{display:flex;align-items:center;gap:14px;min-height:58px;padding:0 14px;border-radius:16px;color:var(--txt);text-decoration:none;font-size:19px;font-weight:700;-webkit-tap-highlight-color:transparent;transition:background-color .25s ease}
 .dpanel a svg.i{width:24px;height:24px;color:var(--mut)}
+.dpanel .dver{margin-left:auto;position:relative;font-size:13px;font-weight:700;color:var(--mut);padding:3px 9px;border-radius:999px;background:var(--card2)}
+.ndot{position:absolute;top:7px;right:7px;width:10px;height:10px;border-radius:50%;background:#ff5a5f;box-shadow:0 0 0 2px var(--bg);pointer-events:none}
+.dpanel .dver .ndot{top:-3px;right:-3px}.menub{position:relative}
+.nv{border:1px solid var(--line);background:var(--card);border-radius:18px;padding:14px 16px 12px;margin:0 0 12px}
+.nv .nh{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.nv .vb{font-size:14px;font-weight:800;padding:3px 10px;border-radius:999px;background:var(--card2);color:var(--txt)}
+.nv.cur .vb{background:var(--acc);color:#fff}.nv .nt{font-size:17px}.nv .nd{margin-left:auto;font-size:13px;color:var(--mut)}
+.nv ul{margin:8px 0 0;padding-left:20px}.nv li{font-size:15px;line-height:1.4;color:var(--txt);margin:3px 0}.nv li::marker{color:var(--mut)}
+.nvold{font-size:13px;color:var(--mut);text-align:center;margin:4px 0 18px}
 .dpanel a.on{background:#1b2a45;color:#d6e4ff;font-weight:800}
 .dpanel a.on svg.i{color:#7fb0ff}
 .dpanel a:active{background:#20242d}
@@ -1724,10 +1733,10 @@ function loadInscrits(){
  api("POST","rpc/comptes_crees",{}).then(function(L){var o={};(L||[]).forEach(function(x){o[String(x)]=1;});cloud.inscrits=o;if(ui.tab==="equipe")softRender();},function(){});
 }
 
-var PAGE_T={statistiques:"Statistiques",etablissements:"Établissements",zones:"Zones à éviter",equipe:"Équipe",parametres:"Paramètres"};
+var PAGE_T={nouveautes:"Nouveautés",statistiques:"Statistiques",etablissements:"Établissements",zones:"Zones à éviter",equipe:"Équipe",parametres:"Paramètres"};
 function headerHtml(nav){
  var title=nav&&ui.tab!=="trajet"?PAGE_T[ui.tab]:"",cl=isCloud()&&!ui.auth;
- return '<header><div class="top">'+(nav?'<button class="menub" data-a="menu" aria-label="Ouvrir le menu" aria-haspopup="true">'+ico("menu")+'</button>':'')+
+ return '<header><div class="top">'+(nav?'<button class="menub" data-a="menu" aria-label="Ouvrir le menu'+(newsSeen()?'':' (nouveautés)')+'" aria-haspopup="true">'+ico("menu")+(newsSeen()?'':'<i class="ndot"></i>')+'</button>':'')+
   (title?'<h1 class="pt">'+esc(title)+'</h1>':'<h1 class="hlogo"><span class="sr">Ambumaps</span>'+LOGO+'</h1>')+
   '<div class="hr">'+(cl?'<button id="status" class="status" data-a="sync" aria-label="Synchroniser"></button>':'<div id="status" class="status"></div>')+'</div></div></header>';
 }
@@ -1740,9 +1749,9 @@ function flowHeader(){
 }
 /* menu latéral (bouton en haut à gauche) */
 function drawerHtml(){
- var it=function(k,ic,l){var on=ui.tab===k;return '<a href="#'+k+'" data-a="menuGo"'+(on?' class="on" aria-current="page"':'')+'>'+ico(ic)+'<span>'+l+'</span></a>';},cl=state.mode==="cloud"&&sess;
+ var it=function(k,ic,l,x){var on=ui.tab===k;return '<a href="#'+k+'" data-a="menuGo"'+(on?' class="on" aria-current="page"':'')+'>'+ico(ic)+'<span>'+l+'</span>'+(x||"")+'</a>';},cl=state.mode==="cloud"&&sess;
  return '<div class="dscrim" data-a="menuClose"></div><div class="dpanel" role="navigation" aria-label="Menu principal"><div class="dtop">'+LOGO+'<b>Ambumaps</b><button class="menub" data-a="menuClose" aria-label="Fermer le menu">'+ico("x")+'</button></div>'+
-  it("trajet","route","Trajet")+it("statistiques","chart","Statistiques")+it("etablissements","build","Établissements")+it("zones","warn","Zones à éviter")+(isCloud()?it("equipe","team","Équipe"):"")+'<hr>'+it("parametres","gear","Paramètres")+
+  it("trajet","route","Trajet")+it("statistiques","chart","Statistiques")+it("etablissements","build","Établissements")+it("zones","warn","Zones à éviter")+(isCloud()?it("equipe","team","Équipe"):"")+'<hr>'+it("nouveautes","star","Nouveautés",'<span class="dver">'+APP_V+(newsSeen()?'':'<i class="ndot" aria-label="nouveau"></i>')+'</span>')+it("parametres","gear","Paramètres")+
   '<div class="dfill"></div>'+(cl?'<button class="dstat" data-a="sync" aria-label="Synchroniser"><span id="dstatus"></span></button>':'<div class="dstat"><span id="dstatus"></span></div>')+'</div>';
 }
 function openMenu(){
@@ -1760,7 +1769,8 @@ var LOGO='<svg class="logo" aria-hidden="true" xmlns="http://www.w3.org/2000/svg
 function tabLink(k,l){return '<a href="#'+k+'" class="'+(ui.tab===k?"on":"")+'">'+l+'</a>';}
 function render0(){
  var h=location.hash.replace("#","");
- ui.tab=(h==="etablissements"||h==="zones"||h==="parametres"||h==="statistiques"||(h==="equipe"&&isCloud()))?h:"trajet";
+ ui.tab=(h==="etablissements"||h==="zones"||h==="parametres"||h==="statistiques"||h==="nouveautes"||(h==="equipe"&&isCloud()))?h:"trajet";
+ if(ui.tab==="nouveautes"&&!newsSeen())newsMark();
  var app=document.getElementById("app");
  clearMaps();
  if((!state.mode||(state.mode==="cloud"&&!sess))&&!ui.auth)ui.auth={step:state.mode==="cloud"?"login":"choice"};
@@ -1772,7 +1782,7 @@ function render0(){
  var html=flowP?flowHeader()+'<main class="flow '+(ui.mode==="programme"?"prog":"urg")+'">':headerHtml(true)+mo;
  if(isCloud()&&cloud.status==="notmember")html+='<div class="warnbox" style="margin:0 0 12px">Ton compte n\'est pas (ou plus) dans l\'équipe. Demande à ton responsable de t\'ajouter, ou déconnecte-toi depuis l\'onglet Équipe.</div>';
  if(isCloud()&&cloud.rej&&ui.tab!=="trajet")html+='<div class="warnbox" style="margin:0 0 12px">Une modification n\'a pas été enregistrée dans l\'équipe : '+esc(cloud.rej.why)+'. La liste a été remise comme sur le serveur.<div class="row" style="margin-top:8px"><button class="btn small" data-a="rejOk">OK</button></div></div>';
- if(ui.tab==="trajet")html+=vTrajet();else if(ui.tab==="etablissements")html+=vEtabs();else if(ui.tab==="zones")html+=vZones();else if(ui.tab==="parametres")html+=vParams();else if(ui.tab==="statistiques")html+=vStats();else html+=vEquipe();
+ if(ui.tab==="trajet")html+=vTrajet();else if(ui.tab==="etablissements")html+=vEtabs();else if(ui.tab==="zones")html+=vZones();else if(ui.tab==="parametres")html+=vParams();else if(ui.tab==="statistiques")html+=vStats();else if(ui.tab==="nouveautes")html+=vNews();else html+=vEquipe();
  html+="</main>";
  app.innerHTML=html;paintStatus();
  if(ui.tab==="trajet")paintFeuille();
@@ -2036,6 +2046,30 @@ function stTrophies(o,best){
   t("flame","Fidèle au poste","5 jours d'affilée",streak,5),t("mega","Éclaireur","10 signalements",sig,10),t("wave","Main de velours","10 trajets confort",cf,10),
   t("build","Habitué","25 fois au même lieu",maxEt,25),t("clip","Semaine chargée","30 missions en 7 jours",maxWeek,30),t("medal","Centenaire","100 missions au total",nMis,100)];}
 var KN={p1:["Prise en charge","pin","#45d08f","#163a28"],p2:["Transport programmé","clip","#45d08f","#163a28"],u1:["Urgence · vers le patient","siren","#ff8a8e","#3a1a1c"],u2:["Urgence · transport","siren","#ff8a8e","#3a1a1c"],dep:["Retour au dépôt","home","#9cc0ff","#1b2a45"]};
+/* ---------- Nouveautés ----------
+   À chaque mise à jour : ajouter une entrée EN TÊTE de NEWS et changer APP_V.
+   2.x = depuis l'arrivée du GPS ; nouvelle fonction -> 2e chiffre +1 ; petite retouche -> 3e chiffre (2.7.1). */
+var APP_V="2.9",NEWSKEY="ambumaps-vu",NEWS=[
+ {v:"2.9",d:"21 nov. 2026",t:"Nouveautés",l:["Cette page : l'historique des mises à jour de l'appli."]},
+ {v:"2.8",d:"20 nov. 2026",t:"Signalement police",l:["Nouvelle alerte « Police » dans le GPS, partagée avec l'équipe pendant 1 h."]},
+ {v:"2.7.1",d:"20 nov. 2026",t:"Retouches de l'accueil",l:["Le bouton Urgence ou Transport programmé devient la bande du haut, et inversement au retour.","Logo centré ; état de synchro affiché seulement en cas de problème."]},
+ {v:"2.7",d:"20 nov. 2026",t:"Choix du véhicule",l:["VSL / Taxi, Ambulance ou ASSU sur l'accueil : les trajets évitent les passages trop bas.","Pas de bouton Urgence en VSL / Taxi."]},
+ {v:"2.6",d:"20 nov. 2026",t:"Carte des zones",l:["Appuyer sur une route pour la signaler : dégradée, en travaux, fermée ou impraticable.","Parkings ambulance reliés aux établissements, proposés comme point d'arrivée."]},
+ {v:"2.5",d:"20 nov. 2026",t:"Sécurité de l'équipe",l:["Codes d'invitation pour rejoindre l'équipe et mot de passe oublié.","Corrections après un audit de sécurité."]},
+ {v:"2.4",d:"20 nov. 2026",t:"Vues du GPS",l:["Vues 3D, 2D et trajet entier, nord en haut.","Coordonnées GPS acceptées comme adresse."]},
+ {v:"2.3",d:"20 nov. 2026",t:"Nouvelle disposition",l:["Menu en haut à gauche, pages en plein écran.","Feuille de mission récapitulative et statistiques avec trophées.","Recalcul toujours dans le sens de la marche, sans demi-tour."]},
+ {v:"2.2",d:"19 nov. 2026",t:"Nouveau style",l:["Transitions plus douces et étoile de vie comme icône.","Étiquettes pour les établissements.","Itinéraires alternatifs dans le GPS."]},
+ {v:"2.1",d:"18 nov. 2026",t:"Guidage affiné",l:["Drapeau d'arrivée, ronds-points dessinés, flèche toujours sur le tracé.","Chemins non goudronnés évités s'il existe une autre route."]},
+ {v:"2.0",d:"17 nov. 2026",t:"GPS intégré",l:["Guidage vocal dans l'appli, Waze et Google Maps en secours.","Signalements et alertes partagés avec l'équipe.","Mise à jour automatique de l'appli à l'ouverture."]}];
+function newsSeen(){try{return localStorage.getItem(NEWSKEY)===APP_V;}catch(e){return true;}}
+function newsMark(){try{localStorage.setItem(NEWSKEY,APP_V);}catch(e){}}
+function vNews(){
+ var h='<p class="sub" data-k="nw-i">Ce qui a changé dans Ambumaps, de la plus récente à la plus ancienne.</p>';
+ NEWS.forEach(function(n,i){
+  h+='<div class="nv'+(i===0?" cur":"")+'" data-k="nw-'+esc(n.v)+'"><div class="nh"><span class="vb">'+esc(n.v)+'</span><b class="nt">'+esc(n.t)+'</b><span class="nd">'+esc(n.d)+'</span></div><ul>'+
+   n.l.map(function(x){return "<li>"+esc(x)+"</li>";}).join("")+'</ul></div>';});
+ return h+'<p class="nvold" data-k="nw-1">Versions 1.x (15 nov. 2026) : première version, avant le GPS.</p>';
+}
 function vStats(){
  var per=ui.stP||"jour",off=ui.stO||0,o=stLoad();o.trips=o.trips.filter(stReal);var r=stRange(per,off),S=stAgg(o,r.a,r.b),pr=stRange(per,off-1),P=stAgg(o,pr.a,off===0?Math.min(pr.b,pr.a+(Date.now()-r.a)):pr.b),h="";
  h+='<div class="seg" role="tablist" data-k="stseg">'+[["jour","Jour"],["semaine","Semaine"],["mois","Mois"]].map(function(x){return '<button role="tab" aria-selected="'+(per===x[0])+'" class="'+(per===x[0]?"on":"")+'" data-a="stP" data-id="'+x[0]+'">'+x[1]+'</button>';}).join("")+'</div>';
