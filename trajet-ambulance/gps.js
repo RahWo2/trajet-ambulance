@@ -79,6 +79,18 @@ function project(R,p,hint){
  if(hint!=null){scan(Math.max(0,hint-8),Math.min(n-1,hint+80));if(!best||best.off>30){best=null;scan(0,n-1);}}else scan(0,n-1);
  var a=R.pts[best.i],b=R.pts[best.i+1];best.q=[a[0]+(b[0]-a[0])*best.t,a[1]+(b[1]-a[1])*best.t];return best;
 }
+/* projection en continuité : on cherche seulement sur la portion du tracé autour de la position actuelle (60 m derrière, « ahead » m devant),
+   en écartant les segments orientés à l'inverse du sens de la marche : pas de saut vers une autre partie du trajet ou une route voisine */
+function projectNear(R,p,al,hd,ahead){
+ var n=R.xy.length;if(n<2)return project(R,p,null);
+ var q=R.P.xy(p),best=null,lo=idxAt(R,Math.max(0,al-60)),hi=Math.min(n-1,idxAt(R,Math.min(R.total,al+ahead))+1);
+ for(var i=lo;i<hi;i++){var a=R.xy[i],b=R.xy[i+1],dx=b[0]-a[0],dy=b[1]-a[1],l=dx*dx+dy*dy,t=l?((q[0]-a[0])*dx+(q[1]-a[1])*dy)/l:0;t=Math.max(0,Math.min(1,t));
+  var x=a[0]+t*dx-q[0],y=a[1]+t*dy-q[1],d=Math.sqrt(x*x+y*y),along=R.cum[i]+t*(R.cum[i+1]-R.cum[i]),cost=d;
+  if(hd!=null&&l>1){var df=Math.abs(angDiff((Math.atan2(dx,dy)*180/Math.PI+360)%360,hd));if(df>110)cost+=60;else if(df>60)cost+=20;}
+  if(along<al)cost+=(al-along)*0.4;
+  if(!best||cost<best.cost)best={i:i,t:t,off:d,along:along,cost:cost};}
+ var pa=R.pts[best.i],pb=R.pts[best.i+1];best.q=[pa[0]+(pb[0]-pa[0])*best.t,pa[1]+(pb[1]-pa[1])*best.t];return best;
+}
 function idxAt(R,d){var lo=0,hi=R.cum.length-1;while(lo<hi){var m=(lo+hi+1)>>1;if(R.cum[m]<=d)lo=m;else hi=m-1;}return lo;}
 function pointAt(R,d){if(R.pts.length<2)return R.pts[0];d=Math.max(0,Math.min(R.total,d));var i=Math.min(idxAt(R,d),R.pts.length-2),seg=R.cum[i+1]-R.cum[i],t=seg?(d-R.cum[i])/seg:0,a=R.pts[i],b=R.pts[i+1];return[a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t];}
 function slice(R,a,b){a=Math.max(0,a);b=Math.min(R.total,b);if(b<=a)return[pointAt(R,a),pointAt(R,a)];var out=[pointAt(R,a)],i=idxAt(R,a)+1;while(i<R.pts.length&&R.cum[i]<b){out.push(R.pts[i]);i++;}out.push(pointAt(R,b));return out;}
@@ -514,13 +526,24 @@ function onFix(c){
  var tr=G.trail||(G.trail=[]),lt=tr[tr.length-1];if(!lt||A.distM(lt.p,p)>=5){tr.push({p:p,w:now(),a:c.acc||0});if(tr.length>30)tr.shift();}
  if(c.heading!=null&&!isNaN(c.heading)&&(sp||0)>3){G.gh=c.heading;G.ghT=now();}
  if(!G.R){G.disp=G.disp||p;return;}
- var R=G.R,pr=project(R,p,G.prj?G.prj.i:null),tol=Math.max(30,Math.min(60,(c.acc||0)*1.3)),on=pr.off<=tol;G.prj=pr;
- if(on){G.offCount=0;var na=pr.along;if(na<G.along&&G.along-na<15)na=G.along;if((sp==null||sp<0.8)&&Math.abs(na-G.along)<10)na=G.along;G.along=na;}
- else{G.offCount=(G.offCount||0)+1;if(G.offCount>=3&&!G.rerouting&&now()-(G.lastReroute||0)>12000&&!G.arrived)reroute("off");}
- var gh=(c.heading!=null&&!isNaN(c.heading)&&(sp||0)>3)?c.heading:null,hd;
- if(on)hd=bearingAt(R,G.along);else if(gh!=null)hd=G.heading==null?gh:(G.heading+angDiff(G.heading,gh)*0.5+360)%360;else hd=G.heading||0;G.heading=hd;
- if(!on&&(sp==null||sp<0.8)&&G.disp&&A.distM(G.disp,p)<10)p=G.disp;
- animateTo(on?pointAt(R,G.along):p,hd,on?G.along:null);
+ /* l'itinéraire en cours reste prioritaire : une route parallèle toute proche ou un GPS imprécis ne le changent pas.
+    On ne recalcule que si l'écart devient vraiment grand, si l'on roule nettement dans une autre direction,
+    ou si l'écart dure longtemps. */
+ var R=G.R,acc=c.acc||0,hv=moveHd(),vs=sp!=null?sp:(G.speed||0)/3.6,gap=G._fixT?Math.min(30,(now()-G._fixT)/1000):1;G._fixT=now();
+ var pr=G.prj?projectNear(R,p,G.along,hv,Math.max(250,vs*gap*1.5+vs*8+120)):project(R,p,null);
+ var tolS=Math.max(35,Math.min(70,30+acc*0.8)),tolH=tolS+45;
+ if(pr.off>tolH){var gp=project(R,p,null);if(gp.off<pr.off-30&&(hv==null||Math.abs(angDiff(bearingAt(R,gp.along),hv))<60))pr=gp;}
+ G.prj=pr;
+ var hdOff=hv!=null&&Math.abs(angDiff(bearingAt(R,pr.along),hv))>45,on=pr.off<=tolS,keep=!on&&pr.off<=tolH&&!hdOff;
+ if(on||keep){var na=pr.along;if(na<G.along&&G.along-na<15)na=G.along;if((sp==null||sp<0.8)&&Math.abs(na-G.along)<10)na=G.along;G.along=na;}
+ if(on)G.dev=null;
+ else{var dv=G.dev||(G.dev={n:0,t0:now(),trav:0,last:p});dv.n++;dv.trav+=Math.min(A.distM(dv.last,p),vs*gap*1.5+3);dv.last=p;var el=now()-dv.t0;
+  var conf=pr.off>tolH?(dv.n>=2&&el>=1500):(hdOff?(dv.n>=3&&el>=3000&&dv.trav>=30):(el>=20000&&dv.trav>=250));
+  if(conf&&!G.rerouting&&!G.arrived&&now()-(G.lastReroute||0)>12000)reroute("off");}
+ var snap=on||keep,gh=(c.heading!=null&&!isNaN(c.heading)&&(sp||0)>3)?c.heading:null,hd;
+ if(snap)hd=bearingAt(R,G.along);else if(gh!=null)hd=G.heading==null?gh:(G.heading+angDiff(G.heading,gh)*0.5+360)%360;else hd=G.heading||0;G.heading=hd;
+ if(!snap&&(sp==null||sp<0.8)&&G.disp&&A.distM(G.disp,p)<10)p=G.disp;
+ animateTo(snap?pointAt(R,G.along):p,hd,snap?G.along:null);
  if(G.rec){var lp=G.rec.pts[G.rec.pts.length-1],q=on?pr.q:p;if(!lp||A.distM(lp,q)>5){G.rec.pts.push(q);setRecData();}}
  update();
  if(G.view==="nord"&&G.follow)nordCheck();
@@ -565,6 +588,8 @@ function travelHeading(){
  if(G.gh!=null&&tn-G.ghT<4000)return G.gh;
  if(G.R&&G.prj&&G.prj.off<=30&&(G.speed||0)>3)return bearingAt(G.R,G.along);
  return null;}
+function moveHd(){var tn=now();if((G.speed||0)<7)return null;if(G.gh!=null&&tn-G.ghT<3000&&(G.speed||0)>12)return G.gh;
+ var tr=G.trail||[],n=tr.length,c=tr[n-1];if(c&&tn-c.w<8000)for(var i=n-2;i>=0;i--){if(c.w-tr[i].w>15000)break;if(A.distM(tr[i].p,c.p)>=25)return brg(tr[i].p,c.p);}return null;}
 function noHead(b){var c=JSON.parse(JSON.stringify(b));delete c.locations[0].heading;delete c.locations[0].heading_tolerance;return c;}
 function routeTries(start,extra){
  var base=vBody(Object.assign({locations:[{lat:r6(start[0]),lon:r6(start[1])},{lat:G.dest.lat,lon:G.dest.lon}]},extra||{}));
@@ -605,7 +630,7 @@ function avoidChemins(R,body,depth){
 function traceRoute(shape){return A.valhalla("trace_route",vBody({encoded_polyline:shape,shape_match:"edge_walk"})).then(tripToRoute);}
 function setRoute(R){
  if(G.alt)closeAlt();
- G.R=R;G.prj=null;G.next=-1;G.offCount=0;G._farA=null;G._cut=null;G._onC=null;
+ G.R=R;G.prj=null;G.next=-1;G.dev=null;G._farA=null;G._cut=null;G._onC=null;
  if(G.pos){var pr=project(R,G.pos,null);G.prj=pr;G.along=pr.along;}else G.along=0;
  G.dispAlong=G.along;G._onRt=false;if(G.anim){G.anim.af=G.anim.at=G.anim.alEnd=null;}
  if(G.sim)G.simAlong=G.along;
@@ -616,7 +641,7 @@ function reroute(why){
  if(!G||!G.pos||G.rerouting)return;G.rerouting=true;G.lastReroute=now();paintBanner();manArrow();
  if(why==="off")say("Recalcul de l'itinéraire.",true);
  routeFrom(G.pos,why==="off"&&G.R?remTime():null).then(function(R){if(!G)return;G.rerouting=false;if(G._redo){G._redo=false;reroute("leg2");return;}setRoute(R);if(why==="jam")say("Bouchon signalé sur le trajet : nouvel itinéraire.",true);if(why==="dest")say("Nouvelle destination : "+(G.dest.nom||"")+".",true);},
-  function(){if(!G)return;G.rerouting=false;if(G._redo){G._redo=false;reroute("leg2");return;}G.offCount=0;paintBanner();toast("Recalcul impossible pour l'instant : réseau ou serveur indisponible.");});
+  function(){if(!G)return;G.rerouting=false;if(G._redo){G._redo=false;reroute("leg2");return;}G.dev=null;paintBanner();toast("Recalcul impossible pour l'instant : réseau ou serveur indisponible.");});
 }
 function loadEdges(R){
  edgeAttrs(R).then(function(t){
