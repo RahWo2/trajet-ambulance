@@ -36,6 +36,9 @@ function svgI(d,size,color,sw){return'<svg width="'+size+'" height="'+size+'" vi
 function glyph(k,size,fg,bg){var c=COL[k];return'<svg width="'+size+'" height="'+size+'" viewBox="0 0 24 24" aria-hidden="true">'+GLY[k].split("{fg}").join(fg||c[1]).split("{bg}").join(bg||c[0])+'</svg>';}
 function pinSvg(k){var c=COL[k];return'<svg width="40" height="50" viewBox="-20 -47 40 50" aria-hidden="true"><ellipse cx="0" cy="0" rx="7" ry="2.6" fill="#000" opacity=".45"></ellipse><path d="M-6.5 -14.5 L0 -2.5 L6.5 -14.5z" fill="#fff" stroke="#fff" stroke-width="4" stroke-linejoin="round"></path><circle cx="0" cy="-27" r="18.5" fill="#fff"></circle><path d="M-4.8 -13.5 L0 -5.2 L4.8 -13.5z" fill="'+c[0]+'"></path><circle cx="0" cy="-27" r="15.5" fill="'+c[0]+'"></circle><g transform="translate(-11.5 -38.5) scale(0.96)">'+GLY[k].split("{fg}").join(c[1]).split("{bg}").join(c[0])+'</g></svg>';}
 var ARROW='<svg width="54" height="54" viewBox="-27 -27 54 54" aria-hidden="true"><clipPath id="gArrowR"><rect x="0" y="-30" width="30" height="50"></rect></clipPath><ellipse cx="0" cy="11" rx="17" ry="6" fill="#000" opacity=".38"></ellipse><path d="M1.6 -17.12 L12.63 9.67 Q14 13 10.78 11.39 L2.15 7.07 Q0 6 -2.15 7.07 L-10.78 11.39 Q-14 13 -12.63 9.67 L-1.6 -17.12 Q0 -21 1.6 -17.12 Z" transform="translate(0 4)" fill="#123a8f" stroke="#123a8f" stroke-width="3" stroke-linejoin="round"></path><path d="M1.6 -17.12 L12.63 9.67 Q14 13 10.78 11.39 L2.15 7.07 Q0 6 -2.15 7.07 L-10.78 11.39 Q-14 13 -12.63 9.67 L-1.6 -17.12 Q0 -21 1.6 -17.12 Z" fill="#fff"></path><path d="M1.6 -17.12 L12.63 9.67 Q14 13 10.78 11.39 L2.15 7.07 Q0 6 -2.15 7.07 L-10.78 11.39 Q-14 13 -12.63 9.67 L-1.6 -17.12 Q0 -21 1.6 -17.12 Z" fill="#d3dae6" clip-path="url(#gArrowR)"></path><path d="M1.6 -17.12 L12.63 9.67 Q14 13 10.78 11.39 L2.15 7.07 Q0 6 -2.15 7.07 L-10.78 11.39 Q-14 13 -12.63 9.67 L-1.6 -17.12 Q0 -21 1.6 -17.12 Z" fill="none" stroke="#1e5bd6" stroke-width="3" stroke-linejoin="round"></path></svg>';
+function posMark(){try{if(A&&A.posSvg){var x=A.posSvg(!!(G&&G.opts&&G.opts.vitale));if(x)return x;}}catch(e){}return ARROW;}
+/* véhicules : inclinés en relief (aussi longs que larges à l'écran) ; flèches et points : couchés sur la route */
+function posRelief(){try{var k=A&&A.posKind?A.posKind():"";return k==="amb"||k==="vsl";}catch(e){return false;}}
 var IC={straight:"M12 21V4 M6.5 9.5L12 4l5.5 5.5",right:"M6 21V11a4 4 0 0 1 4-4h9 M15 3l4 4-4 4",left:"M18 21V11a4 4 0 0 0-4-4H5 M9 3L5 7l4 4",
  sright:"M8 21v-6.5a4 4 0 0 1 1.2-2.8L17 4 M11.5 4H17v5.5",sleft:"M16 21v-6.5a4 4 0 0 0-1.2-2.8L7 4 M12.5 4H7v5.5",
  uturn:"M9 21V10a5 5 0 0 1 10 0v6 M15.5 13l3.5 3.5 3.5-3.5",round:"M12 21v-4.5 M12 16.5a4.5 4.5 0 1 1 4.5-4.5 M16.5 12V6.5 M14 9l2.5-2.5L19 9",
@@ -213,7 +216,7 @@ var CSS='#gps{position:fixed;inset:0;z-index:3000;background:#1c1f25;color:#f1f3
 '@keyframes gtoast{from{opacity:0;transform:translate(-50%,10px) scale(.95)}to{opacity:1;transform:translate(-50%,0)}}'+
 '@keyframes gdrop{from{opacity:0;transform:translateY(-10px) scale(.97)}to{opacity:1;transform:none}}'+
 '@media (prefers-reduced-motion:reduce){#gps *,#gps{animation:none!important;transition:none!important}}'+
-'#gps .gvfix{position:absolute;z-index:4;width:54px;height:54px;line-height:0;pointer-events:none}#gps .gvfix[hidden]{display:none}#gps .gveh{line-height:0;pointer-events:none}#gps .maplibregl-ctrl-bottom-left,#gps .maplibregl-ctrl-bottom-right{display:none}';
+'#gps .gvfix{position:absolute;z-index:4;width:64px;height:64px;line-height:0;pointer-events:none;display:flex;align-items:center;justify-content:center}#gps .gvfix svg{transform-origin:50% 50%}#gps .gyroA{animation:gGyro 1s ease-in-out infinite}#gps .gyroB{animation:gGyro 1s ease-in-out -.5s infinite}@keyframes gGyro{0%,100%{opacity:1}50%{opacity:.35}}#gps .gfA{animation:gFlare 1s ease-in-out infinite}#gps .gfB{animation:gFlare 1s ease-in-out -.5s infinite}@keyframes gFlare{0%,100%{opacity:1}50%{opacity:0}}@media (prefers-reduced-motion:reduce){#gps .gyroA,#gps .gyroB,#gps .gfA,#gps .gfB{animation:none}}#gps .gvfix[hidden]{display:none}#gps .gveh{line-height:0;pointer-events:none}#gps .maplibregl-ctrl-bottom-left,#gps .maplibregl-ctrl-bottom-right{display:none}';
 
 function el(html){var d=document.createElement("div");d.innerHTML=html;return d.firstElementChild;}
 function toast(t,ms){var o=$(".gtoast");if(o)o.remove();var d=el('<div class="gtoast" role="status">'+esc(t)+'</div>');G.root.appendChild(d);setTimeout(function(){if(d.parentNode)d.remove();},ms||2800);}
@@ -221,7 +224,7 @@ function toast(t,ms){var o=$(".gtoast");if(o)o.remove();var d=el('<div class="gt
 function buildUi(){
  if(!document.getElementById("gpsCss")){var s=document.createElement("style");s.id="gpsCss";s.textContent=CSS+CSSL;document.head.appendChild(s);}
  var r=el('<div id="gps"'+(LT()?' class="light"':'')+' role="application" aria-label="Guidage GPS">'+
-  '<div class="gmap" id="gmap"></div><div class="gvfix" id="gVeh" hidden>'+ARROW+'</div>'+
+  '<div class="gmap" id="gmap"></div><div class="gvfix" id="gVeh" hidden>'+posMark()+'</div>'+
   '<div class="gtop"><div class="gban" id="gBan"></div><div id="gWz"></div><div id="gChip"></div></div>'+
   '<div class="gbot"><div class="grow"><div class="grnd"><button type="button" data-g="mute" aria-label="Couper ou remettre la voix" id="gMute"></button><button type="button" data-g="recenter" aria-label="Recentrer sur ma position" id="gRec" hidden>'+svgI(IC.target,22,"currentColor")+'</button><button type="button" data-g="view" id="gView" aria-label="Changer de vue"></button></div>'+
   '<div class="gspd" id="gSpd"><b>--</b><small>km/h</small><span class="glim">--</span></div><button type="button" class="gpill" data-g="addr" id="gPill"><b>…</b></button><div></div></div>'+
@@ -269,7 +272,9 @@ function fitNord(){
 function nordCheck(){var t=now();if(!G.map||G.alt||t-(G._nf||0)<3000)return;var p=G.disp||G.pos;if(!p)return;var out=t-(G._nf||0)>60000;
  if(!out&&G.map.project){try{var s=G.map.project([p[1],p[0]]),o=nordPad();out=s.x<o.pad.left*0.5||s.x>o.W-o.pad.right*0.5||s.y<o.pad.top*0.6||s.y>o.H-o.pad.bottom*0.6;}catch(e){}}
  if(out)fitNord();}
-function vehMode(){var fx=$("#gVeh"),on=!!(G.follow&&G.view!=="nord"&&G.mapReady&&G.R&&!G._rc);if(fx)fx.hidden=!on;if(G.veh){if(!on&&G.disp){G.veh.setLngLat([G.disp[1],G.disp[0]]);G.veh.setRotation(G.dispH||0);}var e=G.veh.getElement();if(e)e.style.visibility=on||!G.R?"hidden":"visible";}}
+/* repère couché sur la route en vue 3D (même inclinaison que la carte) */
+function vehTilt(){var fx=$("#gVeh"),s=fx&&fx.firstElementChild;if(!s||!G||!G.map)return;var pt=0;try{pt=G.map.getPitch()||0;}catch(e){}if(s._rl==null)s._rl=posRelief();var v=pt>0.5?(s._rl?"perspective(300px) rotateX("+pt.toFixed(1)+"deg) scaleY("+(1/Math.cos(pt*Math.PI/180)).toFixed(3)+")":"perspective(1200px) rotateX("+pt.toFixed(1)+"deg)"):"";if(s._tl!==v){s._tl=v;s.style.transform=v;}}
+function vehMode(){vehTilt();var fx=$("#gVeh"),on=!!(G.follow&&G.view!=="nord"&&G.mapReady&&G.R&&!G._rc);if(fx)fx.hidden=!on;if(G.veh){if(!on&&G.disp){G.veh.setLngLat([G.disp[1],G.disp[0]]);G.veh.setRotation(G.dispH||0);}var e=G.veh.getElement();if(e)e.style.visibility=on||!G.R?"hidden":"visible";}}
 
 function paintBanner(){
  var b=$("#gBan");if(!b||!G.R)return;var R=G.R,k=G.next,h,bk=(G.arrived?"a":G.rerouting?"r":"m"+k)+"|"+R.total;
@@ -487,7 +492,7 @@ function setRecData(){src("gRecD",fc(G.rec&&G.rec.pts.length>1?[line(G.rec.pts)]
 /* ---------- caméra et position ---------- */
 function zoomFor(kmh){kmh=kmh||0;return kmh<30?17.6:(kmh<60?17:(kmh<90?16.2:15.5));}
 function setPad(){if(!G||!G.map)return;var h=G.root.clientHeight||window.innerHeight,gb=G.root.querySelector(".gbot"),bh=gb?gb.offsetHeight:230,target=Math.max(h*0.45,h-bh-60),top=Math.max(0,Math.round(2*target-h));
- var w=G.root.clientWidth||window.innerWidth,fx=$("#gVeh");if(fx){fx.style.left=Math.round(w/2-27)+"px";fx.style.top=Math.round(target-27)+"px";}
+ var w=G.root.clientWidth||window.innerWidth,fx=$("#gVeh");if(fx){fx.style.left=Math.round(w/2-32)+"px";fx.style.top=Math.round(target-32)+"px";}
  if(top===G._padTop)return;G._padTop=top;if(G.alt||G._rc||G.view==="nord")return;try{G.map.setPadding({top:top,bottom:0,left:0,right:0});}catch(e){}}
 function animateTo(p,h,al){var t=now(),cur=G.disp||p,ch=G.dispH==null?h:G.dispH,onPrev=!!(G.anim&&G.anim.at!=null)||!!G._onRt;
  /* sur l'itinéraire : on avance le long du tracé (pas en ligne droite) ; au retour sur le tracé, une transition en ligne droite d'abord */
@@ -522,7 +527,7 @@ function frame(){
   if(rc){var k2=Math.min(1,(tn-rc.t0)/RC_DUR),e2=1-Math.pow(1-k2,4),pt=G._padTop||0;
    if(k2<1){more=true;cam={center:[rc.c[1]+(p[1]-rc.c[1])*e2,rc.c[0]+(p[0]-rc.c[0])*e2],bearing:(rc.b+angDiff(rc.b,h)*e2+360)%360,zoom:rc.z+(tz-rc.z)*e2,pitch:rc.p+(tpi-rc.p)*e2,padding:{top:rc.pd.top+(pt-rc.pd.top)*e2,bottom:rc.pd.bottom*(1-e2),left:rc.pd.left*(1-e2),right:rc.pd.right*(1-e2)}};}
    else{cam.padding={top:pt,bottom:0,left:0,right:0};G._rc=null;}}
-  G.map.jumpTo(cam);if(rc&&G.veh){G.veh.setLngLat([p[1],p[0]]);G.veh.setRotation(h);}if(rc&&!G._rc)vehMode();
+  G.map.jumpTo(cam);vehTilt();if(rc&&G.veh){G.veh.setLngLat([p[1],p[0]]);G.veh.setRotation(h);}if(rc&&!G._rc)vehMode();
   /* distance au sol entre le centre de la flèche et sa pointe (20 px plus haut à l'écran) */
   if(G.map.project&&G.map.unproject&&now()-(G._tipT||0)>400){G._tipT=now();var sp=G.map.project([p[1],p[0]]),u=G.map.unproject([sp.x,sp.y-TIP_PX]),tm=A.distM(p,[u.lat,u.lng]);if(tm>0.3&&tm<150)G._tipM=tm;}}catch(e){}}
  else if(G.veh){G.veh.setLngLat([p[1],p[0]]);G.veh.setRotation(h);}
@@ -997,7 +1002,7 @@ function boot(){
    /* rotation de la carte à deux doigts : on quitte le suivi, le bouton « recentrer » remet la carte dans le sens de la marche */
    G.map.on("rotatestart",function(e){if(e.originalEvent){G.follow=false;G._rc=null;G._userCam=true;clearTimeout(G._autoT);paintRec();}});
    G.map.on("load",function(){if(!G)return;G.mapReady=true;addLayers();G._padTop=null;setPad();
-    var ve=el('<div class="gveh">'+ARROW+'</div>');G.veh=new ml.Marker({element:ve,anchor:"center",rotationAlignment:"map",pitchAlignment:"viewport"}).setLngLat([c[1],c[0]]).addTo(G.map);
+    var ve=el('<div class="gveh">'+posMark()+'</div>');G.veh=new ml.Marker({element:ve,anchor:"center",rotationAlignment:"map",pitchAlignment:"map"}).setLngLat([c[1],c[0]]).addTo(G.map);
     vehMode();loadPins().then(function(){if(G)refreshMarkers();});refreshFeatures();setRouteData();G._manKey=null;manArrow();if(G.alt){paintAltMap();fitAlt();}});
   }
   setLoad("Calcul de l'itinéraire…");
