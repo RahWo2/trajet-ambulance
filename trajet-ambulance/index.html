@@ -2054,7 +2054,9 @@ var KN={p1:["Prise en charge","pin","#45d08f","#163a28"],p2:["Transport programm
 /* ---------- Nouveautés ----------
    À chaque mise à jour : ajouter une entrée EN TÊTE de NEWS et changer APP_V.
    2.x = depuis l'arrivée du GPS ; nouvelle fonction -> 2e chiffre +1 ; petite retouche -> 3e chiffre (2.7.1). */
-var APP_V="2.9.1",NEWSKEY="ambumaps-vu",NEWS=[
+var APP_V="2.10",NEWSKEY="ambumaps-vu",NEWS=[
+ {v:"2.10",d:"22 nov. 2026",t:"Itinéraire plus stable",l:["Le GPS garde l'itinéraire en cours quand une autre route passe juste à côté."],
+  x:["Tant qu'on roule dans le sens du trajet, la position reste sur le tracé même si le GPS dérive vers une route voisine (ex. boulevard des Pyrénées et avenue Napoléon Bonaparte).","Recalcul seulement si l'écart dépasse environ 80 m, si l'on part nettement dans une autre direction (au bout de 3 s), ou si l'écart dure plus de 20 s.","À l'arrêt, un GPS qui saute ne déclenche plus de recalcul."]},
  {v:"2.9.1",d:"21 nov. 2026",t:"Détail des mises à jour",l:["Appuie sur une mise à jour pour en voir le détail."],
   x:["Chaque fiche s'ouvre et se referme d'un appui.","La liste complète de ce qui a changé apparaît sous le résumé."]},
  {v:"2.9",d:"21 nov. 2026",t:"Nouveautés",l:["Cette page : l'historique des mises à jour de l'appli."],
@@ -2377,7 +2379,7 @@ function clearDest(){ui.destId=null;ui.libre="";ui.libreGeo=null;ui.libreOk=fals
 function clearEtat(){ui.etat=null;ui.route=null;}
 function resetMission(){ui.mid=null;ui.edit=null;ui.editFrom=null;ui.etat=ui.mode==="programme"?"programme":null;ui.destId=null;ui.libre="";ui.libreGeo=null;ui.libreOk=false;ui.filtre="";ui.pecFiltre="";ui.pec={q:"",etab:""};ui.leg=1;ui.dep=null;ui.depEdit=false;ui.route=null;keepUi();}
 /* ===== GPS intégré (module gps.js chargé à la demande) ===== */
-var GPS_V="29",gpsP=null;
+var GPS_V="30",gpsP=null;
 function loadGps(){if(window.AmbuGPS)return Promise.resolve();if(gpsP)return gpsP;
  gpsP=new Promise(function(res,rej){var sc=document.createElement("script");sc.src="gps.js?v="+GPS_V;
   sc.onload=function(){if(window.AmbuGPS)res();else{gpsP=null;rej(new Error("GPS indisponible."));}};
