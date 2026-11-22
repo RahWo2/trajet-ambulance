@@ -5,7 +5,9 @@
 "use strict";
 var A=window.AMB;
 var ML_JS="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js",ML_CSS="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css",ML_SRI="sha384-SYKAG6cglRMN0RVvhNeBY0r3FYKNOJtznwA0v7B5Vp9tr31xAHsZC0DqkQ/pZDmj",ML_CSS_SRI="sha384-MinO0mNliZ3vwppuPOUnGa+iq619pfMhLVUXfC4LHwSCvF9H+6P/KO4Q7qBOYV5V";
-var STYLE_URL="https://tiles.openfreemap.org/styles/dark";
+var STYLE_URL="https://tiles.openfreemap.org/styles/dark",STYLE_URL_L="https://tiles.openfreemap.org/styles/positron";
+function LT(){return !!(G&&G.light);}
+function C(d,l){return LT()?l:d;}
 var ICONS={"GLY": {"bump": "<path d=\"M2 18.6h2.6c2.6 0 3.4-7.1 7.4-7.1s4.8 7.1 7.4 7.1H22a.9.9 0 0 1 .9.9v.9a.9.9 0 0 1-.9.9H2a.9.9 0 0 1-.9-.9v-.9a.9.9 0 0 1 .9-.9z\" fill=\"{fg}\"></path><path d=\"M8.1 18.6v-2.4a.7.7 0 0 1 .7-.7h.6a.7.7 0 0 1 .7.7v2.4z M11.1 18.6v-4.6a.7.7 0 0 1 .7-.7h.4a.7.7 0 0 1 .7.7v4.6z M13.9 18.6v-2.4a.7.7 0 0 1 .7-.7h.6a.7.7 0 0 1 .7.7v2.4z\" fill=\"{bg}\"></path><path d=\"M12 2.6v5.2 M9.6 5.2L12 2.6l2.4 2.6\" fill=\"none\" stroke=\"{fg}\" stroke-width=\"2.1\" stroke-linecap=\"round\" stroke-linejoin=\"round\"></path>", "pothole": "<path d=\"M2.5 9.5h7.8l-1.6 3.2 2.2 2.4-1.5 3.9H2.5a1 1 0 0 1-1-1V10.5a1 1 0 0 1 1-1z\" fill=\"{fg}\"></path><g transform=\"translate(0.8 1.2) rotate(5 17 14)\"><path d=\"M13 9.5h8.5a1 1 0 0 1 1 1v7a1 1 0 0 1-1 1h-9.7l1.5-3.9-2.2-2.4z\" fill=\"{fg}\"></path><path d=\"M16.2 14h3.4\" stroke=\"{bg}\" stroke-width=\"1.2\" stroke-linecap=\"round\"></path></g><path d=\"M4 14h3.4\" stroke=\"{bg}\" stroke-width=\"1.2\" stroke-linecap=\"round\"></path><path d=\"M11 6.2l.8-1.6 M13.6 6.6l1.2-1.2 M9 6.8l-.6-1.4\" stroke=\"{fg}\" stroke-width=\"1.6\" stroke-linecap=\"round\"></path>", "slow": "<g transform=\"translate(5.2 -3.2) rotate(0 12 13) scale(0.72)\"><path d=\"M6.2 11L7.6 6.9A2 2 0 0 1 9.5 5.5h5a2 2 0 0 1 1.9 1.4L17.8 11h.7a2 2 0 0 1 2 2v4a1.5 1.5 0 0 1-1.5 1.5H5A1.5 1.5 0 0 1 3.5 17v-4a2 2 0 0 1 2-2z\" fill=\"{fg}\"></path><path d=\"M5 18.4h3v1.9a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1z M16 18.4h3v1.9a1 1 0 0 1-1 1h-1a1 1 0 0 1-1-1z\" fill=\"{fg}\"></path><path d=\"M8.5 10.6l.9-2.7a.8.8 0 0 1 .8-.6h3.6a.8.8 0 0 1 .8.6l.9 2.7z\" fill=\"{bg}\"></path><circle cx=\"7.3\" cy=\"14.4\" r=\"1.35\" fill=\"{bg}\"></circle><circle cx=\"16.7\" cy=\"14.4\" r=\"1.35\" fill=\"{bg}\"></circle><path d=\"M10.3 15.6h3.4\" stroke=\"{bg}\" stroke-width=\"1.3\" stroke-linecap=\"round\"></path></g><g transform=\"translate(-1.2 1.6) rotate(0 12 13) scale(0.9)\"><path d=\"M6.2 11L7.6 6.9A2 2 0 0 1 9.5 5.5h5a2 2 0 0 1 1.9 1.4L17.8 11h.7a2 2 0 0 1 2 2v4a1.5 1.5 0 0 1-1.5 1.5H5A1.5 1.5 0 0 1 3.5 17v-4a2 2 0 0 1 2-2z\" fill=\"{fg}\" stroke=\"{bg}\" stroke-width=\"2.2\" paint-order=\"stroke\"></path><path d=\"M5 18.4h3v1.9a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1z M16 18.4h3v1.9a1 1 0 0 1-1 1h-1a1 1 0 0 1-1-1z\" fill=\"{fg}\"></path><path d=\"M8.5 10.6l.9-2.7a.8.8 0 0 1 .8-.6h3.6a.8.8 0 0 1 .8.6l.9 2.7z\" fill=\"{bg}\"></path><circle cx=\"7.3\" cy=\"14.4\" r=\"1.35\" fill=\"{bg}\"></circle><circle cx=\"16.7\" cy=\"14.4\" r=\"1.35\" fill=\"{bg}\"></circle><path d=\"M10.3 15.6h3.4\" stroke=\"{bg}\" stroke-width=\"1.3\" stroke-linecap=\"round\"></path></g>", "jam": "<g transform=\"translate(5.2 -3.2) rotate(0 12 13) scale(0.72)\"><path d=\"M6.2 11L7.6 6.9A2 2 0 0 1 9.5 5.5h5a2 2 0 0 1 1.9 1.4L17.8 11h.7a2 2 0 0 1 2 2v4a1.5 1.5 0 0 1-1.5 1.5H5A1.5 1.5 0 0 1 3.5 17v-4a2 2 0 0 1 2-2z\" fill=\"{fg}\"></path><path d=\"M5 18.4h3v1.9a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1z M16 18.4h3v1.9a1 1 0 0 1-1 1h-1a1 1 0 0 1-1-1z\" fill=\"{fg}\"></path><path d=\"M8.5 10.6l.9-2.7a.8.8 0 0 1 .8-.6h3.6a.8.8 0 0 1 .8.6l.9 2.7z\" fill=\"{bg}\"></path><circle cx=\"7.3\" cy=\"14.4\" r=\"1.35\" fill=\"{bg}\"></circle><circle cx=\"16.7\" cy=\"14.4\" r=\"1.35\" fill=\"{bg}\"></circle><path d=\"M10.3 15.6h3.4\" stroke=\"{bg}\" stroke-width=\"1.3\" stroke-linecap=\"round\"></path></g><g transform=\"translate(-1.2 1.6) rotate(0 12 13) scale(0.9)\"><path d=\"M6.2 11L7.6 6.9A2 2 0 0 1 9.5 5.5h5a2 2 0 0 1 1.9 1.4L17.8 11h.7a2 2 0 0 1 2 2v4a1.5 1.5 0 0 1-1.5 1.5H5A1.5 1.5 0 0 1 3.5 17v-4a2 2 0 0 1 2-2z\" fill=\"{fg}\" stroke=\"{bg}\" stroke-width=\"2.2\" paint-order=\"stroke\"></path><path d=\"M5 18.4h3v1.9a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1z M16 18.4h3v1.9a1 1 0 0 1-1 1h-1a1 1 0 0 1-1-1z\" fill=\"{fg}\"></path><path d=\"M8.5 10.6l.9-2.7a.8.8 0 0 1 .8-.6h3.6a.8.8 0 0 1 .8.6l.9 2.7z\" fill=\"{bg}\"></path><circle cx=\"7.3\" cy=\"14.4\" r=\"1.35\" fill=\"{bg}\"></circle><circle cx=\"16.7\" cy=\"14.4\" r=\"1.35\" fill=\"{bg}\"></circle><path d=\"M10.3 15.6h3.4\" stroke=\"{bg}\" stroke-width=\"1.3\" stroke-linecap=\"round\"></path></g>", "crash": "<g transform=\"translate(-1.6 2.2) rotate(-14 12 13) scale(0.86)\"><path d=\"M6.2 11L7.6 6.9A2 2 0 0 1 9.5 5.5h5a2 2 0 0 1 1.9 1.4L17.8 11h.7a2 2 0 0 1 2 2v4a1.5 1.5 0 0 1-1.5 1.5H5A1.5 1.5 0 0 1 3.5 17v-4a2 2 0 0 1 2-2z\" fill=\"{fg}\"></path><path d=\"M5 18.4h3v1.9a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1z M16 18.4h3v1.9a1 1 0 0 1-1 1h-1a1 1 0 0 1-1-1z\" fill=\"{fg}\"></path><path d=\"M8.5 10.6l.9-2.7a.8.8 0 0 1 .8-.6h3.6a.8.8 0 0 1 .8.6l.9 2.7z\" fill=\"{bg}\"></path><circle cx=\"7.3\" cy=\"14.4\" r=\"1.35\" fill=\"{bg}\"></circle><circle cx=\"16.7\" cy=\"14.4\" r=\"1.35\" fill=\"{bg}\"></circle><path d=\"M10.3 15.6h3.4\" stroke=\"{bg}\" stroke-width=\"1.3\" stroke-linecap=\"round\"></path></g><path d=\"M18.4 1.6l.9 2.6 2.6-.9-1.3 2.4 2.5 1.2-2.7.6.3 2.7-2-1.8-1.9 2-.1-2.7-2.7.1 2.1-1.7-1.5-2.3 2.7.6z\" fill=\"{fg}\"></path>", "cone": "<path d=\"M10.2 3h3.6l4.6 15.4H5.6z\" fill=\"{fg}\" stroke=\"{fg}\" stroke-width=\"1.2\" stroke-linejoin=\"round\"></path><path d=\"M8.75 8h6.5l.62 2.2H8.13z M7.25 13h9.5l.6 2.2H6.65z\" fill=\"{bg}\"></path><rect x=\"3\" y=\"18.6\" width=\"18\" height=\"2.6\" rx=\"1.2\" fill=\"{fg}\"></rect>", "danger": "<path d=\"M10.3 3.9a2 2 0 0 1 3.4 0l8.2 14.2a2 2 0 0 1-1.7 3H3.8a2 2 0 0 1-1.7-3z\" fill=\"{fg}\"></path><rect x=\"10.9\" y=\"8.4\" width=\"2.2\" height=\"6.8\" rx=\"1.1\" fill=\"{bg}\"></rect><circle cx=\"12\" cy=\"17.8\" r=\"1.3\" fill=\"{bg}\"></circle>"}, "COL": {"bump": ["#f59f00", "#ffffff"], "pothole": ["#f2c200", "#2b2300"], "slow": ["#f76707", "#ffffff"], "jam": ["#e03131", "#ffffff"], "crash": ["#a61e4d", "#ffffff"], "cone": ["#5c6370", "#ffffff"], "danger": ["#7048e8", "#ffffff"]}};
 var GLY=ICONS.GLY,COL=ICONS.COL;
 /* bulle d'arrivée : drapeau à damier */
@@ -114,18 +116,23 @@ function loadML(){
   s.onerror=function(){mlP=null;s.remove();rej(new Error("Carte indisponible : pas de connexion internet ?"));};document.head.appendChild(s);});
  return mlP;}
 function prepStyle(s){
+ var lt=LT();
  s.layers=(s.layers||[]).filter(function(l){return l.type!=="fill-extrusion";});
  s.layers.forEach(function(l){var sl=l["source-layer"];l.paint=l.paint||{};
-  if(l.type==="background")l.paint["background-color"]="#1c1f25";
-  else if(sl==="building"&&l.type==="fill"){l.paint["fill-color"]="#262b33";l.paint["fill-outline-color"]="#2f3540";l.paint["fill-opacity"]=1;}
-  else if(sl==="water"&&l.type==="fill")l.paint["fill-color"]="#15263a";
-  else if((sl==="park"||sl==="landcover")&&l.type==="fill")l.paint["fill-color"]="#1b2a22";
-  else if(sl==="transportation"&&l.type==="line"){if(/casing/.test(l.id))l.paint["line-color"]="#101216";else l.paint["line-color"]=["match",["get","class"],["motorway","trunk","primary"],"#5a6170",["secondary","tertiary"],"#4b525f","#3a404b"];}
-  else if(l.type==="symbol"&&sl==="transportation_name"){l.paint["text-color"]="#dfe3ea";l.paint["text-halo-color"]="#14171c";l.paint["text-halo-width"]=1.6;}
+  if(l.type==="background")l.paint["background-color"]=lt?"#e5e8ec":"#1c1f25";
+  else if(sl==="building"&&l.type==="fill"){l.paint["fill-color"]=lt?"#d5d9e0":"#262b33";l.paint["fill-outline-color"]=lt?"#c8cdd5":"#2f3540";l.paint["fill-opacity"]=1;}
+  else if(lt&&sl==="landuse"&&l.type==="fill")l.paint["fill-color"]="#e5e8ec";
+  else if(sl==="water"&&l.type==="fill")l.paint["fill-color"]=lt?"#a9d4f5":"#15263a";
+  else if((sl==="park"||sl==="landcover")&&l.type==="fill")l.paint["fill-color"]=lt?"#cfe8c6":"#1b2a22";
+  else if(sl==="transportation"&&l.type==="line"){
+   if(lt){if(/rail/.test(l.id))l.paint["line-color"]="#c5cad2";else if(/casing/.test(l.id))l.paint["line-color"]=["match",["get","class"],["motorway","trunk","primary"],"#e2bd5c","#c9ced6"];else l.paint["line-color"]=["match",["get","class"],["motorway","trunk","primary"],"#ffe08a",["secondary","tertiary"],"#ffffff",["path","track"],"#e6e9ee","#ffffff"];}
+   else{if(/casing/.test(l.id))l.paint["line-color"]="#101216";else l.paint["line-color"]=["match",["get","class"],["motorway","trunk","primary"],"#5a6170",["secondary","tertiary"],"#4b525f","#3a404b"];}}
+  else if(l.type==="symbol"&&sl==="transportation_name"){l.paint["text-color"]=lt?"#3b4250":"#dfe3ea";l.paint["text-halo-color"]=lt?"#ffffff":"#14171c";l.paint["text-halo-width"]=1.6;}
  });
  return s;}
 
 /* ---------- interface ---------- */
+var CSSL='#gps.light{background:#e5e8ec;color:#1b2330}#gps.light .gban,#gps.light .gfh{color:#fff}#gps.light .gwz{background:rgba(255,255,255,.95);border-color:rgba(11,132,198,.45);box-shadow:0 6px 18px rgba(20,30,50,.18)}#gps.light .gwz small{color:#0b7fc0}#gps.light .gchip>div{background:rgba(255,255,255,.95);border-color:rgba(20,30,50,.12);box-shadow:0 6px 18px rgba(20,30,50,.18)}#gps.light .gchip small{color:#5d6777}#gps.light .gspd,#gps.light .gpill,#gps.light .grnd button{background:rgba(255,255,255,.96);border-color:#dde2e9;box-shadow:0 4px 14px rgba(20,30,50,.18)}#gps.light .gspd small,#gps.light .gpill small{color:#5d6777}#gps.light .gspd.dim b{color:#a3abb8}#gps.light .grnd button.on{border-color:#4f8cff;background:#e7efff}#gps.light .gv3{color:#1b2330}#gps.light .gpan{background:rgba(255,255,255,.96);border-top-color:#dde2e9;box-shadow:0 -6px 18px rgba(20,30,50,.08)}#gps.light .geta .m{color:#5d6777}#gps.light .gprof{background:#e4f6ec;color:#11633a;border-color:#bfe6cf}#gps.light .galtbtn{background:#e7efff;border-color:#b9cff7;color:#1d4bb0}#gps.light .gstop{background:#fdeeee;border-color:#f2c4c6;color:#c4262c}#gps.light .galt,#gps.light .gsheet{background:#fff;border-top-color:#dde2e9;box-shadow:0 -12px 34px rgba(20,30,50,.18)}#gps.light .galtx{background:#eef1f5}#gps.light .galtc{border-color:#dde2e9;background:#f6f7f9;color:#1b2330}#gps.light .galtc.sel{border-color:#4c8dff;background:#e7efff}#gps.light .galtc .ln{background:#b9c1ce}#gps.light .galtc.sel .ln{background:#4c8dff}#gps.light .galtc .via{color:#5d6777}#gps.light .gtag.fast{background:#e4f6ec;color:#11633a}#gps.light .gtag.slow{background:#fff0d4;color:#8f5400}#gps.light .gtag.same{background:#eef1f5;color:#4a5363}#gps.light .gtag.cur{background:#e7efff;color:#1d4bb0}#gps.light .galtw,#gps.light .galtn,#gps.light .gsheet p,#gps.light .gtile small,#gps.light .gcard .hd small,#gps.light .gfl h4,#gps.light .growd small,#gps.light .gwait,#gps.light .gerr p{color:#5d6777}#gps.light .galtw i,#gps.light .gload i{border-color:#dde2e9;border-top-color:#4f8cff}#gps.light .galtgo.keep,#gps.light .gsec{background:#eef1f5;border-color:#dde2e9;color:#1b2330}#gps.light .galtb{background:#fff;box-shadow:0 3px 12px rgba(20,30,50,.3)}#gps.light .galtb:after{border-top-color:#fff}#gps.light .galtb.sel{background:#2f6fe4}#gps.light .galtb.sel:after{border-top-color:#2f6fe4}#gps.light .gattr{color:#7b8493}#gps.light .gscrim{background:rgba(20,28,40,.38)}#gps.light .ghandle{background:#cfd5de}#gps.light .gtile,#gps.light .gopt{background:#f3f5f8;border-color:#dde2e9}#gps.light .gopt.pri{background:#00387B;border-color:#00387B}#gps.light .gopt.ok{background:#1f9d5a;border-color:#1f9d5a}#gps.light .gcard{background:rgba(255,255,255,.98);border-top-color:#dde2e9;box-shadow:0 -12px 34px rgba(20,30,50,.18)}#gps.light .gbar{background:#e3e7ec}#gps.light .gbar i{background:#8a93a3}#gps.light .gtoast{background:rgba(255,255,255,.97);border-color:#dde2e9;color:#1b2330;box-shadow:0 8px 24px rgba(20,30,50,.2)}#gps.light .gfull,#gps.light .gerr{background:#f2f4f7}#gps.light .growd{border-bottom-color:#e6e9ee}#gps.light .growd .pi{background:#eef1f5}#gps.light .gerr a,#gps.light .gerr button{background:#fff;border-color:#dde2e9;color:#1b2330}#gps.light .gerr .pri{background:#00387B;border-color:#00387B;color:#fff}#gps.light .gload{background:#e5e8ec;color:#5d6777}';
 var CSS='#gps{position:fixed;inset:0;z-index:3000;background:#1c1f25;color:#f1f3f6;font:16px/1.3 Roboto,system-ui,-apple-system,"Segoe UI",sans-serif;overflow:hidden;-webkit-user-select:none;user-select:none}'+
 '#gps button{font:inherit;color:inherit;cursor:pointer}#gps .gmap{position:absolute;inset:0}'+
 '#gps .gtop{position:absolute;left:0;right:0;top:0;display:flex;flex-direction:column;z-index:5;pointer-events:none}#gps .gtop>*{pointer-events:auto}'+
@@ -212,11 +219,11 @@ function el(html){var d=document.createElement("div");d.innerHTML=html;return d.
 function toast(t,ms){var o=$(".gtoast");if(o)o.remove();var d=el('<div class="gtoast" role="status">'+esc(t)+'</div>');G.root.appendChild(d);setTimeout(function(){if(d.parentNode)d.remove();},ms||2800);}
 
 function buildUi(){
- if(!document.getElementById("gpsCss")){var s=document.createElement("style");s.id="gpsCss";s.textContent=CSS;document.head.appendChild(s);}
- var r=el('<div id="gps" role="application" aria-label="Guidage GPS">'+
+ if(!document.getElementById("gpsCss")){var s=document.createElement("style");s.id="gpsCss";s.textContent=CSS+CSSL;document.head.appendChild(s);}
+ var r=el('<div id="gps"'+(LT()?' class="light"':'')+' role="application" aria-label="Guidage GPS">'+
   '<div class="gmap" id="gmap"></div><div class="gvfix" id="gVeh" hidden>'+ARROW+'</div>'+
   '<div class="gtop"><div class="gban" id="gBan"></div><div id="gWz"></div><div id="gChip"></div></div>'+
-  '<div class="gbot"><div class="grow"><div class="grnd"><button type="button" data-g="mute" aria-label="Couper ou remettre la voix" id="gMute"></button><button type="button" data-g="recenter" aria-label="Recentrer sur ma position" id="gRec" hidden>'+svgI(IC.target,22,"#f1f3f6")+'</button><button type="button" data-g="view" id="gView" aria-label="Changer de vue"></button></div>'+
+  '<div class="gbot"><div class="grow"><div class="grnd"><button type="button" data-g="mute" aria-label="Couper ou remettre la voix" id="gMute"></button><button type="button" data-g="recenter" aria-label="Recentrer sur ma position" id="gRec" hidden>'+svgI(IC.target,22,"currentColor")+'</button><button type="button" data-g="view" id="gView" aria-label="Changer de vue"></button></div>'+
   '<div class="gspd" id="gSpd"><b>--</b><small>km/h</small><span class="glim">--</span></div><button type="button" class="gpill" data-g="addr" id="gPill"><b>…</b></button><div></div></div>'+
   '<div class="gpan" id="gPan"></div></div>'+
   '<div class="gload" id="gLoad"><i></i><span id="gLoadT">Ouverture du GPS…</span></div></div>');
@@ -226,20 +233,21 @@ function buildUi(){
 }
 function setLoad(t){var l=$("#gLoad");if(t===null){if(l)l.remove();return;}if(!l){l=el('<div class="gload" id="gLoad"><i></i><span id="gLoadT"></span></div>');G.root.appendChild(l);}var s=$("#gLoadT");if(s)s.textContent=t;}
 var RASTER={version:8,sources:{osm:{type:"raster",tiles:["https://tile.openstreetmap.org/{z}/{x}/{y}.png"],tileSize:256,maxzoom:19}},layers:[{id:"bg",type:"background",paint:{"background-color":"#1c1f25"}},{id:"osm",type:"raster",source:"osm",paint:{"raster-brightness-max":0.5,"raster-saturation":-0.7,"raster-contrast":0.1}}]};
+function rasterStyle(){var r=JSON.parse(JSON.stringify(RASTER));if(LT()){r.layers[0].paint["background-color"]="#e5e8ec";r.layers[1].paint={};}return r;}
 function showErr(msg){
  var L=G.opts.links||{};var d=el('<div class="gerr"><h3>GPS indisponible</h3><p>'+esc(msg)+'</p><button type="button" class="pri" data-g="retry">Réessayer</button>'+
   (L.waze?'<a href="'+L.waze+'"'+(L.app?'':' target="_blank" rel="noopener"')+'>Ouvrir dans Waze</a>':'')+(L.gmaps?'<a href="'+L.gmaps+'"'+(L.app?'':' target="_blank" rel="noopener"')+'>Ouvrir dans Google Maps</a>':'')+
   '<button type="button" data-g="close">Fermer</button></div>');
  var o=$(".gerr");if(o)o.remove();setLoad(null);G.root.appendChild(d);
 }
-function paintMute(){var b=$("#gMute");if(b){b.innerHTML=svgI(G.mute?IC.mute:IC.vol,22,G.mute?"#ff9a9d":"#f1f3f6");b.classList.toggle("on",!!G.mute);}}
+function paintMute(){var b=$("#gMute");if(b){b.innerHTML=svgI(G.mute?IC.mute:IC.vol,22,G.mute?C("#ff9a9d","#d93a3f"):"currentColor");b.classList.toggle("on",!!G.mute);}}
 function paintRec(){var b=$("#gRec"),v=$("#gView"),off=!G.follow,sw=!!(b&&b.hidden===off);
  if(b){b.hidden=!off;b.classList.toggle("on",off);}if(v){v.hidden=off;paintView();}
  if(sw)swapIn(off?b:v);vehMode();}
 function swapIn(x){if(!x||!x.animate||rm())return;try{x.animate([{opacity:0,transform:"scale(.55)"},{opacity:1,transform:"none"}],{duration:300,easing:SPR});}catch(e){}}
 /* ---------- types de vue : 3D (suivi incliné), 2D (suivi vu du dessus), trajet entier nord en haut ---------- */
 var VORD=["3d","2d","nord"],VNOM={"3d":"3D","2d":"2D, vue du dessus","nord":"trajet entier, nord en haut"};
-var NLOGO='<svg width="32" height="32" viewBox="0 0 30 30" aria-hidden="true"><path d="M11 11.6V3.6l8 8v-8" fill="none" stroke="#f1f3f6" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/><path d="M15 13.4l5.8 12.9-5.8-3.2-5.8 3.2z" fill="#ff5a5f" stroke="#ff5a5f" stroke-width="1.4" stroke-linejoin="round"/></svg>';
+var NLOGO='<svg width="32" height="32" viewBox="0 0 30 30" aria-hidden="true"><path d="M11 11.6V3.6l8 8v-8" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/><path d="M15 13.4l5.8 12.9-5.8-3.2-5.8 3.2z" fill="#ff5a5f" stroke="#ff5a5f" stroke-width="1.4" stroke-linejoin="round"/></svg>';
 function nextView(k){return VORD[(VORD.indexOf(k)+1)%VORD.length];}
 function paintView(){var v=$("#gView");if(!v)return;var k=G.view||"3d";if(v._k===k)return;var re=v._k!=null;v._k=k;
  v.innerHTML=k==="nord"?NLOGO:'<b class="gv3">'+(k==="2d"?"2D":"3D")+'</b>';
@@ -313,7 +321,7 @@ function paintPill(){
  var p=$("#gPill");if(!p)return;var html;
  if(G.addr&&now()-G.addr.t<9000)html='<b>'+esc(G.addr.l1)+'</b>'+(G.addr.l2?'<small>'+esc(G.addr.l2)+'</small>':'');
  else{G.addr=null;var n=roadName(G.along)||"Route sans nom",w=n.lastIndexOf(" ");
- html='<b>'+(w>0?esc(n.slice(0,w))+' <span style="white-space:nowrap">'+esc(n.slice(w+1))+' '+svgI(IC.chev,15,"#9aa3b2",2.6).replace('<svg ','<svg style="vertical-align:-2px" ')+'</span>':esc(n)+' '+svgI(IC.chev,15,"#9aa3b2",2.6).replace('<svg ','<svg style="vertical-align:-2px" '))+'</b>';}
+ html='<b>'+(w>0?esc(n.slice(0,w))+' <span style="white-space:nowrap">'+esc(n.slice(w+1))+' '+svgI(IC.chev,15,C("#9aa3b2","#6b7484"),2.6).replace('<svg ','<svg style="vertical-align:-2px" ')+'</span>':esc(n)+' '+svgI(IC.chev,15,C("#9aa3b2","#6b7484"),2.6).replace('<svg ','<svg style="vertical-align:-2px" '))+'</b>';}
  if(html!==G._pill){G._pill=html;p.innerHTML=html;}
 }
 function remTime(){var R=G.R,a=G.along,t=0;R.man.forEach(function(m){if(m.e<=a)return;if(m.d>=a)t+=m.time||0;else t+=(m.time||0)*(m.e-a)/m.lenM;});return t;}
@@ -323,8 +331,8 @@ function paintPanel(force){
  if(mode===G.panMode&&!force){var a=$("#gEtaT"),b=$("#gEtaM"),c=$("#gDestN");if(a&&a.textContent!==t1)a.textContent=t1;if(b&&b.textContent!==t2)b.textContent=t2;if(c&&c.textContent!==(G.dest.nom||"Destination"))c.textContent=G.dest.nom||"Destination";return;}
  G.panMode=mode;var attr='<div class="gattr">© OpenStreetMap · OpenFreeMap · Valhalla</div>';
  var sig='<div class="gbtns"><button type="button" class="gsig" data-g="sig">'+glyph("danger",22,"#17130a","#f5a524")+'<span>Signaler</span></button><button type="button" class="gstop" data-g="stop">Arrêter</button></div>';
- var sig3=sig.replace('class="gbtns"','class="gbtns g3"').replace('<button type="button" class="gstop"','<button type="button" class="galtbtn" data-g="alt" aria-label="Itinéraires alternatifs">'+svgI(IC.alt,21,"#9cc0ff",2.3)+'<span>Itinéraires</span></button><button type="button" class="gstop"');
- if(mode==="rec")h='<div style="font-size:14.5px;color:#9aa3b2;text-align:center">Touche quand la route redevient correcte.</div><button type="button" class="gbig" style="background:#f2c200;color:#2b2300" data-g="recEnd">'+svgI(IC.stop,22,"#2b2300",2.6)+'<span>Fin de la route dégradée</span></button><button type="button" class="gsec" data-g="recCancel">Annuler le signalement</button>';
+ var sig3=sig.replace('class="gbtns"','class="gbtns g3"').replace('<button type="button" class="gstop"','<button type="button" class="galtbtn" data-g="alt" aria-label="Itinéraires alternatifs">'+svgI(IC.alt,21,C("#9cc0ff","#2353b5"),2.3)+'<span>Itinéraires</span></button><button type="button" class="gstop"');
+ if(mode==="rec")h='<div style="font-size:14.5px;color:'+C("#9aa3b2","#5d6777")+';text-align:center">Touche quand la route redevient correcte.</div><button type="button" class="gbig" style="background:#f2c200;color:#2b2300" data-g="recEnd">'+svgI(IC.stop,22,"#2b2300",2.6)+'<span>Fin de la route dégradée</span></button><button type="button" class="gsec" data-g="recCancel">Annuler le signalement</button>';
  else if(mode==="arr")h='<button type="button" class="gbig" style="background:#00387B;color:#fff" data-g="finish">Terminer le guidage</button>'+sig;
  else if(mode==="arrP")h='<div class="geta"><div><div class="t">Arrivé</div><div class="m">'+(G.opts.urg?"Chez le patient":"Prise en charge")+'</div></div><button type="button" class="gabord" id="gAbord" data-g="abord"><i>'+svgI("M5 12.5l4.5 4.5L19 7.5",18,"#fff",3)+'</i><span>Patient à bord</span></button></div>'+sig;
  else h='<div class="geta"><div><div class="t" id="gEtaT">'+t1+'</div><div class="m" id="gEtaM">'+esc(t2)+'</div></div><div class="gdest"><b id="gDestN">'+esc(G.dest.nom||"Destination")+'</b>'+(G.opts.label?'<span class="gprof"><i></i><span>'+esc(G.opts.label)+'</span></span>':'')+'</div></div>'+sig3;
@@ -401,10 +409,10 @@ function addLayers(){
  ["gRoute","gRouteN","gOnA","gOffA","gOnD","gOffD","gRecD","gManL","gManH"].forEach(function(id){m.addSource(id,{type:"geojson",data:fc()});});
  function L(o){m.addLayer(o,before);}
  var round={"line-cap":"round","line-join":"round"};
- L({id:"gOffAc",type:"line",source:"gOffA",layout:round,paint:{"line-color":"#121418","line-width":W_OC}});
- L({id:"gOffDc",type:"line",source:"gOffD",layout:round,paint:{"line-color":"#121418","line-width":W_OC}});
+ L({id:"gOffAc",type:"line",source:"gOffA",layout:round,paint:{"line-color":C("#121418","#ffffff"),"line-width":W_OC}});
+ L({id:"gOffDc",type:"line",source:"gOffD",layout:round,paint:{"line-color":C("#121418","#ffffff"),"line-width":W_OC}});
  L({id:"gOffAf",type:"line",source:"gOffA",layout:round,paint:{"line-color":KCOL,"line-width":W_OF}});
- L({id:"gOffDf",type:"line",source:"gOffD",layout:round,paint:{"line-color":"#4b525f","line-width":W_OF}});
+ L({id:"gOffDf",type:"line",source:"gOffD",layout:round,paint:{"line-color":C("#4b525f","#8a93a3"),"line-width":W_OF}});
  L({id:"gOffDd",type:"line",source:"gOffD",layout:round,paint:{"line-color":"#ffd43b","line-width":W_ODOT,"line-dasharray":[0,2.4]}});
  L({id:"gRc",type:"line",source:"gRoute",layout:round,paint:{"line-color":"#0c2f73","line-width":W_CAS}});
  L({id:"gRcN",type:"line",source:"gRouteN",layout:round,paint:{"line-color":"#0c2f73","line-width":W_CAS}});
@@ -420,8 +428,8 @@ function addLayers(){
  L({id:"gManLf",type:"line",source:"gManL",layout:round,paint:{"line-color":"#ffffff","line-width":W_ARR}});
  L({id:"gManHf",type:"fill",source:"gManH",paint:{"fill-color":"#ffffff"}});
  m.addSource("gAlt",{type:"geojson",data:fc()});
- L({id:"gAltC",type:"line",source:"gAlt",layout:round,paint:{"line-color":["case",["==",["get","sel"],1],"#0c2f73","#2b3039"],"line-width":W_CAS}});
- L({id:"gAltL",type:"line",source:"gAlt",layout:round,paint:{"line-color":["case",["==",["get","sel"],1],"#4c8dff","#8f9ab0"],"line-width":W_FIL}});
+ L({id:"gAltC",type:"line",source:"gAlt",layout:round,paint:{"line-color":["case",["==",["get","sel"],1],"#0c2f73",C("#2b3039","#7d8799")],"line-width":W_CAS}});
+ L({id:"gAltL",type:"line",source:"gAlt",layout:round,paint:{"line-color":["case",["==",["get","sel"],1],"#4c8dff",C("#8f9ab0","#b9c1ce")],"line-width":W_FIL}});
  m.on("click","gAltC",function(e){var f=e.features&&e.features[0];if(f&&G&&G.alt)selectAlt(+f.properties.i);});
  m.addSource("gPins",{type:"geojson",data:fc()});
  m.addLayer({id:"gPinsL",type:"symbol",source:"gPins",layout:{"icon-image":["get","img"],"icon-anchor":"bottom","icon-allow-overlap":true,"icon-ignore-placement":true,"icon-pitch-alignment":"viewport","icon-rotation-alignment":"viewport","icon-size":["interpolate",["linear"],["zoom"],13,0.7,16,0.9,18,1]}});
@@ -727,9 +735,9 @@ function who(al){return(al.par?(al.par===A.me()?"toi":A.nameOf(al.par)):"l'équi
 function confirmCard(al,d,tap){
  closeCard();var jam=al.type==="arret"||al.type==="ralentissement";
  var h=cardHead(KIND[al.type],NOM[al.type]+(d>15?" dans "+fmtDist(d):""),"Signalé par "+who(al))+'<div class="gq">Et maintenant ?</div>'+
-  (jam?'<div class="g3"><button type="button" style="background:#e03131;color:#fff" data-g="cStill">Toujours à l\'arrêt</button><button type="button" style="background:#f08c00;color:#1b1405" data-g="cSlow">Roule au pas</button><button type="button" style="background:#173225;border:2px solid #2fbf71;color:#c8f5dc" data-g="cGone">Dégagé</button></div>'
-   :'<div class="g2"><button type="button" style="background:'+COL[KIND[al.type]][0]+';color:#fff" data-g="cStill">Toujours là</button><button type="button" style="background:#173225;border:2px solid #2fbf71;color:#c8f5dc" data-g="cGone">Plus là</button></div>')+
-  (tap?'<button type="button" class="gsec" data-g="cClose">Fermer</button>':'<div style="display:flex;flex-direction:column;gap:6px"><div class="gbar"><i style="width:100%"></i></div><div style="font-size:12.5px;color:#9aa3b2;text-align:center" id="gCardT">Se ferme tout seul dans 8 s</div></div>');
+  (jam?'<div class="g3"><button type="button" style="background:#e03131;color:#fff" data-g="cStill">Toujours à l\'arrêt</button><button type="button" style="background:#f08c00;color:#1b1405" data-g="cSlow">Roule au pas</button><button type="button" style="background:'+C("#173225","#e4f6ec")+';border:2px solid #2fbf71;color:'+C("#c8f5dc","#11633a")+'" data-g="cGone">Dégagé</button></div>'
+   :'<div class="g2"><button type="button" style="background:'+COL[KIND[al.type]][0]+';color:#fff" data-g="cStill">Toujours là</button><button type="button" style="background:'+C("#173225","#e4f6ec")+';border:2px solid #2fbf71;color:'+C("#c8f5dc","#11633a")+'" data-g="cGone">Plus là</button></div>')+
+  (tap?'<button type="button" class="gsec" data-g="cClose">Fermer</button>':'<div style="display:flex;flex-direction:column;gap:6px"><div class="gbar"><i style="width:100%"></i></div><div style="font-size:12.5px;color:'+C("#9aa3b2","#5d6777")+';text-align:center" id="gCardT">Se ferme tout seul dans 8 s</div></div>');
  var c=el('<div class="gcard" role="dialog" aria-label="Alerte toujours là ?">'+h+'</div>');G.root.appendChild(c);G.card={al:al};
  if(tap)return;var left=8;setTimeout(function(){var bi=c.querySelector(".gbar i");if(bi){bi.style.transition="width 8s linear";bi.style.width="0%";}},30);
  G.cardT=setInterval(function(){left--;var t=document.getElementById("gCardT");if(t)t.textContent="Se ferme tout seul dans "+left+" s";if(left<=0)closeCard();},1000);
@@ -754,7 +762,7 @@ function openStop(){
  var s=el('<div class="gscrim" data-g="scrim"><div class="gsheet" role="dialog" aria-label="Arrêter le guidage"><div class="ghandle"></div><h3>Arrêter le guidage</h3>'+
   (G.opts.pickup&&!G.opts.urg&&!G.arrived?'<button type="button" class="gopt ok" data-g="abordGo"><i>'+svgI("M5 12.5l4.5 4.5L19 7.5",17,"#fff",3.2)+'</i><span>Patient à bord<small>Passer au rendez-vous</small></span></button>':'')+
   '<button type="button" class="gopt pri" data-g="newMission">'+svgI(IC.home,26,"#fff",2.3)+'<span>Nouvelle mission</span></button>'+
-  '<button type="button" class="gopt" data-g="changeDest">'+svgI(IC.pin,26,"#f1f3f6",2.3)+'<span>Changer de destination</span></button>'+
+  '<button type="button" class="gopt" data-g="changeDest">'+svgI(IC.pin,26,"currentColor",2.3)+'<span>Changer de destination</span></button>'+
   '<button type="button" class="gsec" data-g="scrimClose" style="min-height:52px">Annuler, continuer le guidage</button></div></div>');
  G.root.appendChild(s);
 }
@@ -779,7 +787,7 @@ function recEnd(save){
 }
 
 /* ---------- changer de destination ---------- */
-function rowBtn(i,t1,t2,cur){return'<button type="button" class="growd'+(cur?" cur":"")+'" data-g="pickDest" data-i="'+i+'"'+(cur?' disabled':'')+'><span class="pi">'+svgI(IC.pin,22,"#9aa3b2",2.2)+'</span><span class="k"><b>'+esc(t1)+'</b>'+(t2?'<small>'+esc(t2)+'</small>':'')+'</span>'+(cur?'<small style="border:1px solid #2c313c;border-radius:999px;padding:2px 8px;color:#9aa3b2">actuelle</small>':'')+'</button>';}
+function rowBtn(i,t1,t2,cur){return'<button type="button" class="growd'+(cur?" cur":"")+'" data-g="pickDest" data-i="'+i+'"'+(cur?' disabled':'')+'><span class="pi">'+svgI(IC.pin,22,C("#9aa3b2","#6b7484"),2.2)+'</span><span class="k"><b>'+esc(t1)+'</b>'+(t2?'<small>'+esc(t2)+'</small>':'')+'</span>'+(cur?'<small style="border:1px solid '+C("#2c313c","#dde2e9")+';border-radius:999px;padding:2px 8px;color:'+C("#9aa3b2","#5d6777")+'">actuelle</small>':'')+'</button>';}
 function openDest(){
  closeScrim();closeCard();
  var d=el('<div class="gfull" role="dialog" aria-label="Changer de destination"><div class="gfh"><div class="r"><button type="button" data-g="destClose" aria-label="Retour au guidage">'+svgI(IC.back,26,"#fff",2.6)+'</button><div><b>Changer de destination</b><small>Actuelle : '+esc(G.dest.nom||"")+'</small></div></div>'+
@@ -857,7 +865,7 @@ function openAlt(){
  assignVia([cur]);
  G.alt={seq:my,sel:0,list:[cur],mk:[],loading:true};
  G.follow=false;G._rc=null;paintRec();G.root.classList.add("galton");
- G.root.appendChild(el('<div class="galt" role="dialog" aria-label="Itinéraires"><div class="ghandle"></div><div class="galth"><h3>Itinéraires</h3><button type="button" class="galtx" data-g="altClose" aria-label="Fermer">'+svgI(IC.x,20,"#f1f3f6",2.6)+'</button></div><div class="galtl" id="gAltL"></div><button type="button" class="gbig galtgo" data-g="altGo" id="gAltGo"></button></div>'));
+ G.root.appendChild(el('<div class="galt" role="dialog" aria-label="Itinéraires"><div class="ghandle"></div><div class="galth"><h3>Itinéraires</h3><button type="button" class="galtx" data-g="altClose" aria-label="Fermer">'+svgI(IC.x,20,"currentColor",2.6)+'</button></div><div class="galtl" id="gAltL"></div><button type="button" class="gbig galtgo" data-g="altGo" id="gAltGo"></button></div>'));
  paintAltList();paintAltMap();fitAlt();
  findAlts(cur).then(function(L){if(!G||!G.alt||G.alt.seq!==my)return;var a=G.alt;a.loading=false;a.list=L;a.sel=L.indexOf(cur);paintAltList(true);paintAltMap();fitAlt();},
   function(e){if(!G||!G.alt||G.alt.seq!==my)return;G.alt.loading=false;G.alt.err=A.netErr&&A.netErr(e)?"Pas de connexion : impossible de chercher d'autres itinéraires.":"Recherche impossible pour l'instant, réessaie dans un moment.";paintAltList();});
@@ -973,7 +981,7 @@ function camOnUser(){if(!G||!G.map||!G.pos||G.alt)return;var R=G.R,p=(R&&G.prj&&
  try{G.map.jumpTo({center:[p[1],p[0]],bearing:h,zoom:G.zoom!=null?G.zoom:zoomFor(G.speed),pitch:G.view==="2d"?0:50});if(G.veh){G.veh.setLngLat([p[1],p[0]]);G.veh.setRotation(h);}}catch(e){}}
 function boot(){
  setLoad("Ouverture du GPS…");
- loadML().then(function(ml){setLoad("Chargement de la carte…");return fetch(STYLE_URL).then(function(r){if(!r.ok)throw new Error("style "+r.status);return r.json();}).then(function(s){return[ml,prepStyle(s)];},function(){return[ml,JSON.parse(JSON.stringify(RASTER))];});}).then(function(x){
+ loadML().then(function(ml){setLoad("Chargement de la carte…");return fetch(LT()?STYLE_URL_L:STYLE_URL).then(function(r){if(!r.ok)throw new Error("style "+r.status);return r.json();}).then(function(s){return[ml,prepStyle(s)];},function(){return[ml,rasterStyle()];});}).then(function(x){
   if(!G)return;var ml=x[0],c=G.pos||G.opts.start||lastPos()||[G.dest.lat,G.dest.lon];
   if(!G.map){
    G.map=new ml.Map({container:G.root.querySelector(".gmap"),style:x[1],center:[c[1],c[0]],zoom:17,pitch:G.view==="2d"?0:50,bearing:0,attributionControl:false,dragRotate:false,touchPitch:false,pitchWithRotate:false,maxPitch:60});
@@ -1024,7 +1032,7 @@ function stop(){
 function start(opts){
  if(G)stop();
  var mute=false,vw="3d";try{mute=localStorage.getItem("ambumaps-gps-muet")==="1";vw=localStorage.getItem("ambumaps-gps-vue")==="2d"?"2d":"3d";}catch(e){}
- G={opts:opts||{},dest:opts.dest,sim:!!opts.sim,follow:true,view:vw,mute:mute,alerts:[],haz:[],bumps:[],mk:{},along:0,next:-1};
+ G={opts:opts||{},dest:opts.dest,sim:!!opts.sim,follow:true,view:vw,mute:mute,alerts:[],haz:[],bumps:[],mk:{},along:0,next:-1,light:opts.theme?opts.theme==="light":document.documentElement.getAttribute("data-theme")==="light"};
  document.body.style.overflow="hidden";buildUi();paintPanel();
  startGeo();lockScreen();boot();pollAlerts();statOpen();
  G.pollT=setInterval(pollAlerts,30000);
