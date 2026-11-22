@@ -1,9 +1,10 @@
 <!DOCTYPE html>
 <html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Ambumaps</title><link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#0e1014"><meta name="mobile-web-app-capable" content="yes"><link rel="icon" href="icon.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="icon-192.png"><style id="css">
+html{color-scheme:dark}
 :root{--bg:#0e1014;--card:#181b22;--card2:#20242d;--line:#2c313c;--txt:#f1f3f6;--mut:#9aa3b2;--acc:#4f8cff;--ok:#2fbf71;--warn:#f5a524;--red:#e5484d}
 *{box-sizing:border-box}
 html,body{margin:0;background:var(--bg);color:var(--txt);font:17px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-text-size-adjust:100%}
-header{position:sticky;top:0;z-index:5;background:rgba(14,16,20,.96);border-bottom:1px solid var(--line);padding:10px 14px 0}
+header{position:sticky;top:0;z-index:5;background:rgba(14,16,20,.96);padding:10px 14px 0}
 .top{display:flex;align-items:center;justify-content:space-between;gap:10px}
 h1{font-size:19px;margin:0;letter-spacing:.2px;display:flex;align-items:center;gap:8px}
 h1 .logo{height:28px;width:auto;flex:none}
@@ -84,6 +85,7 @@ button.tag{border:0;font-family:inherit;cursor:pointer;margin:1px 0}
 .btn.wide{width:100%}
 .radius .chip{min-width:70px;text-align:center}
 .hr{display:flex;align-items:center;gap:8px}
+header .top>.hr{margin-left:auto}
 .gear{display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--line);border-radius:10px;width:40px;height:36px;font-size:18px;text-decoration:none;color:var(--txt)}.gear.on{border-color:var(--acc);background:rgba(76,141,255,.12)}
 .depotb{margin-top:14px}
 .sync{background:none;border:1px solid var(--line);color:var(--txt);border-radius:10px;width:40px;height:36px;font-size:19px;cursor:pointer}
@@ -212,7 +214,8 @@ header .top h1{flex:1 1 auto;min-width:0}
 header .top h1 .logo{height:29px}
 header .top{position:relative}
 header .top h1.hlogo{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);margin:0;pointer-events:none;flex:none}
-header .top h1.hlogo .logo{height:52px}
+header .top h1.hlogo .logo{height:76px}
+header .top:has(h1.hlogo){min-height:80px}header .top:has(h1.hlogo)>.menub{align-self:flex-start;margin-top:1px}
 h1.pt{font-size:22px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block}
 .menub{width:46px;height:46px;border-radius:14px;background:var(--card);border:1px solid var(--line);color:var(--txt);display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;cursor:pointer;padding:0;-webkit-tap-highlight-color:transparent;transition:transform .5s var(--spr),background-color .25s ease}
 .menub:active{transform:scale(.92)}
@@ -223,7 +226,7 @@ h1.pt{font-size:22px;font-weight:800;white-space:nowrap;overflow:hidden;text-ove
 .status:empty{display:none}
 button.status{background:none;border:0;font-family:inherit;cursor:pointer;padding:8px 2px;min-height:44px}
 /* en-tête des pages Urgence / Transport programmé */
-header.fh{padding:12px 14px 14px;background:var(--fbg);border-bottom:1px solid var(--fbd)}
+header.fh{padding:12px 14px 14px;background:var(--fbg)}
 header.fh.urg{--fbg:#2a1416;--fbd:#5a2427;--fc:#d93a3f;--fl:#ff6b70;--ft:#ffd2d4;--fm:#c9a9ab}
 header.fh.prog{--fbg:#10241b;--fbd:#1f4d36;--fc:#2f9e6a;--fl:#45d08f;--ft:#c6f1db;--fm:#9fbfae}
 header.fh .top{justify-content:flex-start;gap:12px}
@@ -238,6 +241,7 @@ header.fh h1{font-size:clamp(19px,5.6vw,24px);letter-spacing:-.2px;font-weight:8
 .fs.on span{color:var(--ft);font-weight:800}
 /* accueil */
 .ttl{font-size:30px;font-weight:800;letter-spacing:-.3px;margin:16px 0 18px;display:block}
+h1.sr+.vehs{margin-top:45.5px}
 .qrow{display:flex;align-items:center;gap:8px;margin:10px 0 14px;container-type:inline-size}.qrow h2.q{margin:0;flex:1 1 auto;min-width:0;font-size:min(23px,calc((100cqw - 92px) / 12.4))}.skipb{flex:0 0 auto;display:inline-flex;align-items:center;gap:1px;min-height:34px;padding:4px 7px 4px 12px;border-radius:999px;background:var(--card);border:1px solid var(--line);color:var(--mut);font:inherit;font-size:14px;font-weight:700;cursor:pointer}.skipb svg.i{width:15px;height:15px}
 .vehs{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:0 0 14px}
 .veh{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;min-height:76px;padding:8px 4px;border-radius:16px;border:2px solid var(--line);background:var(--card);color:var(--txt);font:inherit;cursor:pointer;text-align:center}
@@ -306,7 +310,7 @@ h3.lh{font-size:14.5px;font-weight:700;letter-spacing:.4px;text-transform:upperc
 #drawer{position:fixed;inset:0;z-index:30}
 #drawer[hidden]{display:none}
 .dscrim{position:absolute;inset:0;background:rgba(4,6,9,.62);opacity:0;transition:opacity .32s ease}
-.dpanel{position:absolute;top:0;left:0;bottom:0;width:min(304px,84vw);box-sizing:border-box;background:#14171d;border-right:1px solid var(--line);border-radius:0 26px 26px 0;box-shadow:18px 0 40px rgba(0,0,0,.45);display:flex;flex-direction:column;gap:6px;padding:12px 14px 20px;padding-top:max(12px,env(safe-area-inset-top));padding-bottom:max(20px,env(safe-area-inset-bottom));transform:translateX(-105%);transition:transform .44s var(--spr);overflow-y:auto}
+.dpanel{position:absolute;top:0;right:0;bottom:0;width:min(304px,84vw);box-sizing:border-box;background:#14171d;border-left:1px solid var(--line);border-radius:26px 0 0 26px;box-shadow:-18px 0 40px rgba(0,0,0,.45);display:flex;flex-direction:column;gap:6px;padding:12px 14px 20px;padding-top:max(12px,env(safe-area-inset-top));padding-bottom:max(20px,env(safe-area-inset-bottom));transform:translateX(105%);transition:transform .44s var(--spr);overflow-y:auto}
 #drawer.open .dscrim{opacity:1}
 #drawer.open .dpanel{transform:none}
 .dtop{display:flex;align-items:center;gap:10px;padding:2px 2px 16px}
@@ -418,13 +422,84 @@ button.dstat{cursor:pointer}
 .tro small{font-size:11.5px;color:var(--mut);line-height:1.25}
 .tro .pg{width:80%;height:5px;border-radius:3px;background:#262a33;overflow:hidden}
 .tro .pg i{display:block;height:100%;background:#4f8cff;border-radius:3px}
+.trohid{display:flex;align-items:center;gap:12px;margin-top:10px;padding:12px 14px;border-radius:14px;border:1.5px dashed var(--line);color:var(--mut)}.trohid.solo{margin-top:0}.trohid>svg.i{width:22px;height:22px;flex:0 0 auto}.trohid b{display:block;font-size:15px;color:var(--txt)}.trohid small{display:block;font-size:13px;line-height:1.3}
 .tro.ok{background:#1c1a10;border-color:#5a4a14}
 .tro.ok .tb{background:#f5c518;color:#2a2108;box-shadow:0 0 0 4px rgba(245,197,24,.18)}
 .tro.ok b{color:#ffe08a}
 .sthint{font-size:13px;color:var(--mut);margin-top:14px;display:flex;gap:8px;align-items:flex-start}
 .sthint svg.i{width:16px;height:16px;margin-top:2px}
 @media (prefers-reduced-motion:reduce){.bar i{animation:none}}
-</style></head><body><div id="app"></div><script id="state" type="application/json">{"rev":0,"etabs":[],"zones":[],"setupDone":false}</script><script id="main">
+
+/* ===== thème clair ===== */
+html[data-theme=light]{color-scheme:light;--bg:#f2f4f7;--card:#ffffff;--card2:#eef1f5;--line:#dde2e9;--txt:#151922;--mut:#5d6777;--acc:#2f6fe0;--ok:#1f9d5a;--warn:#b86e00;--red:#d93a3f}
+html[data-theme=light] header:not(.fh){background:rgba(242,244,247,.96)}
+html[data-theme=light] .chip.on,html[data-theme=light] .opt.on,html[data-theme=light] .pbtn.on{background:#e7efff}
+html[data-theme=light] .btn.danger{border-color:#f2c4c6;color:#c4262c}
+html[data-theme=light] .infos,html[data-theme=light] .warnbox{background:#fff6dd;border-color:#f0d696;color:#5f4500}
+html[data-theme=light] .tag{background:#fff0d4;color:#8f5400}
+html[data-theme=light] .tag.blue,html[data-theme=light] .tagb.on{background:#e7efff;color:#2353b5}
+html[data-theme=light] .tagb.on{border-color:#4c8dff}
+html[data-theme=light] .item .x{color:#3b4250}
+html[data-theme=light] .confirm{background:#fdeeee;border-color:#f2c4c6}
+html[data-theme=light] .stick{background:linear-gradient(rgba(242,244,247,0),var(--bg) 35%)}
+html[data-theme=light] .map{background:#e8ebef}
+html[data-theme=light] .fmopts button.on{background:#e7efff}
+html[data-theme=light] .blk.cur{background:#edf3ff}
+html[data-theme=light] .acw .ac{box-shadow:0 8px 24px rgba(20,30,50,.16)}
+html[data-theme=light] .ac button:active,html[data-theme=light] .ac button:hover{background:#eef3ff}
+html[data-theme=light] .ac button.fav.on,html[data-theme=light] .fav.on,html[data-theme=light] .pfav.on,html[data-theme=light] .yel,html[data-theme=light] .btn.favb.on{color:#d49400}
+html[data-theme=light] .btn.favb.on{border-color:#f0d27a}
+html[data-theme=light] .redc{color:#d93a3f}
+html[data-theme=light] .check.on{background:#e4f6ec}
+html[data-theme=light] header.fh.urg{--fbg:#fdeceb;--fbd:#f6cfcf;--fc:#d93a3f;--fl:#d4353a;--ft:#5c1418;--fm:#8a5c5e}
+html[data-theme=light] header.fh.prog{--fbg:#e4f5ec;--fbd:#c3e5d2;--fc:#2f9e6a;--fl:#1f8a55;--ft:#0e3b25;--fm:#567a69}
+html[data-theme=light] header.fh .back{background:rgba(20,25,35,.07)}
+html[data-theme=light] .fs i{background:rgba(20,25,35,.12)}html[data-theme=light] .fs.fsd i,html[data-theme=light] .fs.on i{background:var(--fl)}
+html[data-theme=light] .bigmode.urg{background:#fdeceb;border-color:#f6cfcf}
+html[data-theme=light] .bigmode.prog{background:#e4f5ec;border-color:#c3e5d2}
+html[data-theme=light] .bigmode.urg .chv{color:#d4353a}
+html[data-theme=light] .bigmode.prog .chv{color:#1f8a55}
+html[data-theme=light] main.flow{--fl:#1f8a55}
+html[data-theme=light] main.flow.urg{--fl:#d4353a}
+html[data-theme=light] .sfield{border-color:#cfd5de}
+html[data-theme=light] .pfav{color:#a3abb8}
+html[data-theme=light] .done .dic,html[data-theme=light] .rdot,html[data-theme=light] .dpanel a:active{background:#eef1f5}
+html[data-theme=light] .dscrim{background:rgba(20,28,40,.38)}
+html[data-theme=light] .dpanel{background:#fff;box-shadow:-18px 0 40px rgba(20,30,50,.18)}
+html[data-theme=light] .dpanel a.on{background:#e7efff;color:#1d4bb0}
+html[data-theme=light] .dpanel a.on svg.i{color:#2f6fe0}
+html[data-theme=light] .rstop:first-child::after{background:repeating-linear-gradient(to bottom,#c3c9d2 0 5px,transparent 5px 10px)}
+html[data-theme=light] .rstop.fini .rdot{background:#e4f6ec;color:#1f8a55}
+html[data-theme=light] .rstop.cur .rtx small,html[data-theme=light] .rstop.fini .rtx small{color:#1f8a55}
+html[data-theme=light] .rstop.fini .rtx b{color:#7b8493}
+html[data-theme=light] .ra{color:#5d6777}
+html[data-theme=light] .ri{color:#9a5b00}
+html[data-theme=light] .seg{background:#e6e9ee;border-color:#e6e9ee}
+html[data-theme=light] .seg button.on{background:#fff;color:#151922;box-shadow:0 1px 4px rgba(20,30,50,.14)}
+html[data-theme=light] .kpi .kd.up{color:#1f8a55}
+html[data-theme=light] .kpi .kd.down{color:#c4262c}
+html[data-theme=light] .bar.zero i,html[data-theme=light] .tro .pg{background:#e3e7ec}
+html[data-theme=light] .bar u,html[data-theme=light] .jrow .jt{color:#2353b5}
+html[data-theme=light] .tro{background:#fff}
+html[data-theme=light] .tro .tb{background:#eef1f5;color:#a3abb8}
+html[data-theme=light] .tro.ok{background:#fff8e2;border-color:#f0d27a}
+html[data-theme=light] .tro.ok b{color:#7a5700}
+html[data-theme=light] .kpi,html[data-theme=light] .item,html[data-theme=light] .bigmode,html[data-theme=light] .veh{box-shadow:0 1px 2px rgba(20,30,50,.05)}
+/* choix de l'apparence */
+.thms{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.thm{display:flex;flex-direction:column;align-items:stretch;gap:8px;padding:8px 8px 10px;border-radius:16px;background:var(--card);border:2px solid var(--line);color:var(--txt);font:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:border-color .25s ease,box-shadow .25s ease}
+.thm.on{border-color:var(--acc);box-shadow:0 0 0 1px var(--acc) inset}
+.thm .pv{position:relative;height:84px;border-radius:10px;overflow:hidden;display:block}
+.thm .pv i{position:absolute;left:0;right:0;top:0;bottom:0;display:block;padding:9px 8px}
+.thm .pv i b{display:block;height:9px;width:46%;margin:0 auto 9px;border-radius:5px}
+.thm .pv i u{display:block;height:18px;border-radius:6px;margin-bottom:6px}
+.thm .pv .dk{background:#0e1014}.thm .pv .dk b{background:#3d4554}.thm .pv .dk u{background:#20242d}.thm .pv .dk u+u{background:#10241b;border:1px solid #1f4d36}
+.thm .pv .lt{background:#f2f4f7}.thm .pv .lt b{background:#c9cfd8}.thm .pv .lt u{background:#fff;border:1px solid #dde2e9}.thm .pv .lt u+u{background:#e4f5ec;border-color:#c3e5d2}
+.thm .pv .half{clip-path:polygon(100% 0,100% 100%,0 100%)}
+.thm span{display:flex;align-items:center;justify-content:center;gap:6px;font-size:15.5px;font-weight:800}
+.thm span svg.i{width:18px;height:18px;color:var(--mut)}
+.thm.on span svg.i{color:var(--acc)}
+</style><script id="theme">(function(){var t="dark";try{t=localStorage.getItem("ambumaps-theme")||"dark";}catch(e){}if(t==="auto")t=window.matchMedia&&matchMedia("(prefers-color-scheme: light)").matches?"light":"dark";document.documentElement.setAttribute("data-theme",t==="light"?"light":"dark");var m=document.querySelector('meta[name="theme-color"]');if(m&&t==="light")m.setAttribute("content","#f2f4f7");})();</script></head><body><div id="app"></div><script id="state" type="application/json">{"rev":0,"etabs":[],"zones":[],"setupDone":false}</script><script id="main">
 (function(){
 "use strict";
 var KEY="trajet-ambulance-v2",OLDKEY="trajet-ambulance-v1";
@@ -463,7 +538,8 @@ var ICP={
  build:'<path d="M5 21V5.5A1.5 1.5 0 0 1 6.5 4h7A1.5 1.5 0 0 1 15 5.5V21"/><path d="M15 9.5h3.5A1.5 1.5 0 0 1 20 11v10"/><path d="M3 21h18"/><path d="M10 8v4M8 10h4"/>',
  warn:'<path d="M12 3.5l9 16H3z"/><path d="M12 10v4.5M12 17.2v.3"/>',
  team:'<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><circle cx="17" cy="9" r="2.5"/><path d="M16.5 14.5a5 5 0 0 1 5 5.5"/>',
- gear:'<circle cx="12" cy="12" r="3.2"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1"/>',
+ gear:'<path d="M10.19 5.24L10.37 2.24L13.63 2.24L13.81 5.24A7.0 7.0 0 0 1 15.50 5.94L17.75 3.94L20.06 6.25L18.06 8.50A7.0 7.0 0 0 1 18.76 10.19L21.76 10.37L21.76 13.63L18.76 13.81A7.0 7.0 0 0 1 18.06 15.50L20.06 17.75L17.75 20.06L15.50 18.06A7.0 7.0 0 0 1 13.81 18.76L13.63 21.76L10.37 21.76L10.19 18.76A7.0 7.0 0 0 1 8.50 18.06L6.25 20.06L3.94 17.75L5.94 15.50A7.0 7.0 0 0 1 5.24 13.81L2.24 13.63L2.24 10.37L5.24 10.19A7.0 7.0 0 0 1 5.94 8.50L3.94 6.25L6.25 3.94L8.50 5.94A7.0 7.0 0 0 1 10.19 5.24Z"/><circle cx="12" cy="12" r="2.9"/>',
+ auto:'<circle cx="12" cy="12" r="8.2"/><path d="M12 3.8a8.2 8.2 0 0 1 0 16.4z" fill="currentColor" stroke="none"/>',
  check:'<path d="M5 12.5l4.5 4.5L19 7.5"/>',
  lock:'<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/>',
  pin:'<path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/>',
@@ -509,7 +585,19 @@ var KC={hop:["#7fb0ff","#16233a"],cli:["#4fd1c1","#12302d"],dia:["#b8a2ff","#261
 function etKind(x){var t=norm((x&&x.type)||"")+" "+norm((x&&x.nom)||"");
  if(/dialys/.test(t))return "dia";if(/ehpad|retraite|ssr|readaptation|repos/.test(t))return "ehp";if(/radioth|onco|cancer/.test(t))return "rad";
  if(/clinique|polyclinique/.test(t))return "cli";if(/hopital|chu|centre hospitalier|urgence/.test(t))return "hop";return "pin";}
-function kindIco(x){var k=etKind(x),c=KC[k];return '<span class="kic" style="color:'+c[0]+';background:'+c[1]+'">'+ico(k)+'</span>';}
+/* thème clair / sombre */
+var THEMEK="ambumaps-theme";
+function themePref(){try{var t=localStorage.getItem(THEMEK);return t==="light"||t==="auto"?t:"dark";}catch(e){return "dark";}}
+function themeNow(){var p=themePref();if(p!=="auto")return p;try{return matchMedia("(prefers-color-scheme: light)").matches?"light":"dark";}catch(e){return "dark";}}
+function isLight(){return document.documentElement.getAttribute("data-theme")==="light";}
+function applyTheme(){var t=themeNow();document.documentElement.setAttribute("data-theme",t);var m=document.querySelector('meta[name="theme-color"]');if(m)m.setAttribute("content",t==="light"?"#f2f4f7":"#0e1014");}
+function hx2hsl(c){c=c.replace("#","");if(c.length===3)c=c.replace(/./g,"$&$&");var r=parseInt(c.slice(0,2),16)/255,g=parseInt(c.slice(2,4),16)/255,b=parseInt(c.slice(4,6),16)/255,mx=Math.max(r,g,b),mn=Math.min(r,g,b),l=(mx+mn)/2,h=0,s2=0,d=mx-mn;
+ if(d){s2=l>.5?d/(2-mx-mn):d/(mx+mn);h=mx===r?((g-b)/d+(g<b?6:0)):mx===g?(b-r)/d+2:(r-g)/d+4;h/=6;}return[h,s2,l];}
+function hsl2hx(h,s2,l){var f=function(n){var k=(n+h*12)%12,a=s2*Math.min(l,1-l),v=l-a*Math.max(-1,Math.min(k-3,9-k,1));return("0"+Math.round(v*255).toString(16)).slice(-2);};return "#"+f(0)+f(8)+f(4);}
+function kcol(c){if(!isLight())return c;var x=hx2hsl(c);return hsl2hx(x[0],Math.min(x[1],.8),Math.min(x[2],.44));}
+function chipSt(fg,bg){if(!isLight())return 'color:'+fg+';background:'+bg;var x=hx2hsl(fg);return 'color:'+hsl2hx(x[0],Math.min(x[1],.8),Math.min(x[2],.42))+';background:'+hsl2hx(x[0],Math.min(x[1],.7),.93);}
+try{matchMedia("(prefers-color-scheme: light)").addEventListener("change",function(){if(themePref()!=="auto")return;var b=isLight();applyTheme();if(b!==isLight()&&typeof render==="function")render();});}catch(e){}
+function kindIco(x){var k=etKind(x),c=KC[k];return '<span class="kic" style="'+chipSt(c[0],c[1])+'">'+ico(k)+'</span>';}
 var ETATS=[
  {id:"vitale",ic:"bolt",label:"Urgence vitale",sous:"Détresse, AVC, douleur thoracique, hémorragie…",p:"rapide"},
  {id:"rachis",ic:"spine",label:"Trauma rachis / bassin / fracture",sous:"Patient immobilisé, matelas coquille",p:"confort"},
@@ -1748,9 +1836,9 @@ function loadInscrits(){
 var PAGE_T={nouveautes:"Nouveautés",statistiques:"Statistiques",etablissements:"Établissements",zones:"Zones à éviter",equipe:"Équipe",parametres:"Paramètres"};
 function headerHtml(nav){
  var title=nav&&ui.tab!=="trajet"?PAGE_T[ui.tab]:"",cl=isCloud()&&!ui.auth;
- return '<header><div class="top">'+(nav?'<button class="menub" data-a="menu" aria-label="Ouvrir le menu'+(newsSeen()?'':' (nouveautés)')+'" aria-haspopup="true">'+ico("menu")+(newsSeen()?'':'<i class="ndot"></i>')+'</button>':'')+
-  (title?'<h1 class="pt">'+esc(title)+'</h1>':'<h1 class="hlogo"><span class="sr">Ambumaps</span>'+LOGO+'</h1>')+
-  '<div class="hr">'+(cl?'<button id="status" class="status" data-a="sync" aria-label="Synchroniser"></button>':'<div id="status" class="status"></div>')+'</div></div></header>';
+ return '<header><div class="top">'+(title?'<h1 class="pt">'+esc(title)+'</h1>':'<h1 class="hlogo"><span class="sr">Ambumaps</span>'+LOGO+'</h1>')+
+  '<div class="hr">'+(cl?'<button id="status" class="status" data-a="sync" aria-label="Synchroniser"></button>':'<div id="status" class="status"></div>')+'</div>'+
+  (nav?'<button class="menub" data-a="menu" aria-label="Ouvrir le menu'+(newsSeen()?'':' (nouveautés)')+'" aria-haspopup="true">'+ico("menu")+(newsSeen()?'':'<i class="ndot"></i>')+'</button>':'')+'</div></header>';
 }
 /* page Urgence / Transport programmé : titre du bouton choisi, retour, étapes */
 function flowHeader(){
@@ -1763,7 +1851,7 @@ function flowHeader(){
 function drawerHtml(){
  var it=function(k,ic,l,x){var on=ui.tab===k;return '<a href="#'+k+'" data-a="menuGo"'+(on?' class="on" aria-current="page"':'')+'>'+ico(ic)+'<span>'+l+'</span>'+(x||"")+'</a>';},cl=state.mode==="cloud"&&sess;
  return '<div class="dscrim" data-a="menuClose"></div><div class="dpanel" role="navigation" aria-label="Menu principal"><div class="dtop">'+LOGO+'<b>Ambumaps</b><button class="menub" data-a="menuClose" aria-label="Fermer le menu">'+ico("x")+'</button></div>'+
-  it("trajet","route","Trajet")+it("statistiques","chart","Statistiques")+it("etablissements","build","Établissements")+it("zones","warn","Zones à éviter")+(isCloud()?it("equipe","team","Équipe"):"")+'<hr>'+it("nouveautes","star","Nouveautés",'<span class="dver">'+APP_V+(newsSeen()?'':'<i class="ndot" aria-label="nouveau"></i>')+'</span>')+it("parametres","gear","Paramètres")+
+  it("trajet","route","Nouveau trajet")+it("statistiques","chart","Statistiques")+it("etablissements","build","Établissements")+it("zones","warn","Zones à éviter")+(isCloud()?it("equipe","team","Équipe"):"")+'<hr>'+it("nouveautes","star","Nouveautés",'<span class="dver">'+APP_V+(newsSeen()?'':'<i class="ndot" aria-label="nouveau"></i>')+'</span>')+it("parametres","gear","Paramètres")+
   '<div class="dfill"></div>'+(cl?'<button class="dstat" data-a="sync" aria-label="Synchroniser"><span id="dstatus"></span></button>':'<div class="dstat"><span id="dstatus"></span></div>')+'</div>';
 }
 function openMenu(){
@@ -2053,30 +2141,30 @@ function stBestDay(o){var by={};o.trips.forEach(function(t){var d=dayStart(t.t0)
 function dTxt(t){var a=new Date(t);return a.getDate()+" "+MOIS[a.getMonth()];}
 /* trophées (depuis le début) */
 function stTrophies(o,best){
- var tot=0,arr=0,early=0,night=0,cf=0,et={};o.trips.forEach(function(t){tot+=t.km||0;if(t.ar)arr++;var h=new Date(t.t0).getHours();if(h<6&&h>=4)early=1;if(h>=22||h<4)night=1;if(t.cf)cf++;if(t.e&&t.k!=="dep")et[t.e]=(et[t.e]||0)+1;});
- var maxDayKm=best.km?best.km.km:0,maxDayMis=best.mis?best.mis.n:0,sig=(o.sig||[]).length,streak=0,maxEt=0;
- Object.keys(et).forEach(function(k){if(et[k]>maxEt)maxEt=et[k];});
+ var tot=0,arr=0,early=0,night=0,cf=0,et={},mu={},hrs=0,t0=Infinity,t1=0;
+ o.trips.forEach(function(t){tot+=t.km||0;if(t.ar)arr++;var h=new Date(t.t0).getHours();if(h<6&&h>=4)early++;if(h>=22||h<4)night++;if(t.cf)cf++;
+  if(t.e&&t.k!=="dep")et[t.e]=1;if(t.k==="u1"||t.k==="u2")mu[t.m||t.id]=1;hrs+=Math.min(5*3600e3,Math.max(0,(t.t1||t.t0)-t.t0))/3600e3;if(t.t0<t0)t0=t.t0;if(t.t0>t1)t1=t.t0;});
+ var maxDayMis=best.mis?best.mis.n:0,sig=(o.sig||[]).length,nDays=Object.keys(best.by).length,span=t1>t0?Math.floor((t1-t0)/864e5):0;
  var ms={},nMis=0,maxWeek=0;o.trips.forEach(function(t){if(t.k!=="dep"){var id=t.m||t.id;if(!ms[id]||t.t0<ms[id])ms[id]=t.t0;}});
  var mt=Object.keys(ms).map(function(k){return ms[k];}).sort(function(a,b){return a-b;});nMis=mt.length;
  for(var i=0,j=0;i<mt.length;i++){while(mt[i]-mt[j]>=7*864e5)j++;if(i-j+1>maxWeek)maxWeek=i-j+1;}
- var days=Object.keys(best.by).map(Number).sort(function(a,b){return a-b;}),run=0,prev=null;days.forEach(function(d){run=(prev&&Math.round((d-prev)/864e5)===1)?run+1:1;if(run>streak)streak=run;prev=d;});
- function t(ic,nom,desc,val,goal){return{ic:ic,nom:nom,desc:desc,ok:val>=goal,p:Math.min(1,val/goal)};}
- return[t("flag","Premier pas","1er trajet terminé",arr,1),t("road2","Centurion","100 km au total",tot,100),t("medal","Marathon","42 km en un jour",maxDayKm,42),
-  t("map","Tour du Béarn","500 km au total",tot,500),t("trophy","Pau → Paris","785 km au total",tot,785),t("globe","Tour de France","3 400 km au total",tot,3400),
-  t("sun","Lève-tôt","Départ entre 4 h et 6 h",early,1),t("moon","Oiseau de nuit","Départ après 22 h",night,1),t("bolt","Infatigable","10 missions en un jour",maxDayMis,10),
-  t("flame","Fidèle au poste","5 jours d'affilée",streak,5),t("mega","Éclaireur","10 signalements",sig,10),t("wave","Main de velours","10 trajets confort",cf,10),
-  t("build","Habitué","25 fois au même lieu",maxEt,25),t("clip","Semaine chargée","30 missions en 7 jours",maxWeek,30),t("medal","Centenaire","100 missions au total",nMis,100)];}
+ function t(ic,nom,desc,val,goal,u){return{ic:ic,nom:nom,desc:desc,ok:val>=goal,p:Math.min(1,val/goal),v:Math.floor(val),g:goal,u:u||""};}
+ return[t("flag","Premier pas","1er trajet terminé",arr,1),t("road2","Mille bornes","1 000 km au total",tot,1000,"km"),t("map","Grand rouleur","10 000 km au total",tot,10000,"km"),
+  t("globe","Tour de la Terre","40 075 km au total",tot,40075,"km"),t("bolt","Infatigable","15 missions en un jour",maxDayMis,15),t("flame","Semaine de feu","60 missions en 7 jours",maxWeek,60),
+  t("medal","Centenaire","100 missions au total",nMis,100),t("team","Pilier de l'équipe","500 missions au total",nMis,500),t("trophy","Légende","2 000 missions au total",nMis,2000),
+  t("siren","Gyrophare","100 urgences",Object.keys(mu).length,100),t("clock","Pilote","200 h au volant",hrs,200,"h"),t("star","Fidèle au poste","100 jours sur la route",nDays,100,"j"),
+  t("sun","Lève-tôt","20 départs entre 4 h et 6 h",early,20),t("moon","Oiseau de nuit","20 départs après 22 h",night,20),t("mega","Éclaireur","50 signalements",sig,50),
+  t("wave","Main de velours","50 trajets confort",cf,50),t("build","Explorateur","30 lieux différents",Object.keys(et).length,30),t("route","Un an de route","Toujours là 1 an après le 1er trajet",span,365,"j")];}
 var KN={p1:["Prise en charge","pin","#45d08f","#163a28"],p2:["Transport programmé","clip","#45d08f","#163a28"],u1:["Urgence · vers le patient","siren","#ff8a8e","#3a1a1c"],u2:["Urgence · transport","siren","#ff8a8e","#3a1a1c"],dep:["Retour au dépôt","home","#9cc0ff","#1b2a45"]};
 /* ---------- Nouveautés ----------
    À chaque mise à jour : ajouter une entrée EN TÊTE de NEWS et changer APP_V.
-   2.x = depuis l'arrivée du GPS ; nouvelle fonction -> 2e chiffre +1 ; petite retouche -> 3e chiffre (2.7.1). */
-var APP_V="2.11.2",NEWSKEY="ambumaps-vu",NEWS=[
- {v:"2.11.2",d:"22 nov. 2026",t:"Bouton Passer en haut",l:["« Passer » est maintenant à côté de « Où récupérer le patient ? »."],
-  x:["Le petit bouton « Passer » remonte sur la ligne du titre, à droite.","Même effet : le trajet part de ta position vers le rendez-vous."]},
- {v:"2.11.1",d:"22 nov. 2026",t:"Bouton Passer discret",l:["Le bouton pour passer la prise en charge devient un petit « Passer »."],
-  x:["Petit bouton « Passer » à droite, sous l'adresse de prise en charge, à la place du grand bouton.","Même effet : le trajet part de ta position vers le rendez-vous."]},
+   2.x = depuis l'arrivée du GPS ; nouvelle fonction -> 2e chiffre +1 ; petite correction -> 3e chiffre (2.7.1).
+   Retouches mineures de l'interface (taille, place, icône, texte, transition) : ni entrée ni changement de version. */
+var APP_V="2.12",NEWSKEY="ambumaps-vu",NEWS=[
+ {v:"2.12",d:"22 nov. 2026",t:"Thème clair",l:["Thème clair pour l'appli et le GPS, à choisir dans Paramètres."],
+  x:["Paramètres ▸ Apparence : Sombre, Clair ou Auto (suit le mode clair ou sombre du téléphone).","Le GPS suit le même choix : carte claire et panneaux blancs en mode clair."]},
  {v:"2.11",d:"22 nov. 2026",t:"GPS plus lisible",l:["Vitesse et limitation plus grandes ; 50 ou 80 km/h quand la limite n'est pas connue.","Carte déplaçable du premier coup de doigt, retour automatique au bout de 5 s.","Transport programmé : bouton pour passer la prise en charge."],
-  x:["Compteur de vitesse et panneau de limitation agrandis.","Limitation inconnue : 50 km/h en agglomération, 80 km/h hors agglomération (zones urbaines de la carte IGN), 130 sur autoroute.","La carte se déplace dès le premier glissé ; 5 s après, elle revient d'elle-même sur l'ambulance.","Au lancement du guidage, la carte s'ouvre directement sur l'ambulance, sans passer par la destination.","« Passer : le patient est déjà à bord » : le trajet part de ta position vers le rendez-vous.","Au retour vers l'accueil, le titre suit la bande colorée jusqu'au bouton."]},
+  x:["Compteur de vitesse et panneau de limitation agrandis.","Limitation inconnue : 50 km/h en agglomération, 80 km/h hors agglomération (zones urbaines de la carte IGN), 130 sur autoroute.","La carte se déplace dès le premier glissé ; 5 s après, elle revient d'elle-même sur l'ambulance.","Au lancement du guidage, la carte s'ouvre directement sur l'ambulance, sans passer par la destination.","« Passer : le patient est déjà à bord » : le trajet part de ta position vers le rendez-vous."]},
  {v:"2.10",d:"22 nov. 2026",t:"Itinéraire plus stable",l:["Le GPS garde l'itinéraire en cours quand une autre route passe juste à côté."],
   x:["Tant qu'on roule dans le sens du trajet, la position reste sur le tracé même si le GPS dérive vers une route voisine (ex. boulevard des Pyrénées et avenue Napoléon Bonaparte).","Recalcul seulement si l'écart dépasse environ 80 m, si l'on part nettement dans une autre direction (au bout de 3 s), ou si l'écart dure plus de 20 s.","À l'arrêt, un GPS qui saute ne déclenche plus de recalcul."]},
  {v:"2.9.1",d:"21 nov. 2026",t:"Détail des mises à jour",l:["Appuie sur une mise à jour pour en voir le détail."],
@@ -2085,20 +2173,18 @@ var APP_V="2.11.2",NEWSKEY="ambumaps-vu",NEWS=[
   x:["Accessible depuis le menu, avec le numéro de la version actuelle.","Un point rouge sur le menu signale une nouvelle version pas encore consultée."]},
  {v:"2.8",d:"20 nov. 2026",t:"Signalement police",l:["Nouvelle alerte « Police » dans le GPS, partagée avec l'équipe pendant 1 h."],
   x:["Tuile « Police » dans Signaler, avec une casquette sur fond bleu.","Partagée avec toute l'équipe et effacée toute seule au bout d'1 h.","Annonce vocale à l'approche : « Police signalée dans … ».","En passant à côté : « Toujours là » la relance pour 1 h, « Plus là » la retire pour tous.","Ne change pas l'itinéraire."]},
- {v:"2.7.1",d:"20 nov. 2026",t:"Retouches de l'accueil",l:["Le bouton Urgence ou Transport programmé devient la bande du haut, et inversement au retour.","Logo centré ; état de synchro affiché seulement en cas de problème."],
-  x:["Le bouton touché monte et devient la bande colorée de la page suivante ; au retour (flèche ou bouton du téléphone), la bande redescend et redevient le bouton.","Le bouton Urgence disparaît et réapparaît en douceur quand on change de véhicule.","Logo seul, centré et plus grand en haut de l'accueil.","« À jour » n'est plus affiché en haut à droite : seulement les problèmes (hors ligne, erreur de synchro…).","Établissements et zones : toute la fiche glisse quand on change l'ordre ou qu'on la supprime."]},
  {v:"2.7",d:"20 nov. 2026",t:"Choix du véhicule",l:["VSL / Taxi, Ambulance ou ASSU sur l'accueil : les trajets évitent les passages trop bas.","Pas de bouton Urgence en VSL / Taxi."],
   x:["Le véhicule choisi reste sélectionné sur le téléphone jusqu'au prochain choix.","Hauteurs prises en compte : Ambulance 2,12 m, ASSU 2,60 m ; VSL / Taxi comme une voiture.","Le trajet confort et le GPS évitent ponts, barres de hauteur et entrées de parking trop bas (données OpenStreetMap).","S'il n'existe aucun trajet assez haut, un avertissement s'affiche."]},
  {v:"2.6",d:"20 nov. 2026",t:"Carte des zones",l:["Appuyer sur une route pour la signaler : dégradée, en travaux, fermée ou impraticable.","Parkings ambulance reliés aux établissements, proposés comme point d'arrivée."],
-  x:["Un appui sur une route sélectionne la portion d'un carrefour à l'autre (carte de l'IGN).","Fermée ou impraticable : aucun itinéraire n'y passe ; « impraticable » barre le nom de la rue.","Bouton « + » : parking ambulance, dos-d'âne ou travaux à ta position.","Le parking est relié aux établissements à moins de 600 m et proposé dans leur fiche, jamais par défaut.","Ta position en point bleu clair ; « Autre zone » retiré de la légende."]},
+  x:["Un appui sur une route sélectionne la portion d'un carrefour à l'autre (carte de l'IGN).","Fermée ou impraticable : aucun itinéraire n'y passe ; « impraticable » barre le nom de la rue.","Bouton « + » : parking ambulance, dos-d'âne ou travaux à ta position.","Le parking est relié aux établissements à moins de 600 m et proposé dans leur fiche, jamais par défaut."]},
  {v:"2.5",d:"20 nov. 2026",t:"Sécurité de l'équipe",l:["Codes d'invitation pour rejoindre l'équipe et mot de passe oublié.","Corrections après un audit de sécurité."],
   x:["Pour créer son compte, il faut un code donné par un administrateur de l'équipe.","Mot de passe oublié : un administrateur donne un code pour en choisir un nouveau.","Nom « Anonymous » par défaut pour un équipier ajouté sans nom.","Alertes reçues vérifiées, fichiers de carte contrôlés, statistiques comptées seulement si le guidage démarre."]},
  {v:"2.4",d:"20 nov. 2026",t:"Vues du GPS",l:["Vues 3D, 2D et trajet entier, nord en haut.","Coordonnées GPS acceptées comme adresse."],
-  x:["3D : vue inclinée derrière la flèche ; 2D : vue du dessus, plus dézoomée ; trajet entier avec le logo « N ».","Le bouton de recentrage n'apparaît que si la carte est décalée.","Coordonnées du type 43.3277, -0.3496 acceptées dans les adresses et pour changer de destination en route."]},
- {v:"2.3",d:"20 nov. 2026",t:"Nouvelle disposition",l:["Menu en haut à gauche, pages en plein écran.","Feuille de mission récapitulative et statistiques avec trophées.","Recalcul toujours dans le sens de la marche, sans demi-tour."],
-  x:["Icônes redessinées et menu latéral.","Feuille de mission : les 2 adresses, modifiables, puis « Démarrer le guidage ».","Statistiques du jour, de la semaine et du mois : kilomètres, trajets, trophées.","« Terminer le guidage » ramène au menu principal.","Itinéraires alternatifs limités aux trajets rapides."]},
- {v:"2.2",d:"19 nov. 2026",t:"Nouveau style",l:["Transitions plus douces et étoile de vie comme icône.","Étiquettes pour les établissements.","Itinéraires alternatifs dans le GPS."],
-  x:["Transitions façon iOS dans toute l'appli.","L'étoile de vie remplace la croix dans les icônes.","GPS : on peut passer au rendez-vous avant d'être arrivé à la prise en charge.","« Patient à bord » rangé dans le menu Arrêter du GPS."]},
+  x:["3D : vue inclinée derrière la flèche ; 2D : vue du dessus, plus dézoomée ; trajet entier avec le logo « N ».","Coordonnées du type 43.3277, -0.3496 acceptées dans les adresses et pour changer de destination en route."]},
+ {v:"2.3",d:"20 nov. 2026",t:"Nouvelle disposition",l:["Menu en haut à gauche, pages en plein écran.","Feuille de mission récapitulative et statistiques.","Recalcul toujours dans le sens de la marche, sans demi-tour."],
+  x:["Icônes redessinées et menu latéral.","Feuille de mission : les 2 adresses, modifiables, puis « Démarrer le guidage ».","Statistiques du jour, de la semaine et du mois : kilomètres et trajets.","« Terminer le guidage » ramène au menu principal.","Itinéraires alternatifs limités aux trajets rapides."]},
+ {v:"2.2",d:"19 nov. 2026",t:"Étiquettes et itinéraires",l:["Étiquettes pour les établissements.","Itinéraires alternatifs dans le GPS."],
+  x:["GPS : on peut passer au rendez-vous avant d'être arrivé à la prise en charge.","« Patient à bord » rangé dans le menu Arrêter du GPS."]},
  {v:"2.1",d:"18 nov. 2026",t:"Guidage affiné",l:["Drapeau d'arrivée, ronds-points dessinés, flèche toujours sur le tracé.","Chemins non goudronnés évités s'il existe une autre route."],
   x:["Waze proposé à l'arrivée.","Ronds-points dessinés avec leur flèche de sortie.","La flèche de position reste sur le tracé et tourne en douceur dans les virages serrés.","Chemins non goudronnés évités au départ, en route et à l'arrivée, sauf sans alternative."]},
  {v:"2.0",d:"17 nov. 2026",t:"GPS intégré",l:["Guidage vocal dans l'appli, Waze et Google Maps en secours.","Signalements et alertes partagés avec l'équipe.","Mise à jour automatique de l'appli à l'ouverture."],
@@ -2121,10 +2207,10 @@ function vStats(){
  function delta(a,b,u){if(!b&&!a)return '<div class="kd">&nbsp;</div>';if(!b)return '<div class="kd up">Nouveau</div>';var d=Math.round((a-b)/b*100);return '<div class="kd'+(d>0?" up":(d<0?" down":""))+'">'+(d>0?"+":"")+d+' % '+(per==="jour"?"vs la veille":(per==="semaine"?"vs sem. préc.":"vs mois préc."))+'</div>';}
  var du=durTxt(S.ms);
  h+='<div class="kpis" data-k="stk'+per+off+'">'+
-  '<div class="kpi" style="--kc:#4f8cff"><div class="kh">'+ico("road2")+'Kilomètres</div><div class="kv">'+kmTxt(S.km)+'<small>km</small></div>'+delta(S.km,P.km)+'</div>'+
-  '<div class="kpi" style="--kc:#45d08f"><div class="kh">'+ico("clip")+'Transports</div><div class="kv">'+S.mis+'</div>'+delta(S.mis,P.mis)+'</div>'+
-  '<div class="kpi" style="--kc:#ff8a8e"><div class="kh">'+ico("siren")+'Urgences</div><div class="kv">'+S.urg+'</div>'+delta(S.urg,P.urg)+'</div>'+
-  '<div class="kpi" style="--kc:#ffc061"><div class="kh">'+ico("clock")+'Au volant</div><div class="kv">'+du.v+(du.u?'<small>'+du.u+'</small>':'')+'</div>'+delta(S.ms,P.ms)+'</div></div>';
+  '<div class="kpi" style="--kc:'+kcol("#4f8cff")+'"><div class="kh">'+ico("road2")+'Kilomètres</div><div class="kv">'+kmTxt(S.km)+'<small>km</small></div>'+delta(S.km,P.km)+'</div>'+
+  '<div class="kpi" style="--kc:'+kcol("#45d08f")+'"><div class="kh">'+ico("clip")+'Transports</div><div class="kv">'+S.mis+'</div>'+delta(S.mis,P.mis)+'</div>'+
+  '<div class="kpi" style="--kc:'+kcol("#ff8a8e")+'"><div class="kh">'+ico("siren")+'Urgences</div><div class="kv">'+S.urg+'</div>'+delta(S.urg,P.urg)+'</div>'+
+  '<div class="kpi" style="--kc:'+kcol("#ffc061")+'"><div class="kh">'+ico("clock")+'Au volant</div><div class="kv">'+du.v+(du.u?'<small>'+du.u+'</small>':'')+'</div>'+delta(S.ms,P.ms)+'</div></div>';
  h+='<div class="minis" data-k="stm">'+
   '<div class="mini">'+ico("home")+'<b>'+S.dep+'</b><span>Retours au dépôt</span></div>'+
   '<div class="mini">'+ico("mega")+'<b>'+S.sig+'</b><span>Signalements</span></div>'+
@@ -2135,7 +2221,7 @@ function vStats(){
   h+='<div class="stcard" data-k="stj"><h3>Journal de la journée</h3>';
   if(!L.length)h+='<div class="sub" style="margin:0">Aucun trajet guidé '+(off===0?"pour l'instant aujourd'hui.":"ce jour-là.")+'</div>';
   else{h+='<div class="jlog">';L.forEach(function(t){var k=KN[t.k]||["Trajet","route","#9aa3b2","#20242d"],x=t.e?etab(t.e):null,d=new Date(t.t0),mn=Math.max(1,Math.round(((t.t1||t.t0)-t.t0)/60000));
-    h+='<div class="jrow"><span class="kic" style="color:'+k[2]+';background:'+k[3]+'">'+ico(k[1])+'</span><div style="flex:1 1 auto;min-width:0"><b>'+esc(x?x.nom:k[0])+'</b><small>'+(x?esc(k[0])+" · ":"")+kmTxt(t.km||0)+' km · '+mn+' min'+(t.ar?"":" · interrompu")+'</small></div><span class="jt">'+(d.getHours()<10?"0":"")+d.getHours()+':'+(d.getMinutes()<10?"0":"")+d.getMinutes()+'</span></div>';});
+    h+='<div class="jrow"><span class="kic" style="'+chipSt(k[2],k[3])+'">'+ico(k[1])+'</span><div style="flex:1 1 auto;min-width:0"><b>'+esc(x?x.nom:k[0])+'</b><small>'+(x?esc(k[0])+" · ":"")+kmTxt(t.km||0)+' km · '+mn+' min'+(t.ar?"":" · interrompu")+'</small></div><span class="jt">'+(d.getHours()<10?"0":"")+d.getHours()+':'+(d.getMinutes()<10?"0":"")+d.getMinutes()+'</span></div>';});
    h+='</div>';}
   h+='</div>';
  }else{
@@ -2148,7 +2234,7 @@ function vStats(){
  }
  // côté ludique
  var best=stBestDay(o),eq=stEquiv(S.km),st=stStreak(o),fun="";
- function f(ic,c1,c2,t,sub){return '<div class="fun"><span class="fi" style="color:'+c1+';background:'+c2+'">'+ico(ic)+'</span><div><b>'+t+'</b>'+(sub?'<small>'+sub+'</small>':'')+'</div></div>';}
+ function f(ic,c1,c2,t,sub){return '<div class="fun"><span class="fi" style="'+chipSt(c1,c2)+'">'+ico(ic)+'</span><div><b>'+t+'</b>'+(sub?'<small>'+sub+'</small>':'')+'</div></div>';}
  if(eq)fun+=f("map","#9cc0ff","#1b2a45",esc(eq.t),esc(eq.s));
  if(st>=2)fun+=f("flame","#ffb15a","#3a2412",st+" jours d'affilée sur la route","Continue comme ça !");
  var topE=null;Object.keys(S.et).forEach(function(k){if(!topE||S.et[k]>S.et[topE])topE=k;});var te=topE?etab(topE):null;
@@ -2157,9 +2243,11 @@ function vStats(){
  if(best.km&&best.km.km>0)fun+=f("trophy","#ffd166","#3a2f10","Record : "+kmTxt(best.km.km)+" km en une journée","Le "+dTxt(best.km.d)+(best.mis&&best.mis.n?" · record de missions : "+best.mis.n+" le "+dTxt(best.mis.d):""));
  if(fun)h+='<div class="stcard" data-k="stf"><h3>En bref</h3>'+fun+'</div>';
  var TR=stTrophies(o,best),nok=TR.filter(function(x){return x.ok;}).length;
- h+='<div class="stcard" data-k="stt"><h3>Trophées · '+nok+' / '+TR.length+'</h3><div class="troph">';
- TR.forEach(function(x){h+='<div class="tro'+(x.ok?" ok":"")+'"><span class="tb">'+ico(x.ic)+'</span><b>'+esc(x.nom)+'</b><small>'+esc(x.desc)+'</small>'+(x.ok?'':'<span class="pg"><i style="width:'+Math.round(x.p*100)+'%"></i></span>')+'</div>';});
- h+='</div></div>';
+ var nh=TR.length-nok;
+ h+='<div class="stcard" data-k="stt"><h3>Trophées · '+nok+' / '+TR.length+'</h3>';
+ if(nok){h+='<div class="troph">';TR.forEach(function(x){if(x.ok)h+='<div class="tro ok"><span class="tb">'+ico(x.ic)+'</span><b>'+esc(x.nom)+'</b><small>'+esc(x.desc)+'</small></div>';});h+='</div>';}
+ if(nh)h+='<div class="trohid'+(nok?'':' solo')+'">'+ico("lock")+'<span><b>'+(nh>1?nh+' trophées cachés':'1 trophée caché')+'</b><small>'+(nok?'Ils apparaîtront ici dès que tu les débloques.':'Ils apparaîtront ici au fil de tes trajets.')+'</small></span></div>';
+ h+='</div>';
  if(!o.trips.length)h+='<div class="empty" style="margin-top:12px">Les statistiques se remplissent toutes seules quand tu utilises le guidage d\'Ambumaps.</div>';
  h+='<div class="sthint">'+ico("lock")+'<span>Comptées avec le guidage d\'Ambumaps, sur ce téléphone uniquement. Aucune adresse n\'est enregistrée : seulement l\'heure, les kilomètres et le type de trajet.</span></div>';
  if(o.trips.length){if(ui.confirm==="stats")h+='<div class="confirm" style="margin-top:12px">Effacer toutes les statistiques de ce téléphone ?<div class="row"><button class="btn small danger" data-a="stReset">Oui, tout effacer</button><button class="btn small" data-a="noDel">Annuler</button></div></div>';
@@ -2176,6 +2264,10 @@ function vParams(){
  }
  if(ui.depotMsg)h+='<div class="warnbox" style="margin-top:10px">'+esc(ui.depotMsg)+'</div>';
  h+='<div class="hint">Enregistrée sur ce téléphone, tu ne la tapes qu\'une fois. Le bouton « Retour au dépôt » de l\'accueil lance directement le GPS.</div>';
+ var tp=themePref();
+ h+='<h2 data-k="pth">Apparence</h2><div class="thms" data-k="thms" role="radiogroup" aria-label="Apparence">'+[["dark","moon","Sombre"],["light","sun","Clair"],["auto","auto","Auto"]].map(function(o){var on=tp===o[0];
+  return '<button class="thm'+(on?" on":"")+'" data-a="theme" data-id="'+o[0]+'" role="radio" aria-checked="'+on+'"><span class="pv">'+(o[0]==="light"?'<i class="lt"><b></b><u></u><u></u></i>':'<i class="dk"><b></b><u></u><u></u></i>'+(o[0]==="auto"?'<i class="lt half"><b></b><u></u><u></u></i>':''))+'</span><span>'+ico(o[1])+o[2]+'</span></button>';}).join("")+'</div>'+
+  '<div class="hint" data-k="thh">Le GPS suit aussi ce choix. « Auto » suit le mode clair ou sombre du téléphone.</div>';
  return h;}
 function setDepot(x){saveDepot(x);ui.depotEdit=false;ui.depotQ="";ui.depotMsg="";acHide();
  if(ui.depotThen==="go"){ui.depotThen=null;if(location.hash!=="#trajet"){location.hash="#trajet";}else render();startDepotGps();return;}
@@ -2234,7 +2326,7 @@ function vTrajet(){
  var md=ui.mode,prog=md==="programme",ua=md==="urgence"&&!u1(),ub=md==="urgence"&&!ua,pec=prog||ub;
  var depB='<button class="btn wide depotb" data-k="depb" data-a="depotGo">'+ico("home")+'<span>Retour au dépôt</span></button>';
  // accueil : deux grands boutons, la suite s'ouvre en page entière
- if(!md)return '<h1 class="ttl" data-k="tt">Nouveau trajet</h1>'+vehRow()+'<div class="bigmodes" data-k="modes">'+
+ if(!md)return '<h1 class="sr">Nouveau trajet</h1>'+vehRow()+'<div class="bigmodes" data-k="modes">'+
   (vehId==="vsl"?'':'<button class="bigmode urg" data-k="m-urg" data-kg data-a="mode" data-id="urgence"><span class="bic">'+ico("siren")+'</span><b>Urgence</b>'+ico("chev","chv")+'</button>')+
   '<button class="bigmode prog" data-k="m-prog" data-a="mode" data-id="programme"><span class="bic">'+ico("clip")+'</span><b>Transport programmé</b>'+ico("chev","chv")+'</button></div>'+depB;
  var h="",cs=curStep(),n=state.etabs.length;
@@ -2402,7 +2494,7 @@ function clearDest(){ui.destId=null;ui.libre="";ui.libreGeo=null;ui.libreOk=fals
 function clearEtat(){ui.etat=null;ui.route=null;}
 function resetMission(){ui.mid=null;ui.edit=null;ui.editFrom=null;ui.etat=ui.mode==="programme"?"programme":null;ui.destId=null;ui.libre="";ui.libreGeo=null;ui.libreOk=false;ui.filtre="";ui.pecFiltre="";ui.pec={q:"",etab:""};ui.leg=1;ui.dep=null;ui.depEdit=false;ui.route=null;keepUi();}
 /* ===== GPS intégré (module gps.js chargé à la demande) ===== */
-var GPS_V="31",gpsP=null;
+var GPS_V="32",gpsP=null;
 function loadGps(){if(window.AmbuGPS)return Promise.resolve();if(gpsP)return gpsP;
  gpsP=new Promise(function(res,rej){var sc=document.createElement("script");sc.src="gps.js?v="+GPS_V;
   sc.onload=function(){if(window.AmbuGPS)res();else{gpsP=null;rej(new Error("GPS indisponible."));}};
@@ -2448,6 +2540,7 @@ document.addEventListener("click",function(ev){
  if(a==="menuClose"){closeMenu();return;}
  if(a==="menuGo"){closeMenu();return;}
  if(a==="back"){goBack();return;}
+ if(a==="theme"){if(id===themePref())return;try{localStorage.setItem(THEMEK,id);}catch(e){}var go=function(){applyTheme();render();};if(document.startViewTransition&&canAnim())document.startViewTransition(go);else go();return;}
  if(a==="newsTog"){ui.newsOpen=ui.newsOpen||{};var nop=ui.newsOpen[id]=!ui.newsOpen[id];render();
   var nc=document.querySelector('.nv[data-id="'+id+'"] .nch');if(nc&&canAnim())nc.animate([{transform:"rotate("+(nop?90:-90)+"deg)"},{transform:"rotate("+(nop?-90:90)+"deg)"}],{duration:DUR,easing:SPR});}
  else if(a==="veh"){var chg=id!==vehId;setVeh(id);ui.route=null;render();var vo=document.querySelector(".veh.on");if(chg&&vo&&canAnim())vo.animate([{transform:"scale(.92)"},{transform:"scale(1.03)",offset:.55},{transform:"none"}],{duration:DUR,easing:SPR});}
