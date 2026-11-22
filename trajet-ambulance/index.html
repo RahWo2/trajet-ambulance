@@ -238,7 +238,7 @@ header.fh h1{font-size:clamp(19px,5.6vw,24px);letter-spacing:-.2px;font-weight:8
 .fs.on span{color:var(--ft);font-weight:800}
 /* accueil */
 .ttl{font-size:30px;font-weight:800;letter-spacing:-.3px;margin:16px 0 18px;display:block}
-.skipb{margin:10px 0 4px;background:var(--card);border:1px solid var(--line);color:var(--txt);justify-content:center;gap:6px}.skipb svg.i{width:18px;height:18px;color:var(--mut)}
+.skipw{display:flex;justify-content:flex-end;margin:8px 0 2px}.skipb{display:inline-flex;align-items:center;gap:2px;min-height:36px;padding:5px 10px 5px 14px;border-radius:999px;background:var(--card);border:1px solid var(--line);color:var(--mut);font:inherit;font-size:15px;font-weight:700;cursor:pointer}.skipb svg.i{width:16px;height:16px}
 .vehs{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:0 0 14px}
 .veh{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;min-height:76px;padding:8px 4px;border-radius:16px;border:2px solid var(--line);background:var(--card);color:var(--txt);font:inherit;cursor:pointer;text-align:center}
 .veh .vic{display:inline-flex;color:var(--mut)}.veh .vic svg.i{width:30px;height:30px}
@@ -2070,7 +2070,9 @@ var KN={p1:["Prise en charge","pin","#45d08f","#163a28"],p2:["Transport programm
 /* ---------- Nouveautés ----------
    À chaque mise à jour : ajouter une entrée EN TÊTE de NEWS et changer APP_V.
    2.x = depuis l'arrivée du GPS ; nouvelle fonction -> 2e chiffre +1 ; petite retouche -> 3e chiffre (2.7.1). */
-var APP_V="2.11",NEWSKEY="ambumaps-vu",NEWS=[
+var APP_V="2.11.1",NEWSKEY="ambumaps-vu",NEWS=[
+ {v:"2.11.1",d:"22 nov. 2026",t:"Bouton Passer discret",l:["Le bouton pour passer la prise en charge devient un petit « Passer »."],
+  x:["Petit bouton « Passer » à droite, sous l'adresse de prise en charge, à la place du grand bouton.","Même effet : le trajet part de ta position vers le rendez-vous."]},
  {v:"2.11",d:"22 nov. 2026",t:"GPS plus lisible",l:["Vitesse et limitation plus grandes ; 50 ou 80 km/h quand la limite n'est pas connue.","Carte déplaçable du premier coup de doigt, retour automatique au bout de 5 s.","Transport programmé : bouton pour passer la prise en charge."],
   x:["Compteur de vitesse et panneau de limitation agrandis.","Limitation inconnue : 50 km/h en agglomération, 80 km/h hors agglomération (zones urbaines de la carte IGN), 130 sur autoroute.","La carte se déplace dès le premier glissé ; 5 s après, elle revient d'elle-même sur l'ambulance.","Au lancement du guidage, la carte s'ouvre directement sur l'ambulance, sans passer par la destination.","« Passer : le patient est déjà à bord » : le trajet part de ta position vers le rendez-vous.","Au retour vers l'accueil, le titre suit la bande colorée jusqu'au bouton."]},
  {v:"2.10",d:"22 nov. 2026",t:"Itinéraire plus stable",l:["Le GPS garde l'itinéraire en cours quand une autre route passe juste à côté."],
@@ -2248,7 +2250,7 @@ function vTrajet(){
   h+='<section data-k="s1'+sk+'">';
   if(pec){
    h+='<h2 id="stepCur" class="q">'+(prog?"Où récupérer le patient ?":"Où est le patient ?")+'</h2>'+searchRow("pec",n?"Adresse ou lieu enregistré":"Adresse du patient",ui.pec.etab?"":ui.pec.q)+
-    (prog?'<button class="btn wide skipb" data-k="pskip" data-a="pecSkip">'+ico("chev")+'<span>Passer : le patient est déjà à bord</span></button>':'')+
+    (prog?'<div class="skipw" data-k="pskip"><button class="skipb" data-a="pecSkip" aria-label="Passer : le patient est déjà à bord">Passer'+ico("chev")+'</button></div>':'')+
     '<div class="hint lockh">'+ico("lock")+'<span>L\'adresse du patient reste sur ce téléphone, jamais dans la base de l\'équipe.</span></div>';
    if(n)h+='<div id="pecList">'+placeList("pec")+'</div>';
   }else{
