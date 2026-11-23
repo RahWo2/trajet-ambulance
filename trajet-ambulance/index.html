@@ -150,6 +150,8 @@ details summary{cursor:pointer;color:var(--acc)}
 .ac small{display:block;color:var(--mut);font-size:13.5px}
 .ac .src{padding:7px 12px;font-size:12px;color:var(--mut);border-top:1px solid var(--line)}
 .ac .wait{padding:11px 12px;color:var(--mut);font-size:14.5px}
+.ac .ach{display:flex;align-items:center;gap:6px;padding:9px 12px 7px;font-size:12.5px;font-weight:800;color:var(--mut);text-transform:none}.ac .ach svg.i{width:15px;height:15px}
+.ac .ach+button{border-top:1px solid var(--line)}.ac button.rec svg.i{color:var(--acc)}
 .ac .acrow{position:relative;border-top:1px solid var(--line)}
 .ac .acrow:first-child{border-top:0}
 .ac .acrow button[data-a="acPick"]{border-top:0;padding-right:54px}
@@ -267,8 +269,11 @@ h1.sr+.vehs{margin-top:45.5px}
 main.flow{--fl:#45d08f}
 main.flow.urg{--fl:#ff8a8e}
 main.flow section[data-k]>h2.q:first-child,h2.q{font-size:23px;font-weight:800;text-transform:none;letter-spacing:0;color:var(--txt);margin:10px 0 14px}
-.srow{display:flex;gap:10px}
+.srow{display:flex;gap:0;position:relative}
 .srow .acw{flex:1 1 auto}
+.srow .acw .ac{right:0}
+/* bouton de validation dans la barre de recherche */
+.srow .sfield{padding-right:62px}.srow .btn.sgo{position:absolute;right:7px;top:7px;width:46px;min-height:44px;height:44px;border-radius:12px}
 .sfield{display:flex;align-items:center;gap:10px;min-height:58px;padding:0 14px;border-radius:16px;background:var(--card);border:1.5px solid #3a404c;transition:border-color .25s ease}
 .sfield:focus-within{border-color:var(--acc)}
 .sfield>svg.i{color:var(--mut);width:20px;height:20px}
@@ -777,7 +782,6 @@ function paintMission(el,e,d,addr){
   '<div class="rstop'+(leg===2?" fini":" cur")+'"><span class="rdot">'+ico(leg===2?"check":"pin")+'</span><div class="rtx"><small>'+(pk.skip?"Départ de ta position":(leg===2?"Patient à bord":"Prise en charge"))+'</small><b>'+esc(pk.label)+'</b>'+(pk.label!==pk.addr?'<span class="ra">'+esc(pk.addr)+'</span>':'')+(pk.infos?'<span class="ri">'+ico("pin")+'<span>'+esc(pk.infos)+'</span></span>':'')+'</div><button class="btn small" data-a="editStep" data-id="1" aria-label="Modifier la prise en charge">Modifier</button></div>'+
   '<div class="rstop'+(leg===2?" cur":"")+'"><span class="rdot">'+ico("flag")+'</span><div class="rtx"><small>Rendez-vous</small><b>'+esc(d?d.nom:libreName(addr))+'</b>'+((d||libreName(addr)!==addr)?'<span class="ra">'+esc(addr)+'</span>':'')+(d&&d.infos?'<span class="ri">'+ico("pin")+'<span>'+esc(d.infos)+'</span></span>':'')+'</div><button class="btn small" data-a="editStep" data-id="2" aria-label="Modifier le rendez-vous">Modifier</button></div>'+
  '</div>';
- if(zs.length){h+='<div class="rz" data-k="rz"><h3 class="lh">Zones à éviter sur ce trajet</h3>';zs.forEach(function(z){h+='<div class="zone"><span class="tag">'+esc(ZTYPES[z.type]||z.type)+'</span><div><b>'+esc(z.nom)+'</b>'+(z.note?'<div class="addr">'+esc(z.note)+'</div>':"")+'</div></div>';});h+='</div>';}
  // puis le départ
  h+='<div class="mgo" data-k="mgo'+leg+'">'+gpsBtns(L,leg,leg===2&&!!RD)+'</div>';
  if(leg===2){
@@ -1648,32 +1652,50 @@ function acFetch(q,cb){
  if(Date.now()<PH_DOWN)done("ph",null);
  else fetchT(PHOTON+"?lang=fr&limit=6&lat="+la.toFixed(4)+"&lon="+lo.toFixed(4)+bb+"&q="+e(q),3000).then(photonItems).then(function(v){done("ph",v);},function(){PH_DOWN=Date.now()+600000;done("ph",null);});
 }
+/* adresses récentes : gardées sur ce téléphone seulement, effacées après 3 mois sans servir */
+var RECK="ambumaps-recents",REC_TTL=90*864e5,REC_MAX=150;
+function recLoad(){var a=[];try{a=JSON.parse(localStorage.getItem(RECK)||"[]");}catch(e){}if(!Array.isArray(a))return[];var lim=Date.now()-REC_TTL;return a.filter(function(r){return r&&r.label&&r.t>lim;});}
+function recSave(a){try{localStorage.setItem(RECK,JSON.stringify(a.slice(0,REC_MAX)));}catch(e){}}
+function recAdd(it){if(!it||!it.label||String(it.label).trim().length<3)return;var a=recLoad(),k=norm(it.label),o=null;
+ a=a.filter(function(r){if(norm(r.label)===k){o=r;return false;}return true;});
+ var r={label:String(it.label).trim(),main:it.main||(o&&o.main)||String(it.label).trim(),sub:it.sub!=null?it.sub:((o&&o.sub)||""),t:Date.now(),n:((o&&o.n)||0)+1};
+ if(typeof it.lat==="number"&&typeof it.lon==="number"){r.lat=it.lat;r.lon=it.lon;}else if(o&&typeof o.lat==="number"){r.lat=o.lat;r.lon=o.lon;}
+ a.unshift(r);recSave(a);}
+/* les plus utilisées et les plus récentes d'abord */
+function recScore(r){return (r.n||1)*Math.exp(-(Date.now()-r.t)/(30*864e5));}
+function recItems(q,max){var a=recLoad(),w=norm(q).split(" ").filter(Boolean);if(!w.length)return[];
+ /* chaque mot tapé doit être le début d'un mot de l'adresse (« car » -> Carnot, « 12 » -> 12 rue…) */
+ a=a.filter(function(r){var k=norm(r.label).replace(/[,.\-]/g," ").split(" ");return w.every(function(x){return k.some(function(y){return y.indexOf(x)===0;});});});
+ return a.sort(function(x,y){return recScore(y)-recScore(x);}).slice(0,max).map(function(r){return{rec:true,main:r.main,sub:r.sub,label:r.label,lat:r.lat,lon:r.lon};});}
 function acBox(inp){var b=inp.nextElementSibling;if(b&&b.classList.contains("ac"))return b;b=document.createElement("div");b.className="ac";b.hidden=true;inp.insertAdjacentElement("afterend",b);return b;}
 function acHide(){AC.seq++;clearTimeout(AC.t);AC.items=[];Array.prototype.forEach.call(document.querySelectorAll(".ac"),function(x){x.hidden=true;x.innerHTML="";});}
-function acPaint(inp,items,msg){var b=acBox(inp),was=b.hidden;AC.items=items;
+function acPaint(inp,items,msg,title){var b=acBox(inp),was=b.hidden;AC.items=items;
  if(!items.length&&!msg){b.hidden=true;b.innerHTML="";return;}
- var h="";items.forEach(function(it,i){
-  var pick='<button type="button" data-a="acPick" data-i="'+i+'">'+(it.etab?(it.fav?ico("star","yel"):ico("build")):ico(it.gps?"locate":"pin"))+" "+'<b>'+esc(it.main)+'</b>'+((it.sub||it.etab)?'<small>'+(it.etab?"Lieu enregistré · ":"")+esc(it.sub)+'</small>':'')+'</button>';
+ var h=title?'<div class="ach">'+ico("clock")+esc(title)+'</div>':"";items.forEach(function(it,i){
+  var pick='<button type="button" data-a="acPick" data-i="'+i+'"'+(it.rec?' class="rec"':'')+'>'+(it.etab?(it.fav?ico("star","yel"):ico("build")):ico(it.rec?"clock":(it.gps?"locate":"pin")))+" "+'<b>'+esc(it.main)+'</b>'+((it.sub||it.etab||it.rec)?'<small>'+(it.etab?"Lieu enregistré · ":(it.rec?"Récent"+(it.sub?" · ":""):""))+esc(it.sub)+'</small>':'')+'</button>';
   if(it.etab&&AC.field!=="dep"){var t=it.fav?"Retirer des favoris":"Ajouter aux favoris";h+='<div class="acrow">'+pick+'<button type="button" class="fav'+(it.fav?" on":"")+'" data-a="acFav" data-i="'+i+'" aria-label="'+t+'" title="'+t+'">'+ico(it.fav?"star":"staro")+'</button></div>';}
   else h+=pick;});
  if(msg)h+='<div class="wait">'+esc(msg)+'</div>';
- else if(items.some(function(it){return !it.etab;}))h+='<div class="src">Adresses © contributeurs OpenStreetMap · IGN</div>';
+ else if(items.some(function(it){return !it.etab&&!it.rec;}))h+='<div class="src">Adresses © contributeurs OpenStreetMap · IGN</div>';
  b.innerHTML=h;b.hidden=false;
  if(was){var r=inp.getBoundingClientRect();if(r.top>window.innerHeight*0.35)window.scrollBy({top:r.top-120,behavior:"smooth"});}}
 function acInput(inp){
  var field=inp.getAttribute("data-ac"),q=inp.value.trim();
  if(/goo\.gl\/|maps\.app\.goo/i.test(q)){clearTimeout(AC.t);AC.seq++;AC.input=inp;AC.field=field;acPaint(inp,[],"Lien court Google Maps illisible ici : dans Google Maps, appuie longuement sur le point puis copie les coordonnées (ex. 43.327712, -0.349641).");return;}
+ if(q.length===1&&(field==="pec"||field==="libre")){var r1=recItems(q,4);clearTimeout(AC.t);AC.seq++;AC.input=inp;AC.field=field;if(r1.length)acPaint(inp,r1,"");else acHide();return;}
  if(q.length<2||(field==="etab"&&q.length<3)){acHide();return;}
- var prev=AC.input===inp?AC.items.filter(function(it){return !it.etab;}):[];
+ var prev=AC.input===inp?AC.items.filter(function(it){return !it.etab&&!it.rec;}):[];
  clearTimeout(AC.t);var my=++AC.seq;AC.input=inp;AC.field=field;
  var saved=(field==="etab"||parseLL(q))?[]:matchEtabs(q,field==="dep"?3:5).map(function(x){return{etab:x.id,main:x.nom,sub:x.adresse,label:x.nom,fav:isFav(x.id)};});
+ var recs=(field==="pec"||field==="libre")&&!parseLL(q)?recItems(q,3):[],rk={};recs.forEach(function(r){rk[norm(r.label)]=1;});saved=recs.concat(saved);
+ var notRec=function(l){return l.filter(function(it){return !rk[norm(it.label)];});};prev=notRec(prev);
  if(q.length<3){acPaint(inp,saved,"");return;}
  if(parseLL(q))prev=[];
  acPaint(inp,saved.concat(prev),(saved.length||prev.length)?"":"Recherche…");
  AC.t=setTimeout(function(){
   acFetch(q,function(list,fin,fail){if(my!==AC.seq)return;
    if(!list.length&&!fin)return;
-   acPaint(inp,saved.concat(list.slice(0,Math.max(3,8-saved.length))),(list.length||saved.length)?"":(fail?"Suggestions indisponibles (réseau ?) : tape l'adresse complète.":"Aucun lieu ni adresse trouvé : vérifie l'orthographe ou ajoute la ville."));});
+   list=notRec(list);acPaint(inp,saved.concat(list.slice(0,Math.max(3,8-saved.length))),(list.length||saved.length)?"":(fail?"Suggestions indisponibles (réseau ?) : tape l'adresse complète.":"Aucun lieu ni adresse trouvé : vérifie l'orthographe ou ajoute la ville."));});
  },350);
 }
 function acPick(i){
@@ -1681,11 +1703,13 @@ function acPick(i){
  if(f==="pec"){inp.blur();
   if(ui.pec.skip)ui.leg=1;
   if(it.etab)ui.pec={q:"",etab:it.etab};
+  else if(typeof it.lat!=="number")ui.pec={q:it.label,etab:"",ok:true};
   else ui.pec={q:it.q||it.label,etab:"",gq:it.q||it.label,glat:it.lat,glon:it.lon,glabel:it.label,ok:true};
+  if(!it.etab)recAdd(it);
   ui.pecFiltre="";goStep();}
  else if(f==="libre"){inp.blur();
   if(it.etab){ui.destId=it.etab;ui.libre="";ui.libreGeo=null;ui.libreOk=false;ui.filtre="";}
-  else{ui.libre=it.q||it.label;ui.libreGeo={q:ui.libre,lat:it.lat,lon:it.lon,label:it.label};ui.libreOk=true;ui.destId=null;}
+  else{ui.libre=it.q||it.label;ui.libreGeo=typeof it.lat==="number"?{q:ui.libre,lat:it.lat,lon:it.lon,label:it.label}:null;ui.libreOk=true;ui.destId=null;recAdd(it);}
   goStep();}
  else if(f==="dep"){var x=it.etab?etab(it.etab):null;
   ui.dep=x?{mode:"addr",q:x.adresse,label:x.nom}:{mode:"addr",q:it.q||it.label,lat:it.lat,lon:it.lon,label:it.label};
@@ -2202,7 +2226,9 @@ var KN={p1:["Prise en charge","pin","#45d08f","#163a28"],p2:["Transport programm
    À chaque mise à jour : ajouter une entrée EN TÊTE de NEWS et changer APP_V.
    2.x = depuis l'arrivée du GPS ; nouvelle fonction -> 2e chiffre +1 ; petite correction -> 3e chiffre (2.7.1).
    Retouches mineures de l'interface (taille, place, icône, texte, transition) : ni entrée ni changement de version. */
-var APP_V="2.13",NEWSKEY="ambumaps-vu",NEWS=[
+var APP_V="2.14",NEWSKEY="ambumaps-vu",NEWS=[
+ {v:"2.14",d:"23 nov. 2026",t:"Adresses récentes",l:["Les adresses déjà utilisées sont proposées en premier dès qu'on commence à taper."],
+  x:["Les plus utilisées et les plus récentes passent devant.","Gardées seulement sur le téléphone, jamais dans la base de l'équipe.","Une adresse qui n'a pas servi depuis 3 mois s'efface toute seule."]},
  {v:"2.13",d:"22 nov. 2026",t:"Ta position sur le GPS",l:["Choisis ton repère dans Paramètres : flèches, point, étoile de vie ou ton véhicule."],
   x:["Paramètres ▸ Ta position sur le GPS : Flèche, Flèche bleue, Flèche jaune, Point bleu, Étoile de vie ou Mon véhicule.","« Mon véhicule » affiche une ambulance, ou une voiture en VSL / Taxi.","En vue 3D, le repère s'incline avec la carte."]},
  {v:"2.12",d:"22 nov. 2026",t:"Thème clair",l:["Thème clair pour l'appli et le GPS, à choisir dans Paramètres."],
@@ -2393,7 +2419,7 @@ function vTrajet(){
   if(pec){
    var qh='<h2 id="stepCur" class="q">'+(prog?"Où récupérer le patient ?":"Où est le patient ?")+'</h2>';
    h+=(prog?'<div class="qrow" data-k="pskip">'+qh+'<button class="skipb" data-a="pecSkip" aria-label="Passer : le patient est déjà à bord">Passer'+ico("chev")+'</button></div>':qh)+searchRow("pec",n?"Adresse ou lieu enregistré":"Adresse du patient",ui.pec.etab?"":ui.pec.q)+
-    '<div class="hint lockh">'+ico("lock")+'<span>L\'adresse du patient reste sur ce téléphone, jamais dans la base de l\'équipe.</span></div>';
+    '<div class="hint lockh">'+ico("lock")+'<span>L\'adresse du patient reste sur ce téléphone, jamais dans la base de l\'équipe. Les adresses récentes s\'effacent après 3 mois sans servir.</span></div>';
    if(n)h+='<div id="pecList">'+placeList("pec")+'</div>';
   }else{
    h+='<h2 id="stepCur" class="q">Quel est l\'état du patient ?</h2><div class="tiles">';
@@ -2442,10 +2468,7 @@ function paintFeuille(){
  if(d&&d.infos)h+='<div class="infos">'+ico("pin")+' '+esc(d.infos)+'</div>';
  h+='</div>';
  if(via)h+='<div class="blk"><h3>Passage conseillé</h3>Via <b>'+esc(via)+'</b> <span class="tag blue">inclus dans Google Maps</span></div>';
- h+='<div class="blk"><h3>Zones à éviter si elles sont sur ta route</h3>';
- if(zs.length){zs.forEach(function(z){h+='<div class="zone"><span class="tag">'+esc(ZTYPES[z.type]||z.type)+'</span><div><b>'+esc(z.nom)+'</b>'+(z.note?'<div class="addr">'+esc(z.note)+'</div>':"")+'</div></div>';});}
- else h+='<div class="addr">Aucune zone enregistrée pour ce profil'+(d?" et ce trajet":"")+'. Ajoute celles que tu connais dans l\'onglet <a href="#zones" style="color:var(--acc)">Zones</a>.</div>';
- h+='</div><div class="blk"><h3>Consignes de conduite</h3><ul>';
+ h+='<div class="blk"><h3>Consignes de conduite</h3><ul>';
  p.consignes.forEach(function(c){h+="<li>"+esc(c)+"</li>";});
  h+='</ul></div></div>';
  if(!classic)h+=vComfort(R);
@@ -2604,8 +2627,8 @@ document.addEventListener("click",function(ev){
  else if(a==="depotEdit"){ui.depotEdit=true;ui.depotQ="";ui.depotMsg="";ui.depotFocus=true;render();}
  else if(a==="depotCancel"){ui.depotEdit=false;ui.depotThen=null;ui.depotQ="";ui.depotMsg="";render();}
  else if(a==="depotDel"){saveDepot(null);ui.depotEdit=false;render();}
- else if(a==="pecOk"){var pv=document.getElementById("pec");if(!(ui.pec.q||"").trim()||(ui.pec.q||"").trim().length<3){if(pv)pv.focus();return;}ui.pec.ok=true;llFill("pec");acHide();goStep();}
- else if(a==="libreOk"){var lv=document.getElementById("libre");if(ui.libre.trim().length<3){if(lv)lv.focus();return;}ui.libreOk=true;ui.destId=null;llFill("libre");acHide();goStep();}
+ else if(a==="pecOk"){var pv=document.getElementById("pec");if(!(ui.pec.q||"").trim()||(ui.pec.q||"").trim().length<3){if(pv)pv.focus();return;}ui.pec.ok=true;llFill("pec");recAdd({label:ui.pec.q});acHide();goStep();}
+ else if(a==="libreOk"){var lv=document.getElementById("libre");if(ui.libre.trim().length<3){if(lv)lv.focus();return;}ui.libreOk=true;ui.destId=null;llFill("libre");recAdd({label:ui.libre});acHide();goStep();}
  else if(a==="editStep"){ui.editFrom={e:ui.edit};ui.edit=+id;ui.navDir=-1;acHide();render();scrollStep();}
  else if(a==="fav"){toggleFav(id);if(document.getElementById("destList"))paintDest();else render();}
  else if(a==="acPick"){acPick(+b.getAttribute("data-i"));}
