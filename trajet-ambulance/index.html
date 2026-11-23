@@ -94,6 +94,7 @@ details summary{cursor:pointer;color:var(--acc)}
 .map.small{height:240px}
 .map.small{height:300px}
 .fullmap{position:fixed;inset:0;z-index:2000;background:var(--bg);display:flex;flex-direction:column}
+body:has(.fullmap) #app>header{visibility:hidden}
 .fmbar{display:flex;align-items:center;gap:8px;padding:10px 12px;padding-top:max(10px,env(safe-area-inset-top));border-bottom:1px solid var(--line);background:var(--card)}
 .fmbar b{flex:1;font-size:17px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
 #fmap{flex:1;min-height:0}
@@ -1295,7 +1296,7 @@ function vComfort(R,fixedDep){
  return h+'</div>';
 }
 function clearRouteMap(){if(ui.mapObj){try{ui.mapObj.remove();}catch(e){}ui.mapObj=null;}}
-function clearMaps(){clearRouteMap();if(ui.zmap){try{ui.zmap.remove();}catch(e){}ui.zmap=null;}ui.zdraw=null;if(ui.fmap){try{ui.fmap.remove();}catch(e){}ui.fmap=null;}}
+function clearMaps(){clearRouteMap();if(ui.zmap){try{ui.zmap.remove();}catch(e){}ui.zmap=null;}ui.zdraw=null;if(ui.fmRO){ui.fmRO.disconnect();ui.fmRO=null;}if(ui.fmap){try{ui.fmap.remove();}catch(e){}ui.fmap=null;}}
 function initRouteMap(){
  var el=document.getElementById("rmap"),R=ui.route;if(!el||!R||R.status!=="done")return;
  loadLeaflet().then(function(L){
@@ -1445,6 +1446,7 @@ function initFullMap(){
   map.on("click",function(ev){fmTap(ev.latlng.lat,ev.latlng.lng);});
   fmWatch();
   setTimeout(function(){try{map.invalidateSize();}catch(e){}},200);
+  if(window.ResizeObserver){if(ui.fmRO)ui.fmRO.disconnect();ui.fmRO=new ResizeObserver(function(){if(ui.fmap===map&&el.clientHeight>0)try{map.invalidateSize({animate:false});}catch(e){}});ui.fmRO.observe(el);}
   fmMsg("Touche une route pour la signaler",5000);
  },function(e){el.innerHTML='<div class="center" style="padding:30px 10px">'+esc(e.message)+'</div>';});
 }
@@ -2056,7 +2058,7 @@ function pageSlide(oh,ohr,om,omr,dir){
 }
 function render(){
  var app=document.getElementById("app"),first=RTAB===null,oldTab=ui.tab,anim=!first&&canAnim(),dir=ui.navDir||0,MO=ui.morph,MB=ui.morphBack,OB=null;ui.navDir=0;ui.morph=null;ui.morphBack=false;
- var before={},oldMain=null,oldMainR=null,indR=null,oldPK=RPAGE,oldHd=null,oldHdR=null;
+ var before={},oldMain=null,oldMainR=null,indR=null,oldPK=RPAGE,oldHd=null,oldHdR=null,wasFull=!!app.querySelector(".fullmap");
  if(anim){
   Array.prototype.forEach.call(app.querySelectorAll("main [data-k]"),function(x){before[x.getAttribute("data-k")]={el:x,r:x.getBoundingClientRect(),top:!!(x.parentElement&&x.parentElement.tagName==="MAIN"),g:x.hasAttribute("data-kg")};});
   oldMain=app.querySelector("main");if(oldMain)oldMainR=oldMain.getBoundingClientRect();indR=navRect(app);
@@ -2071,7 +2073,8 @@ function render(){
  placeInd(app,indR,anim);
  var mn=app.querySelector("main");
  if(slide)window.scrollTo(0,0);
- if(anim&&mn){try{if(slide&&pk==="flow"&&MO&&MO.r)morphIn(oldHd,oldHdR,oldMain,oldMainR,MO);else if(slide&&pk!=="flow"&&OB)morphOut(oldHd,oldHdR,oldMain,oldMainR,OB);else if(slide)pageSlide(oldHd,oldHdR,oldMain,oldMainR,pk==="flow"?1:-1);else if(oldTab!==ui.tab)crossMain(oldMain,oldMainR,mn);else flip(before,app,dir);}catch(e){}}
+ var fmx=app.querySelector(".fullmap");
+ if(anim&&mn){try{if(fmx){if(!wasFull)crossMain(oldMain,oldMainR,fmx);}else if(slide&&pk==="flow"&&MO&&MO.r)morphIn(oldHd,oldHdR,oldMain,oldMainR,MO);else if(slide&&pk!=="flow"&&OB)morphOut(oldHd,oldHdR,oldMain,oldMainR,OB);else if(slide)pageSlide(oldHd,oldHdR,oldMain,oldMainR,pk==="flow"?1:-1);else if(oldTab!==ui.tab)crossMain(oldMain,oldMainR,mn);else flip(before,app,dir);}catch(e){}}
  RTAB=ui.tab;RPAGE=pk;ensureTrap();
 }
 /* changement d'onglet : fondu enchaîné */
