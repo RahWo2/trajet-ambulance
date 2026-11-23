@@ -1886,7 +1886,7 @@ function sync(first){
 }
 function inviteMsg(v){
  if(v.reset)return "Voici ton code pour changer ton mot de passe Ambumaps : "+v.code+" (valable 7 jours). Ouvre l'appli, « Se connecter » ▸ « Mot de passe oublié ? », mets ton adresse "+v.email+", ce code et ton nouveau mot de passe.";
- return "Salut ! Je t'ai ajouté dans l'appli Ambumaps de l'équipe. Ouvre ce lien sur ton téléphone avec Chrome : "+APP_URL+" puis choisis « Première connexion », mets l'adresse "+v.email+", le code "+v.code+" (valable 7 jours) et crée ton mot de passe. Ensuite, menu ⋮ ▸ « Installer l'application ».";}
+ return "Salut ! Je t'ai ajouté dans l'appli Ambumaps de l'équipe.\n\n1) Installe-la : ouvre ce lien sur ton téléphone : "+APP_URL+"\n- Android : avec Chrome, menu ⋮ ▸ « Installer l'application ».\n- iPhone : avec Safari, bouton Partager ▸ « Sur l'écran d'accueil » ▸ « Ajouter ».\n\n2) Ouvre Ambumaps depuis son icône sur l'écran d'accueil (sur iPhone, pas dans Safari), choisis « Première connexion », mets l'adresse "+v.email+", le code "+v.code+" (valable 7 jours) et crée ton mot de passe.";}
 function makeCode(email){
  ui.codeBusy=email;ui.teamErr="";render();
  return api("POST","rpc/creer_code",{p_email:email}).then(function(c){
