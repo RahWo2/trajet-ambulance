@@ -1435,9 +1435,9 @@ function initFullMap(){
   if(!document.body.contains(el))return;
   if(ui.fmap){try{ui.fmap.remove();}catch(e){}ui.fmap=null;}
   var map=L.map(el,{zoomControl:true});ui.fmap=map;ui.fmL=L;tiles(L).addTo(map);
-  var lay=L.layerGroup().addTo(map),chev=L.layerGroup().addTo(map),dirZ=[];ui.fmSelL=L.layerGroup().addTo(map);ui.fmMe=L.layerGroup().addTo(map);ui.fmSel=null;
+  var lay=L.layerGroup().addTo(map),chev=L.layerGroup().addTo(map),dirZ=[],ready=false;ui.fmSelL=L.layerGroup().addTo(map);ui.fmMe=L.layerGroup().addTo(map);ui.fmSel=null;
   /* travaux dans un seul sens : flèches le long du trait, recalculées à chaque zoom */
-  function drawChev(){chev.clearLayers();dirZ.forEach(function(o){var P=(o.s<0?o.c.slice().reverse():o.c).map(function(p){return map.latLngToLayerPoint(p);}),T=0,i;
+  function drawChev(){chev.clearLayers();if(!ready)return;try{dirZ.forEach(function(o){var P=(o.s<0?o.c.slice().reverse():o.c).map(function(p){return map.latLngToLayerPoint(p);}),T=0,i;
     for(i=1;i<P.length;i++)T+=P[i-1].distanceTo(P[i]);if(T<16)return;
     var step=34,n=Math.max(1,Math.floor((T-8)/step)),d=(T-(n-1)*step)/2,acc=0;
     for(i=1;i<P.length&&n>0;i++){var a=P[i-1],b=P[i],l=a.distanceTo(b);
@@ -1445,7 +1445,7 @@ function initFullMap(){
       L.marker(map.layerPointToLatLng(L.point(a.x+(b.x-a.x)*f,a.y+(b.y-a.y)*f)),{interactive:false,keyboard:false,icon:L.divIcon({className:"",iconSize:[18,18],iconAnchor:[9,9],
        html:'<svg class="fmchev" viewBox="-9 -9 18 18" style="transform:rotate('+an+'deg)"><path d="M-3.5 -5L3 0L-3.5 5" fill="none" stroke="#fff" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/><path d="M-3.5 -5L3 0L-3.5 5" fill="none" stroke="#e8590c" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>'})}).addTo(chev);
       d+=step;n--;}
-     acc+=l;}});}
+     acc+=l;}});}catch(e){}}
   /* le nom barré des routes impraticables n'apparaît qu'à partir du zoom où les rues sont lisibles */
   function far(){try{el.classList.toggle("fmfar",map.getZoom()<15);}catch(e){}}
   map.on("zoomend",function(){far();drawChev();});
@@ -1479,7 +1479,7 @@ function initFullMap(){
   var all=draw();
   if(ui.fmView)map.setView(ui.fmView.c,ui.fmView.z);
   else if(all.length)map.fitBounds(L.latLngBounds(all),{padding:[40,40],maxZoom:16});else map.setView(ui.lastPos||defaultCenter(),ui.lastPos?16:13);
-  far();drawChev();
+  ready=true;far();drawChev();
   map.on("moveend",function(){ui.fmView={c:map.getCenter(),z:map.getZoom()};});
   map.on("click",function(ev){fmTap(ev.latlng.lat,ev.latlng.lng);});
   fmWatch();
