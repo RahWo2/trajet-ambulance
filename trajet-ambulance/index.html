@@ -95,7 +95,7 @@ details summary{cursor:pointer;color:var(--acc)}
 .map.small{height:300px}
 .fullmap{position:fixed;inset:0;z-index:2000;background:var(--bg);display:flex;flex-direction:column}
 .fmbar{display:flex;align-items:center;gap:8px;padding:10px 12px;padding-top:max(10px,env(safe-area-inset-top));border-bottom:1px solid var(--line);background:var(--card)}
-.fmbar b{flex:1;font-size:17px}
+.fmbar b{flex:1;font-size:17px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
 #fmap{flex:1;min-height:0}
 .fmleg{display:flex;flex-wrap:wrap;gap:6px 14px;padding:8px 12px;padding-bottom:max(8px,env(safe-area-inset-bottom));font-size:13px;color:var(--mut);background:var(--card);border-top:1px solid var(--line)}
 .fmleg span{display:inline-flex;align-items:center;gap:6px}
@@ -1384,7 +1384,7 @@ var SEGT=[["degradee","Chaussée dégradée","#ff2d2d"],["travaux","En travaux",
 var FM_ROAD='[highway~"^(motorway|trunk|primary|secondary|tertiary|unclassified|residential|living_street|road|service|motorway_link|trunk_link|primary_link|secondary_link|tertiary_link)$"][service!~"^(driveway|parking_aisle|drive-through|emergency_access)$"]';
 function vFullMap(){
  var lg=function(i,t){return '<span>'+i+t+'</span>';};
- return '<div class="fullmap"><div class="fmbar"><b>'+ico("map")+' Zones à éviter</b><button class="btn small" data-a="zFullLocate" aria-label="Centrer sur ma position">'+ico("locate")+'</button><button class="btn small" data-a="zFullClose">'+ico("x")+'<span>Fermer</span></button></div>'+
+ return '<div class="fullmap"><div class="fmbar"><b>Carte interactive</b><button class="btn small" data-a="zFullLocate" aria-label="Centrer sur ma position">'+ico("locate")+'</button><button class="btn small" data-a="zList" aria-label="Liste des zones">'+ico("menu")+'<span>Liste</span></button><button class="btn small" data-a="zFullClose" aria-label="Fermer la carte">'+ico("x")+'</button></div>'+
   '<div class="fmwrap"><div id="fmap"></div><div class="fmtip" id="fmTip">Touche une route pour la signaler</div>'+
   '<button class="fmplus" id="fmPlusB" data-a="fmPlus" aria-label="Ajouter un point à ma position" aria-expanded="false">'+ico("plus")+'</button>'+
   '<div class="fmmenu" id="fmMenu" hidden><div class="fmmt">Ajouter à ma position</div><div class="fmacc" id="fmAcc">Recherche de ta position…</div>'+
@@ -1917,7 +1917,7 @@ function flowHeader(){
 function drawerHtml(){
  var it=function(k,ic,l,x){var on=ui.tab===k;return '<a href="#'+k+'" data-a="menuGo"'+(on?' class="on" aria-current="page"':'')+'>'+ico(ic)+'<span>'+l+'</span>'+(x||"")+'</a>';},cl=state.mode==="cloud"&&sess;
  return '<div class="dscrim" data-a="menuClose"></div><div class="dpanel" role="navigation" aria-label="Menu principal"><div class="dtop">'+LOGO+'<b>Ambumaps</b><button class="menub" data-a="menuClose" aria-label="Fermer le menu">'+ico("x")+'</button></div>'+
-  it("trajet","route","Nouveau trajet")+it("statistiques","chart","Statistiques")+it("etablissements","build","Établissements")+it("zones","warn","Zones à éviter")+(isCloud()?it("equipe","team","Équipe"):"")+'<hr>'+it("nouveautes","star","Nouveautés",'<span class="dver">'+APP_V+(newsSeen()?'':'<i class="ndot" aria-label="nouveau"></i>')+'</span>')+it("parametres","gear","Paramètres")+
+  it("trajet","route","Nouveau trajet")+it("statistiques","chart","Statistiques")+it("etablissements","build","Établissements")+it("zones","map","Carte interactive")+(isCloud()?it("equipe","team","Équipe"):"")+'<hr>'+it("nouveautes","star","Nouveautés",'<span class="dver">'+APP_V+(newsSeen()?'':'<i class="ndot" aria-label="nouveau"></i>')+'</span>')+it("parametres","gear","Paramètres")+
   '<div class="dfill"></div>'+(cl?'<button class="dstat" data-a="sync" aria-label="Synchroniser"><span id="dstatus"></span></button>':'<div class="dstat"><span id="dstatus"></span></div>')+'</div>';
 }
 function openMenu(){
@@ -1934,9 +1934,11 @@ function closeMenu(){
 var LOGO='<svg class="logo" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="112 66 288 380"><path d="M256 76c-74 0-134 60-134 134 0 98 134 226 134 226s134-128 134-226c0-74-60-134-134-134z" fill="#2f6fe0"/><circle cx="256" cy="210" r="86" fill="#fff"/><rect x="232.5" y="138.0" width="47.0" height="144.0" fill="#1e4fb0" transform="rotate(0 256.0 210.0)"/><rect x="232.5" y="138.0" width="47.0" height="144.0" fill="#1e4fb0" transform="rotate(60 256.0 210.0)"/><rect x="232.5" y="138.0" width="47.0" height="144.0" fill="#1e4fb0" transform="rotate(120 256.0 210.0)"/><path d="M256.0 153.8 L256.0 268.2" stroke="#fff" stroke-width="7.8" stroke-linecap="round" fill="none"/><path d="M259.1 257.8 C240.4 253.7 238.3 239.1 256.0 235.0 C273.7 230.8 273.7 216.2 256.0 212.1 C238.3 207.9 238.3 193.4 256.0 189.2 C269.5 186.1 271.6 176.7 263.3 170.5" stroke="#fff" stroke-width="6.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/><ellipse cx="265.4" cy="167.4" rx="7.8" ry="5.2" fill="#fff" transform="rotate(-35 265.4 167.4)"/></svg>';
 function tabLink(k,l){return '<a href="#'+k+'" class="'+(ui.tab===k?"on":"")+'">'+l+'</a>';}
 function render0(){
- var h=location.hash.replace("#","");
+ var h=location.hash.replace("#",""),prevTab=ui.tab;
  ui.tab=(h==="etablissements"||h==="zones"||h==="parametres"||h==="statistiques"||h==="nouveautes"||(h==="equipe"&&isCloud()))?h:"trajet";
  if(ui.tab==="nouveautes"&&!newsSeen())newsMark();
+ /* « Carte interactive » : on arrive directement sur la carte */
+ if(ui.tab==="zones"&&prevTab!=="zones"&&!ui.form)ui.zfull=true;
  var app=document.getElementById("app");
  clearMaps();
  if((!state.mode||(state.mode==="cloud"&&!sess))&&!ui.auth)ui.auth={step:state.mode==="cloud"?"login":"choice"};
@@ -2117,7 +2119,8 @@ function goBack(){
  if(ui.confirm)ui.confirm=null;
  else if(ui.form)ui.form=null;
  else if(ui.invite)ui.invite=false;
- else if(ui.tab==="zones"&&ui.zfull)ui.zfull=false;
+ else if(ui.tab==="zones"&&ui.zfull){ui.zfull=false;fmStop();if(location.hash!=="#trajet")location.hash="#trajet";else render();return;}
+ else if(ui.tab==="zones"){ui.zfull=true;}
  else if(ui.tab==="trajet"&&ui.mode){
   if(ui.editFrom){ui.edit=ui.editFrom.e||null;ui.editFrom=null;}
   else{var cs=curStep(),ua=ui.mode==="urgence"&&ui.leg===2;ui.edit=null;
@@ -2226,7 +2229,9 @@ var KN={p1:["Prise en charge","pin","#45d08f","#163a28"],p2:["Transport programm
    À chaque mise à jour : ajouter une entrée EN TÊTE de NEWS et changer APP_V.
    2.x = depuis l'arrivée du GPS ; nouvelle fonction -> 2e chiffre +1 ; petite correction -> 3e chiffre (2.7.1).
    Retouches mineures de l'interface (taille, place, icône, texte, transition) : ni entrée ni changement de version. */
-var APP_V="2.14",NEWSKEY="ambumaps-vu",NEWS=[
+var APP_V="2.14.1",NEWSKEY="ambumaps-vu",NEWS=[
+ {v:"2.14.1",d:"23 nov. 2026",t:"Carte interactive",l:["« Zones à éviter » devient « Carte interactive » et ouvre directement la carte."],
+  x:["Dans le menu, « Carte interactive » ouvre tout de suite la carte en plein écran.","Le bouton « Liste » montre les zones enregistrées pour les modifier ou en ajouter.","La croix ramène à l'accueil."]},
  {v:"2.14",d:"23 nov. 2026",t:"Adresses récentes",l:["Les adresses déjà utilisées sont proposées en premier dès qu'on commence à taper."],
   x:["Les plus utilisées et les plus récentes passent devant.","Gardées seulement sur le téléphone, jamais dans la base de l'équipe.","Une adresse qui n'a pas servi depuis 3 mois s'efface toute seule."]},
  {v:"2.13",d:"22 nov. 2026",t:"Ta position sur le GPS",l:["Choisis ton repère dans Paramètres : flèches, point, étoile de vie ou ton véhicule."],
@@ -2528,7 +2533,7 @@ function vZones(){
  if(!(ui.form&&ui.form.kind==="zone"))h+='<button class="btn pri wide" style="margin-bottom:6px" data-a="zFull">'+ico("map")+'<span>Ouvrir la carte</span></button><div class="hint" style="margin:0 0 12px">Sur la carte : touche une route pour la signaler (dégradée, travaux, fermée, impraticable), ou « + » pour ajouter un parking ambulance à ta position.</div>';
  if(ui.form&&ui.form.kind==="zone"){var z=null;state.zones.forEach(function(q){if(q.id===ui.form.id)z=q;});h+=fZone(z);}
  else h+='<button class="btn" style="width:100%;margin-bottom:14px" data-a="newZone">'+ico("plus")+'<span>Ajouter une zone à la main</span></button>';
- if(!state.zones.length&&!ui.form)h+='<div class="empty">Note ici ce que tu connais du terrain et qu\'aucun GPS ne sait : rue pavée, série de dos-d\'âne, route défoncée, virages serrés… La feuille de route te les rappellera selon l\'état du patient.</div>';
+ if(!state.zones.length&&!ui.form)h+='<div class="empty">Note ici ce que tu connais du terrain et qu\'aucun GPS ne sait : rue pavée, série de dos-d\'âne, route défoncée, virages serrés… Le calcul du trajet les évitera selon l\'état du patient.</div>';
  state.zones.forEach(function(z){var d=z.etab?etab(z.etab):null;
   var pk=z.type==="parking";
   h+='<div class="item" data-k="z-'+z.id+'"><div class="t">'+(z.type==="impraticable"?'<s class="strike">'+esc(z.nom)+'</s>':esc(z.nom))+'</div><div class="m"><span class="tag'+(pk?" blue":"")+'">'+esc(ZTYPES[z.type]||z.type)+'</span> · '+(pk?(d?"relié à "+esc(d.nom):"aucun établissement proche"):(ZHARD[z.type]?"aucun itinéraire n'y passe":(d?"vers "+esc(d.nom):"toutes destinations")))+'</div>'+zGeomTxt(z)+(z.note?'<div class="x">'+esc(z.note)+'</div>':"")+(isCloud()&&z.majPar?'<div class="m" style="font-size:12.5px">Ajouté par '+esc(nameOf(z.majPar))+'</div>':"")+
@@ -2659,7 +2664,8 @@ document.addEventListener("click",function(ev){
  else if(a==="zClear"){var zf=b.closest("form");if(zf){zf.elements.lat.value="";zf.elements.lon.value="";zSetTrace(zf,[]);ui.zv=[];ui.zsnap=(ui.zsnap||0)+1;ui.zbusy=false;}if(ui.zdraw)ui.zdraw();}
  else if(a==="zUndo"){var zf2=b.closest("form");if(zf2){if(zf2.getAttribute("data-k")==="pts"){var tu=zTrace(zf2);tu.pop();zSetTrace(zf2,tu);}else{ui.zv=(ui.zv||[]).slice(0,-1);zSnap(zf2);}}if(ui.zdraw)ui.zdraw();}
  else if(a==="zFull"){ui.zfull=true;render();}
- else if(a==="zFullClose"){ui.zfull=false;fmStop();render();}
+ else if(a==="zFullClose"){ui.zfull=false;fmStop();if(location.hash!=="#trajet")location.hash="#trajet";else render();}
+ else if(a==="zList"){ui.zfull=false;fmStop();render();window.scrollTo(0,0);}
  else if(a==="fmPlus"){fmMenu();}
  else if(a==="fmAdd"){fmAdd(id);}
  else if(a==="fmSeg"){fmSetSeg(id);}
