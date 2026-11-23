@@ -599,9 +599,11 @@ var NOUNPAVED={auto:{exclude_unpaved:true,use_tracks:0}};
 function vehOpts(o){var r=Object.assign({},o||{}),h=A.vehH?A.vehH():0;if(h)r.height=h;return{auto:r};}
 function vBody(x){return Object.assign({costing:"auto",language:"fr-FR",units:"kilometers",directions_options:{language:"fr-FR",units:"kilometers"}},x);}
 function tripToRoute(j){var leg=j&&j.trip&&j.trip.legs&&j.trip.legs[0];if(!leg||!leg.shape)throw new Error("Aucun itinéraire trouvé.");var pts=A.decode6(leg.shape);if(pts.length<2)throw new Error("Itinéraire vide.");return buildRoute(pts,leg.maneuvers||[],leg.summary||j.trip.summary,leg.shape);}
-function exclusions(){var polys=[],o=G.opts;
+function exclusions(){var polys=[],o=G.opts;G._dirZ=[];
  (A.state.zones||[]).forEach(function(z){var g=A.zGeom(z);if(!g||g.k==="pts"||(o.zoneTypes||[]).indexOf(z.type)<0)return;if(z.etab&&z.etab!==o.destEtab)return;
   if(G.pos&&(g.k==="line"?nearTrace(g.c,G.pos,60):A.distM([g.lat,g.lon],G.pos)<g.r+40))return;
+  /* travaux dans un seul sens : évités seulement si le trajet les prend dans ce sens (vérifié après le calcul) */
+  if(g.k==="line"&&A.zSens&&A.zSens(z)){G._dirZ.push(z);return;}
   if(g.k==="line")polys=polys.concat(A.linePolys(g.c,10));else polys.push(A.circlePoly(g.lat,g.lon,g.r));});
  (G.alerts||[]).forEach(function(al){if(al.type!=="arret"||!al.trace||al.trace.length<2)return;if(G.pos&&nearTrace(al.trace,G.pos,60))return;polys=polys.concat(A.linePolys(al.trace,12));});
  return polys.slice(0,60);}
@@ -638,6 +640,12 @@ function routeFrom(start,ref){
    if(L[i].locations[0].heading!=null&&/suitable edges/i.test((e&&e.message)||""))return tryAt(L.slice(i).map(noHead),0);
    if(i+1<L.length)return tryAt(L,i+1);throw e;});}
  return tryAt(tries,0).then(function(o){
+  /* le trajet prend une rue en travaux dans le sens concerné : on en cherche un autre (sinon on garde celui-ci) */
+  var dz=(G._dirZ||[]).filter(function(z){return A.zoneDir(z,o.R.pts)===A.zSens(z);});if(!dz.length)return o;
+  var pol=[];dz.forEach(function(z){pol=pol.concat(A.linePolys(A.zGeom(z).c,10));});
+  var b2=Object.assign({},o.b,{exclude_polygons:(o.b.exclude_polygons||[]).concat(pol).slice(0,70)});
+  return A.valhalla("route",b2).then(function(j){var R2=tripToRoute(j);return(G._dirZ||[]).some(function(z){return A.zoneDir(z,R2.pts)===A.zSens(z);})?o:{R:R2,b:b2};},function(){return o;});
+ }).then(function(o){
   /* demi-tour seulement s'il n'y a pas le choix : le trajet sans demi-tour rallonge de plus de 10 min et le demi-tour fait gagner plus de 5 min */
   if(o.b.locations[0].heading==null||ref==null||!(o.R.time>ref+Math.max(600,ref*0.5)))return o;
   var nb=noHead(o.b);return A.valhalla("route",nb).then(function(j){var R2=tripToRoute(j);return R2.time+300<o.R.time?{R:R2,b:nb}:o;},function(){return o;});
@@ -849,7 +857,9 @@ function quick(L,cur){var best=Math.min.apply(null,L.map(function(x){return x.ti
 function findAlts(cur){
  return fetchAlts().then(function(Rs){
   var c=[];Rs.forEach(function(R){var x={R:R,a0:0,a1:R.total,time:R.time,total:R.total};
-   if(sameRoute(x,cur)||c.some(function(y){return sameRoute(x,y);}))return;c.push(x);});
+   if(sameRoute(x,cur)||c.some(function(y){return sameRoute(x,y);}))return;
+   /* pas d'alternative qui prend une rue en travaux dans le sens concerné */
+   if((G._dirZ||[]).some(function(z){return A.zoneDir(z,R.pts)===A.zSens(z);}))return;c.push(x);});
   c=quick([cur].concat(c),cur).filter(function(x){return x!==cur;});
   return Promise.all(c.slice(0,3).map(function(x){return chemOk(x.R).then(function(ok){return ok?x:null;});}));
  }).then(function(r){var L=quick([cur].concat(r.filter(Boolean)),cur);L.sort(function(a,b){return a.time-b.time;});assignVia(L);return L;});}
