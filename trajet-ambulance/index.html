@@ -1143,26 +1143,30 @@ function geocode(q){
 var CELL=0.05,BUMPKEY="ambumaps-ralentisseurs",BUMP_TTL=60*864e5;
 function cellKey(lat,lon){return Math.floor(lat/CELL)+"_"+Math.floor(lon/CELL);}
 function cellsFor(so,we,no,ea){var out=[];for(var a=Math.floor(so/CELL);a<=Math.floor(no/CELL);a++)for(var o=Math.floor(we/CELL);o<=Math.floor(ea/CELL);o++)out.push(a+"_"+o);return out;}
-function bumpCache(){try{return JSON.parse(localStorage.getItem(BUMPKEY)||"{}");}catch(e){return{};}}
-function saveBumpCache(c){var n=Date.now();Object.keys(c).forEach(function(k){if(!c[k]||!(n-c[k].t<BUMP_TTL))delete c[k];});try{localStorage.setItem(BUMPKEY,JSON.stringify(c));}catch(e){}}
-function getBumps(so,we,no,ea){
- var cells=cellsFor(so,we,no,ea),cache=bumpCache(),now=Date.now();
+var OSMK={bump:{key:BUMPKEY,pre:"",q:'(node["traffic_calming"~"^(bump|hump|table|cushion|yes|dip|double_dip|mini_bumps)$"];way["traffic_calming"~"^(bump|hump|table|cushion|yes)$"];);out center;'},
+ feu:{key:"ambumaps-feux",pre:"f",q:'node["highway"="traffic_signals"];out;'}};
+function osmCache(K){try{return JSON.parse(localStorage.getItem(K.key)||"{}");}catch(e){return{};}}
+function saveOsmCache(K,c){var n=Date.now();Object.keys(c).forEach(function(k){if(!c[k]||!(n-c[k].t<BUMP_TTL))delete c[k];});try{localStorage.setItem(K.key,JSON.stringify(c));}catch(e){}}
+function bumpCache(){return osmCache(OSMK.bump);}
+function saveBumpCache(c){saveOsmCache(OSMK.bump,c);}
+function getOsmPts(K,so,we,no,ea){
+ var cells=cellsFor(so,we,no,ea),cache=osmCache(K),now=Date.now(),re=new RegExp("^"+K.pre+"-?\\d+_-?\\d+$");
  function fresh(k){return cache[k]&&now-cache[k].t<BUMP_TTL;}
  var missing=cells.filter(function(k){return !fresh(k);}),pr=Promise.resolve();
- if(missing.length&&isCloud())pr=api("GET","osm_cache?select=cellule,donnees,maj_le&cellule=in.("+missing.join(",")+")").then(function(rows){
-  (rows||[]).forEach(function(r){var t=Date.parse(r.maj_le);if(now-t<BUMP_TTL&&/^-?\d+_-?\d+$/.test(String(r.cellule)))cache[r.cellule]={t:t,p:cleanPts(r.donnees)};});saveBumpCache(cache);
+ if(missing.length&&isCloud())pr=api("GET","osm_cache?select=cellule,donnees,maj_le&cellule=in.("+missing.map(function(k){return K.pre+k;}).join(",")+")").then(function(rows){
+  (rows||[]).forEach(function(r){var t=Date.parse(r.maj_le),c=String(r.cellule);if(now-t<BUMP_TTL&&re.test(c))cache[c.slice(K.pre.length)]={t:t,p:cleanPts(r.donnees)};});saveOsmCache(K,cache);
  }).catch(function(){});
  return pr.then(function(){
   missing=cells.filter(function(k){return !fresh(k);});
   if(!missing.length)return;
   var la=missing.map(function(k){return +k.split("_")[0];}),lo=missing.map(function(k){return +k.split("_")[1];});
   var bb=[Math.min.apply(null,la)*CELL,Math.min.apply(null,lo)*CELL,(Math.max.apply(null,la)+1)*CELL,(Math.max.apply(null,lo)+1)*CELL].map(function(x){return x.toFixed(3);}).join(",");
-  var q='[out:json][timeout:25][bbox:'+bb+'];(node["traffic_calming"~"^(bump|hump|table|cushion|yes|dip|double_dip|mini_bumps)$"];way["traffic_calming"~"^(bump|hump|table|cushion|yes)$"];);out center;';
+  var q='[out:json][timeout:25][bbox:'+bb+'];'+K.q;
   return fetchFirst(q,20000).then(function(j){
    var by={},rows=[],iso=new Date().toISOString();missing.forEach(function(k){by[k]=[];});
    j.elements.forEach(function(el){var a=el.lat!=null?el.lat:(el.center&&el.center.lat),o=el.lon!=null?el.lon:(el.center&&el.center.lon);if(a==null)return;var k=cellKey(a,o);if(by[k])by[k].push([+a.toFixed(5),+o.toFixed(5)]);});
-   missing.forEach(function(k){cache[k]={t:now,p:by[k]};rows.push({cellule:k,donnees:by[k],maj_le:iso});});
-   saveBumpCache(cache);
+   missing.forEach(function(k){cache[k]={t:now,p:by[k]};rows.push({cellule:K.pre+k,donnees:by[k],maj_le:iso});});
+   saveOsmCache(K,cache);
    if(isCloud())api("POST","osm_cache",rows,"resolution=merge-duplicates,return=minimal").catch(function(){});
   },function(){});
  }).then(function(){
@@ -1170,6 +1174,8 @@ function getBumps(so,we,no,ea){
   return{pts:pts,ok:ok};
  });
 }
+function getBumps(so,we,no,ea){return getOsmPts(OSMK.bump,so,we,no,ea);}
+function getFeux(so,we,no,ea){return getOsmPts(OSMK.feu,so,we,no,ea);}
 function computeRoute(e,dest,dep,step){
  var prof=e.p,W=POIDS[prof]||POIDS.standard,PR=PROFILS[prof];
  var mine=state.zones.filter(function(z){return zGeom(z)&&(!z.etab||z.etab===dest.id);}),userBumps=[];
@@ -2293,7 +2299,9 @@ var KN={p1:["Prise en charge","pin","#45d08f","#163a28"],p2:["Transport programm
    À chaque mise à jour : ajouter une entrée EN TÊTE de NEWS et changer APP_V.
    2.x = depuis l'arrivée du GPS ; nouvelle fonction -> 2e chiffre +1 ; petite correction -> 3e chiffre (2.7.1).
    Retouches mineures de l'interface (taille, place, icône, texte, transition) : ni entrée ni changement de version. */
-var APP_V="2.15",NEWSKEY="ambumaps-vu",NEWS=[
+var APP_V="2.16",NEWSKEY="ambumaps-vu",NEWS=[
+ {v:"2.16",d:"24 nov. 2026",t:"Feux tricolores sur le GPS",l:["Le GPS montre les feux tricolores de ton trajet."],
+  x:["Un feu par carrefour, au bord de la route, d'après OpenStreetMap.","Il disparaît une fois passé.","Le GPS ne connaît pas la couleur du feu : l'icône dit seulement qu'il y en a un."]},
  {v:"2.15",d:"23 nov. 2026",t:"Sens des travaux",l:["Sur la carte interactive, indique si les travaux touchent un sens, l'autre ou les deux."],
   x:["Touche la rue puis « En travaux » : choisis « Vers … » ou « Les deux sens ».","Des flèches sur le trait orange montrent le sens en travaux.","Le calcul du trajet et le GPS n'évitent la rue que dans ce sens.","Pour une rue à sens unique, la question n'est pas posée."]},
  {v:"2.14.1",d:"23 nov. 2026",t:"Carte interactive",l:["« Zones à éviter » devient « Carte interactive » et ouvre directement la carte."],
@@ -2636,7 +2644,7 @@ function clearDest(){ui.destId=null;ui.libre="";ui.libreGeo=null;ui.libreOk=fals
 function clearEtat(){ui.etat=null;ui.route=null;}
 function resetMission(){ui.mid=null;ui.edit=null;ui.editFrom=null;ui.etat=ui.mode==="programme"?"programme":null;ui.destId=null;ui.libre="";ui.libreGeo=null;ui.libreOk=false;ui.filtre="";ui.pecFiltre="";ui.pec={q:"",etab:""};ui.leg=1;ui.dep=null;ui.depEdit=false;ui.route=null;keepUi();}
 /* ===== GPS intégré (module gps.js chargé à la demande) ===== */
-var GPS_V="35",gpsP=null;
+var GPS_V="36",gpsP=null;
 function loadGps(){if(window.AmbuGPS)return Promise.resolve();if(gpsP)return gpsP;
  gpsP=new Promise(function(res,rej){var sc=document.createElement("script");sc.src="gps.js?v="+GPS_V;
   sc.onload=function(){if(window.AmbuGPS)res();else{gpsP=null;rej(new Error("GPS indisponible."));}};
@@ -2658,7 +2666,7 @@ function startGps(leg){
  },function(err){if(btn){btn.disabled=false;btn.innerHTML=ico("play")+"<span>Démarrer le guidage</span>";}if(msg)msg.textContent=netErr(err)?"Pas de connexion internet : utilise Waze ou Google Maps en secours.":err.message;});
 }
 window.AMB={get state(){return state;},zSens:zSens,zoneDir:zoneDir,vehH:vehH,posSvg:function(v){return posSvg(null,null,v);},posKind:function(){return posKind();},ui:ui,api:api,isCloud:isCloud,netErr:netErr,valhalla:valhalla,decode6:decode6,distM:distM,linePolys:linePolys,circlePoly:circlePoly,midChemins:midChemins,edgeMid:edgeMid,
- statTrip:statTrip,statSig:statSig,zGeom:zGeom,zoneRow:zoneRow,enqueue:enqueue,save:save,uid:uid,esc:esc,nameOf:nameOf,me:function(){return sess?sess.email:"";},getBumps:getBumps,acFetch:acFetch,
+ statTrip:statTrip,statSig:statSig,getFeux:getFeux,zGeom:zGeom,zoneRow:zoneRow,enqueue:enqueue,save:save,uid:uid,esc:esc,nameOf:nameOf,me:function(){return sess?sess.email:"";},getBumps:getBumps,acFetch:acFetch,
  matchEtabs:matchEtabs,isFav:isFav,etab:etab,geocode:geocode,GEO:GEO,cleanPts:cleanPts,ZHARD:ZHARD,blockPolys:blockPolys,
  setDest:function(x,pickup){
   if(pickup){if(x.etab)ui.pec={q:"",etab:x.etab};else ui.pec={q:x.q||x.label,etab:"",gq:x.q||x.label,glat:x.lat,glon:x.lon,glabel:x.label,ok:true};}
