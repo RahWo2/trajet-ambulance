@@ -359,12 +359,13 @@ function voice(){
  if(m){var d=m.d-G.along,farD=v>19?800:(v>13?400:250),nearD=Math.max(45,v*5.5);
   if(!m._far&&d<=farD&&d>nearD*1.8&&d>120){m._far=1;say("Dans "+sayDist(d)+", "+lcFirst(m.verbal_transition_alert_instruction||m.verbal_pre_transition_instruction||m.instruction));}
   if(!m._near&&d<=nearD){m._near=1;m._far=1;say(m.verbal_pre_transition_instruction||m.instruction,true);}}
- var hz=upcoming();if(hz&&!hz.said){var dh=hz.along-G.along,lim=v>19?400:220;if(dh<=lim&&dh>25){hz.said=1;say(DIT[hz.t]+" dans "+sayDist(dh)+".");}}
+ /* les ralentisseurs restent affichés mais ne sont plus annoncés à voix haute */
+ var hz=upcoming(function(h){return h.t!=="ralentisseur";});if(hz&&!hz.said){var dh=hz.along-G.along,lim=v>19?400:220;if(dh<=lim&&dh>25){hz.said=1;say(DIT[hz.t]+" dans "+sayDist(dh)+".");}}
 }
 
 /* ---------- dangers sur le trajet ---------- */
-function upcoming(){var L=G.haz||[],v=Math.max(G.speed||0,30)/3.6,win=v>19?700:400;
- for(var i=0;i<L.length;i++){var d=L[i].along-G.along;if(d<-8)continue;if(d>win)return null;if(L[i].t==="degradee"&&L[i].end<G.along)continue;return L[i];}return null;}
+function upcoming(f){var L=G.haz||[],v=Math.max(G.speed||0,30)/3.6,win=v>19?700:400;
+ for(var i=0;i<L.length;i++){var d=L[i].along-G.along;if(d<-8)continue;if(d>win)return null;if(L[i].t==="degradee"&&L[i].end<G.along)continue;if(f&&!f(L[i]))continue;return L[i];}return null;}
 function teamZones(){return(A.state.zones||[]).filter(function(z){return z.type==="ralentisseurs"||z.type==="degradee";});}
 function computeHazards(){
  var R=G.R;if(!R)return;var H=[],seen={};
