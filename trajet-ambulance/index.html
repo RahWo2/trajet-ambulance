@@ -1143,7 +1143,7 @@ function llFill(k){
 function libreName(addr){var g=libreLL(addr);return g&&g.label?g.label:addr;}
 function geocode(q){
  var ll=parseLL(q);if(ll)return nearAddr(ll).then(function(a){return{lat:ll.lat,lon:ll.lon,label:llName(ll,a),gps:true};});
- return fetch(GEO+"search?q="+encodeURIComponent(q)+"&limit=1").then(function(r){return r.json();}).then(function(j){
+ var gc=acCenter();return fetch(GEO+"search?q="+encodeURIComponent(q)+"&limit=1&lat="+gc[0].toFixed(4)+"&lon="+gc[1].toFixed(4)).then(function(r){return r.json();}).then(function(j){
   var f=j.features&&j.features[0];if(!f)throw new Error("Adresse introuvable : « "+q+" ».");
   return{lat:f.geometry.coordinates[1],lon:f.geometry.coordinates[0],label:f.properties.label};
  });
@@ -1698,32 +1698,70 @@ function photonItems(j){var out=[];
   else if(p.type==="house"){if(name&&name!==rue){main=name;parts=[rue,ville];}else{main=rue||name;parts=[ville];}}
   else{main=name;parts=[rue,(p.city&&p.city!==name)?ville:(p.postcode||"")];}
   if(!main)return;parts=parts.filter(Boolean);
-  out.push({main:main,sub:parts.join(", "),label:[main].concat(parts).join(", "),lat:c[1],lon:c[0]});});
+  out.push({main:main,sub:parts.join(", "),label:[main].concat(parts).join(", "),lat:c[1],lon:c[0],num:p.type==="house"&&p.housenumber&&main===rue?String(p.housenumber):"",street:p.type==="street",src:"ph"});});
  return out;}
 var IGN_SKIP=/hydrographie|orographie|administratif|construction linéaire|végétation|tramway/;
 function banItems(j){var out=[];
  (j&&j.results||[]).forEach(function(r){if(typeof r.x!=="number"||typeof r.y!=="number")return;
   if(r.country==="PositionOfInterest"&&IGN_SKIP.test(String(r.poiType||r.kind||"")))return;
-  var ft=(r.fulltext||"").replace(/\s+/g," "),i=ft.indexOf(", ");
-  out.push({main:i>0?ft.slice(0,i):ft,sub:i>0?ft.slice(i+2):"",label:ft,lat:r.y,lon:r.x});});
+  var ft=(r.fulltext||"").replace(/\s+/g," "),i=ft.indexOf(", "),main=i>0?ft.slice(0,i):ft,poi=r.country==="PositionOfInterest";
+  out.push({main:main,sub:i>0?ft.slice(i+2):"",label:ft,lat:r.y,lon:r.x,num:poi?"":acNumOf(main),street:!poi&&!acNumOf(main),src:"ign"});});
  return out;}
-/* Sources : IGN (Géoplateforme) en premier, affiché dès réception ; Photon (OpenStreetMap) en complément, ignoré 10 min s'il ne répond pas */
+/* recherche IGN (Base adresse nationale) : tous les numéros de France ; et lieux (hôpitaux, cliniques…) */
+function banSearchItems(j){var out=[];
+ (j&&j.features||[]).forEach(function(f){var p=f.properties||{},c=f.geometry&&f.geometry.coordinates;if(!c||typeof c[0]!=="number")return;
+  var one=function(x){return Array.isArray(x)?x[0]:x;};
+  if(p.type==="housenumber"||p.type==="street"){var main=p.name||"",sub=[p.postcode,p.city].filter(Boolean).join(" ");if(!main)return;
+   out.push({main:main,sub:sub,label:main+(sub?", "+sub:""),lat:c[1],lon:c[0],num:p.type==="housenumber"?String(p.housenumber||acNumOf(main)):"",street:p.type==="street",src:"ban"});}
+  else if(p.toponym||p.name){var nm=one(p.name)||p.toponym,city=one(p.city)||"",pc=one(p.postcode)||"";if(!nm)return;var sub2=[pc,city].filter(Boolean).join(" ");
+   out.push({main:String(nm),sub:sub2,label:String(nm)+(sub2?", "+sub2:""),lat:c[1],lon:c[0],num:"",street:false,poi:true,src:"poi"});}});
+ return out;}
+/* --- tri des suggestions : d'abord ce qui correspond à tout ce qui est tapé, puis ce qui est près de nous --- */
+var AC_ABBR={av:"avenue",ave:"avenue",bd:"boulevard",bld:"boulevard",bvd:"boulevard",boul:"boulevard",ch:"chemin",chem:"chemin",rte:"route",pl:"place",imp:"impasse",all:"allee",sq:"square",st:"saint",ste:"sainte",fbg:"faubourg",res:"residence",lot:"lotissement",gal:"general",mal:"marechal",dr:"docteur",pdt:"president",cdt:"commandant",hop:"hopital",ctre:"centre"};
+var AC_STOP={de:1,du:1,des:1,la:1,le:1,les:1,l:1,d:1,et:1,a:1,au:1,aux:1,en:1};
+function acToks(s){return norm(s).replace(/[,.\-\/()"]/g," ").split(" ").filter(Boolean);}
+function acNumOf(main){var m=/^(\d+)\s*(bis|ter|quater|[a-d])?\b/i.exec(String(main||"").trim());return m?(m[1]+(m[2]?" "+m[2].toLowerCase():"")):"";}
+function acQuery(q){var t=acToks(q),num="",numRaw="";
+ if(t.length&&/^\d+[a-d]?$/.test(t[0])){num=t[0].replace(/^(\d+)([a-d])$/,"$1 $2");t=t.slice(1);if(t[0]&&/^(bis|ter|quater)$/.test(t[0])){num+=" "+t[0];t=t.slice(1);}
+  var mr=/^\s*(\d+\s*(bis|ter|quater|[a-d](?![a-z]))?)/i.exec(q);numRaw=mr?mr[1].replace(/\s+/g," ").trim():num;}
+ return{num:num,numRaw:numRaw,t:t.filter(function(w){return !AC_STOP[w];})};}
+function acHas(tk,w){var e=AC_ABBR[w];return tk.some(function(x){return x.indexOf(w)===0||(e&&x.indexOf(e)===0);});}
+function acScore(it,Q,c){var tk=acToks(it.label),tm=acToks(it.main),m=0,mm=0;
+ Q.t.forEach(function(w){if(acHas(tk,w))m++;if(acHas(tm,w))mm++;});
+ var full=m===Q.t.length,sc=(full?1000:0)+m*60+(Q.t.length&&mm===Q.t.length?40:0),n=it.num?norm(it.num):"";
+ if(Q.num){if(n===Q.num)sc+=120;else if(!n&&it.street)sc+=30;else if(n&&n.indexOf(Q.num)===0)sc+=5;else if(n)sc-=90;}
+ if(it.poi)sc+=10;
+ var d=typeof it.lat==="number"&&c?distM(c,[it.lat,it.lon])/1000:80;sc-=18*Math.log(1+d)/Math.LN2;
+ it._full=full;it._m=m;it._d=d;return sc;}
+/* un numéro tapé mais absent des bases : on le garde, l'adresse exacte est recherchée quand on la choisit */
+function acWithNum(it,Q){if(!Q.num||it.num||!it.street)return it;var o=Object.assign({},it);o.main=Q.numRaw+" "+it.main;o.label=Q.numRaw+" "+it.label;o.q=o.label;delete o.lat;delete o.lon;o.num=Q.num;o.street=false;o.typed=true;return o;}
+function acRank(list,q,c){var Q=acQuery(q);if(!Q.t.length&&!Q.num)return list;
+ var L=list.map(function(it){var x=acWithNum(it,Q);x._s=acScore(x,Q,c);return x;});
+ L.sort(function(a,b){return b._s-a._s;});
+ /* seulement ce qui correspond à tout ce qui est tapé ; sinon, au plus 3 réponses proches qui y ressemblent */
+ var F=L.filter(function(x){return x._full;});
+ if(F.length)L=F;else{var need=Math.max(1,Math.ceil(Q.t.length*0.6));L=L.filter(function(x){return x._m>=need&&x._d<40;}).slice(0,3);}
+ var seen={},out=[];L.forEach(function(x){var k=norm(x.label).replace(/[,.]/g,"");if(seen[k])return;
+  if(out.some(function(y){return norm(y.main)===norm(x.main)&&typeof y.lat==="number"&&typeof x.lat==="number"&&distM([y.lat,y.lon],[x.lat,x.lon])<60;}))return;seen[k]=1;out.push(x);});
+ return out;}
+/* Sources (toutes centrées sur notre position) : IGN autour de nous, Base adresse nationale (numéros), lieux (hôpitaux, cliniques…),
+   Photon (OpenStreetMap, ignoré 10 min s'il ne répond pas). Les résultats sont triés ici : ce qui correspond à tout ce qui est tapé, puis le plus proche. */
 var PH_DOWN=0;
 function acFetch(q,cb){
  var ll=parseLL(q);if(ll){cb([llItem(ll,null,true)],false,false);nearAddr(ll).then(function(a){cb([llItem(ll,a)],true,false);});return;}
- var c=acCenter(),la=c[0],lo=c[1],e=encodeURIComponent,num=/^\s*\d/.test(q);
+ var c=acCenter(),la=c[0],lo=c[1],e=encodeURIComponent,Q=acQuery(q),near="&lat="+la.toFixed(4)+"&lon="+lo.toFixed(4);
  var bb="&bbox="+[lo-0.9,la-0.6,lo+0.9,la+0.6].map(function(v){return v.toFixed(3);}).join(",");
- var IGN=GEO+"completion?type=StreetAddress,PositionOfInterest&text="+e(q);
- var res={},keys=["near","ph","far"],left=3;
- function merge(){var list=[],seen={},out=[];
-  keys.forEach(function(k){if(res[k]&&(k!=="far"||list.length<4))list=list.concat(res[k]);});
-  list.forEach(function(it){var k=norm(it.label);if(seen[k]||out.length>=6)return;seen[k]=1;out.push(it);});
-  return out;}
- function done(k,v){res[k]=v;left--;var fin=left===0;cb(merge(),fin,fin&&!res.near&&!res.far&&!res.ph);}
- fetchT(IGN+"&maximumResponses=8"+bb,5000).then(banItems).then(function(v){done("near",v);},function(){done("near",null);});
- fetchT(IGN+"&maximumResponses="+(num?5:4),5000).then(banItems).then(function(v){done("far",v);},function(){done("far",null);});
+ var res={},keys=["ign","ban","poi","ph"],left=keys.length,shown=false;
+ function merge(){var list=[];keys.forEach(function(k){if(res[k])list=list.concat(res[k]);});return acRank(list,q,c).slice(0,8);}
+ function done(k,v){res[k]=v;left--;var fin=left===0;
+  /* on attend les sources locales avant de montrer quoi que ce soit, pour ne pas afficher d'abord des adresses lointaines */
+  if(!fin&&!shown&&!(res.ign!==undefined&&res.ph!==undefined))return;shown=true;
+  cb(merge(),fin,fin&&!keys.some(function(x){return res[x]&&res[x].length;}));}
+ fetchT(GEO+"completion?type=StreetAddress,PositionOfInterest&text="+e(q)+"&maximumResponses=10"+bb,5000).then(banItems).then(function(v){done("ign",v);},function(){done("ign",null);});
+ fetchT(GEO+"search?q="+e(q)+"&autocomplete=1&index=address&limit=10"+near,5000).then(banSearchItems).then(function(v){done("ban",v);},function(){done("ban",null);});
+ if(Q.t.some(function(w){return w.length>=4;}))fetchT(GEO+"search?q="+e(q)+"&autocomplete=1&index=poi&limit=6"+near,5000).then(banSearchItems).then(function(v){done("poi",v);},function(){done("poi",null);});else done("poi",null);
  if(Date.now()<PH_DOWN)done("ph",null);
- else fetchT(PHOTON+"?lang=fr&limit=6&lat="+la.toFixed(4)+"&lon="+lo.toFixed(4)+bb+"&q="+e(q),3000).then(photonItems).then(function(v){done("ph",v);},function(){PH_DOWN=Date.now()+600000;done("ph",null);});
+ else fetchT(PHOTON+"?lang=fr&limit=10"+near+bb+"&q="+e(q),3000).then(photonItems).then(function(v){done("ph",v);},function(){PH_DOWN=Date.now()+600000;done("ph",null);});
 }
 /* adresses récentes : gardées sur ce téléphone seulement, effacées après 3 mois sans servir */
 var RECK="ambumaps-recents",REC_TTL=90*864e5,REC_MAX=150;
