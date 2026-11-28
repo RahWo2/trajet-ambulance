@@ -332,7 +332,20 @@ function paintPill(){
  html='<b>'+(w>0?esc(n.slice(0,w))+' <span style="white-space:nowrap">'+esc(n.slice(w+1))+' '+svgI(IC.chev,15,C("#9aa3b2","#6b7484"),2.6).replace('<svg ','<svg style="vertical-align:-2px" ')+'</span>':esc(n)+' '+svgI(IC.chev,15,C("#9aa3b2","#6b7484"),2.6).replace('<svg ','<svg style="vertical-align:-2px" '))+'</b>';}
  if(html!==G._pill){G._pill=html;p.innerHTML=html;}
 }
-function remTime(){var R=G.R,a=G.along,t=0;R.man.forEach(function(m){if(m.e<=a)return;if(m.d>=a)t+=m.time||0;else t+=(m.time||0)*(m.e-a)/m.lenM;});return t;}
+/* heure d'arrivée : les temps de Valhalla (trop lents) sont corrigés par tronçon selon leur vitesse (A.etaFac),
+   puis par le réglage appris sur les vrais trajets du téléphone et par l'écart mesuré pendant ce trajet-ci. */
+function manK(m){var v=m.time>0?(m.lenM/1000)/(m.time/3600):0;return A.etaFac?A.etaFac(v):1;}
+function etaUrg(){return!!(G.opts&&(G.opts.urg||G.opts.vitale));}
+function etaMul(){var L=A.etaLearned?A.etaLearned(etaUrg()):1,e=G.eta,w=0,f=1;if(e&&e.p>=90){f=Math.max(0.6,Math.min(1.5,e.a/(e.p*L)));w=Math.min(0.7,e.p/900);}return L*((1-w)+w*f);}
+function remTime(raw){var R=G.R,a=G.along,t=0;R.man.forEach(function(m){if(m.e<=a)return;t+=(m.time||0)*(raw?1:manK(m))*(m.d>=a?1:(m.e-a)/m.lenM);});return raw?t:t*etaMul();}
+function routeEta(R){var t=0;R.man.forEach(function(m){t+=(m.time||0)*manK(m);});return t*etaMul();}
+function predBetween(R,a0,a1){var t=0;R.man.forEach(function(m){var s=Math.max(m.d,a0),f=Math.min(m.e,a1);if(f>s)t+=(m.time||0)*manK(m)*(f-s)/m.lenM;});return t;}
+/* temps réellement mis contre temps prévu, sur la partie déjà roulée (sur le trajet, sans les longs arrêts) */
+function etaTrack(a0,on){var e=G.eta||(G.eta={a:0,p:0,t:now(),still:0,r:G.R}),t=now(),dt=(t-e.t)/1000;e.t=t;
+ if(e.r!==G.R){e.r=G.R;return;}if(G.arrived||G.rerouting||!on||!(dt>0)||dt>30)return;
+ var da=G.along-a0;if(da<0||da>600)return;if(da<1){e.still+=dt;if(e.still>120)return;}else e.still=0;
+ e.a+=dt;e.p+=predBetween(G.R,a0,G.along);}
+function etaLearnNow(g){var e=g&&g.eta;if(e&&!g.sim&&e.p>=240&&A.etaLearn){try{A.etaLearn(!!(g.opts&&(g.opts.urg||g.opts.vitale)),e.a/e.p);}catch(x){}}if(g)g.eta=null;}
 function paintPanel(force){
  var p=$("#gPan");if(!p)return;var mode=G.rec?"rec":(G.arrived?(G.opts.pickup?"arrP":"arr"):"nav"),h;
  var rt=G.R?remTime():0,rd=G.R?Math.max(0,G.R.total-G.along):0,t1=G.R?hhmm(now()+rt*1000):"--:--",t2=G.R?Math.max(1,Math.round(rt/60))+" min · "+fmtDist(rd):"Calcul…";
@@ -576,7 +589,9 @@ function onFix(c){
  if(pr.off>tolH){var gp=project(R,p,null);if(gp.off<pr.off-30&&(hv==null||Math.abs(angDiff(bearingAt(R,gp.along),hv))<60))pr=gp;}
  G.prj=pr;
  var hdOff=hv!=null&&Math.abs(angDiff(bearingAt(R,pr.along),hv))>45,on=pr.off<=tolS,keep=!on&&pr.off<=tolH&&!hdOff;
+ var a0=G.along;
  if(on||keep){var na=pr.along;if(na<G.along&&G.along-na<15)na=G.along;if((sp==null||sp<0.8)&&Math.abs(na-G.along)<10)na=G.along;G.along=na;}
+ etaTrack(a0,on||keep);
  if(on)G.dev=null;
  else{var dv=G.dev||(G.dev={n:0,t0:now(),trav:0,last:p});dv.n++;dv.trav+=Math.min(A.distM(dv.last,p),vs*gap*1.5+3);dv.last=p;var el=now()-dv.t0;
   var conf=pr.off>tolH?(dv.n>=2&&el>=1500):(hdOff?(dv.n>=3&&el>=3000&&dv.trav>=30):(el>=20000&&dv.trav>=250));
@@ -595,7 +610,7 @@ function update(){
  var k=-1;for(var i=0;i<R.man.length;i++){var t=R.man[i].type;if(t>=1&&t<=3)continue;if(R.man[i].d>G.along+2){k=i;break;}}G.next=k;
  paintBanner();paintChip();paintSpeed();paintPill();paintPanel();setPad();setRouteData();manArrow();voice();checkConfirm();
 }
-function arrive(){if(G.alt)closeAlt();G.arrived=true;if(G.st){G.st.ar=true;statSave();}say(G.opts.pickup?(G.opts.urg?"Vous êtes arrivé chez le patient. Touchez Patient à bord pour choisir l'état du patient et la destination.":"Vous êtes arrivé à la prise en charge. Touchez Patient à bord pour partir vers le rendez-vous."):"Vous êtes arrivé à destination.",true);paintBanner();paintChip();paintPanel();manArrow();}
+function arrive(){if(G.alt)closeAlt();G.arrived=true;etaLearnNow(G);if(G.st){G.st.ar=true;statSave();}say(G.opts.pickup?(G.opts.urg?"Vous êtes arrivé chez le patient. Touchez Patient à bord pour choisir l'état du patient et la destination.":"Vous êtes arrivé à la prise en charge. Touchez Patient à bord pour partir vers le rendez-vous."):"Vous êtes arrivé à destination.",true);paintBanner();paintChip();paintPanel();manArrow();}
 function patientAbord(){
  if(G.opts.urg){stop();A.onEnd("abord");return;}
  if(!G.opts.pickup)return;if(G.alt)closeAlt();
@@ -689,7 +704,7 @@ function setRoute(R){
 function reroute(why){
  if(!G||!G.pos||G.rerouting)return;G.rerouting=true;G.lastReroute=now();paintBanner();manArrow();
  if(why==="off")say("Recalcul de l'itinéraire.",true);
- routeFrom(G.pos,why==="off"&&G.R?remTime():null).then(function(R){if(!G)return;G.rerouting=false;if(G._redo){G._redo=false;reroute("leg2");return;}setRoute(R);if(why==="jam")say("Bouchon signalé sur le trajet : nouvel itinéraire.",true);if(why==="dest")say("Nouvelle destination : "+(G.dest.nom||"")+".",true);},
+ routeFrom(G.pos,why==="off"&&G.R?remTime(true):null).then(function(R){if(!G)return;G.rerouting=false;if(G._redo){G._redo=false;reroute("leg2");return;}setRoute(R);if(why==="jam")say("Bouchon signalé sur le trajet : nouvel itinéraire.",true);if(why==="dest")say("Nouvelle destination : "+(G.dest.nom||"")+".",true);},
   function(){if(!G)return;G.rerouting=false;if(G._redo){G._redo=false;reroute("leg2");return;}G.dev=null;paintBanner();toast("Recalcul impossible pour l'instant : réseau ou serveur indisponible.");});
 }
 function loadEdges(R){
@@ -879,7 +894,7 @@ function altMax(best){return Math.min(480,Math.max(180,best*0.15));}
 function quick(L,cur){var best=Math.min.apply(null,L.map(function(x){return x.time;}));return L.filter(function(x){return x===cur||x.time-best<=altMax(best);});}
 function findAlts(cur){
  return fetchAlts().then(function(Rs){
-  var c=[];Rs.forEach(function(R){var x={R:R,a0:0,a1:R.total,time:R.time,total:R.total};
+  var c=[];Rs.forEach(function(R){var x={R:R,a0:0,a1:R.total,time:routeEta(R),total:R.total};
    if(sameRoute(x,cur)||c.some(function(y){return sameRoute(x,y);}))return;
    /* pas d'alternative qui prend une rue en travaux dans le sens concerné */
    if((G._dirZ||[]).some(function(z){return A.zoneDir(z,R.pts)===A.zSens(z);}))return;c.push(x);});
@@ -1061,6 +1076,7 @@ function statMove(c,p){var s=G.st;if(!s)return;if((c.acc||0)>35)return;var lp=G.
  var d=A.distM(lp.p,p),dt=Math.max(.5,(now()-lp.t)/1000);if(d<20)return;G.stLast={p:p,t:now()};if(d/dt>70)return;s.km+=d/1000;}
 function stop(){
  if(!G)return;var g=G;G=null;
+ if(!g.arrived)etaLearnNow(g);
  if(g.st&&g.stLive){g.st.t1=Date.now();try{A.statTrip(g.st);}catch(e){}}
  try{if(g.watch!=null)navigator.geolocation.clearWatch(g.watch);}catch(e){}
  clearInterval(g.simT);clearInterval(g.pollT);clearInterval(g.tickT);clearInterval(g.cardT);if(g.raf)cancelAnimationFrame(g.raf);
