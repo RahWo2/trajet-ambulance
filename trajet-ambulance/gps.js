@@ -135,7 +135,7 @@ function prepStyle(s){
  return s;}
 
 /* ---------- interface ---------- */
-var CSSL='#gps.light{background:#e5e8ec;color:#1b2330}#gps.light .gban,#gps.light .gfh{color:#fff}#gps.light .gwz{background:rgba(255,255,255,.95);border-color:rgba(11,132,198,.45);box-shadow:0 6px 18px rgba(20,30,50,.18)}#gps.light .gwz small{color:#0b7fc0}#gps.light .gchip>div{background:rgba(255,255,255,.95);border-color:rgba(20,30,50,.12);box-shadow:0 6px 18px rgba(20,30,50,.18)}#gps.light .gchip small{color:#5d6777}#gps.light .gspd,#gps.light .gpill,#gps.light .grnd button{background:rgba(255,255,255,.96);border-color:#dde2e9;box-shadow:0 4px 14px rgba(20,30,50,.18)}#gps.light .gspd small,#gps.light .gpill small{color:#5d6777}#gps.light .gspd.dim b{color:#a3abb8}#gps.light .gspd.over{background:#fde8e8;border-color:#e5484d}#gps.light .gspd.over b{color:#e0262c}#gps.light .grnd button.on{border-color:#4f8cff;background:#e7efff}#gps.light .gv3{color:#1b2330}#gps.light .gpan{background:rgba(255,255,255,.96);border-top-color:#dde2e9;box-shadow:0 -6px 18px rgba(20,30,50,.08)}#gps.light .geta .m{color:#5d6777}#gps.light .gprof{background:#e4f6ec;color:#11633a;border-color:#bfe6cf}#gps.light .galtbtn{background:#e7efff;border-color:#b9cff7;color:#1d4bb0}#gps.light .gstop{background:#fdeeee;border-color:#f2c4c6;color:#c4262c}#gps.light .galt,#gps.light .gsheet{background:#fff;border-top-color:#dde2e9;box-shadow:0 -12px 34px rgba(20,30,50,.18)}#gps.light .galtx{background:#eef1f5}#gps.light .galtc{border-color:#dde2e9;background:#f6f7f9;color:#1b2330}#gps.light .galtc.sel{border-color:#4c8dff;background:#e7efff}#gps.light .galtc .ln{background:#b9c1ce}#gps.light .galtc.sel .ln{background:#4c8dff}#gps.light .galtc .via{color:#5d6777}#gps.light .gtag.fast{background:#e4f6ec;color:#11633a}#gps.light .gtag.slow{background:#fff0d4;color:#8f5400}#gps.light .gtag.same{background:#eef1f5;color:#4a5363}#gps.light .gtag.cur{background:#e7efff;color:#1d4bb0}#gps.light .galtw,#gps.light .galtn,#gps.light .gsheet p,#gps.light .gtile small,#gps.light .gcard .hd small,#gps.light .gfl h4,#gps.light .growd small,#gps.light .gwait,#gps.light .gerr p{color:#5d6777}#gps.light .galtw i,#gps.light .gload i{border-color:#dde2e9;border-top-color:#4f8cff}#gps.light .galtgo.keep,#gps.light .gsec{background:#eef1f5;border-color:#dde2e9;color:#1b2330}#gps.light .galtb{background:#fff;box-shadow:0 3px 12px rgba(20,30,50,.3)}#gps.light .galtb:after{border-top-color:#fff}#gps.light .galtb.sel{background:#2f6fe4}#gps.light .galtb.sel:after{border-top-color:#2f6fe4}#gps.light .gattr{color:#7b8493}#gps.light .gscrim{background:rgba(20,28,40,.38)}#gps.light .ghandle{background:#cfd5de}#gps.light .gtile,#gps.light .gopt{background:#f3f5f8;border-color:#dde2e9}#gps.light .gopt.pri{background:#00387B;border-color:#00387B}#gps.light .gopt.ok{background:#1f9d5a;border-color:#1f9d5a}#gps.light .gcard{background:rgba(255,255,255,.98);border-top-color:#dde2e9;box-shadow:0 -12px 34px rgba(20,30,50,.18)}#gps.light .gbar{background:#e3e7ec}#gps.light .gbar i{background:#8a93a3}#gps.light .gtoast{background:rgba(255,255,255,.97);border-color:#dde2e9;color:#1b2330;box-shadow:0 8px 24px rgba(20,30,50,.2)}#gps.light .gfull,#gps.light .gerr{background:#f2f4f7}#gps.light .growd{border-bottom-color:#e6e9ee}#gps.light .growd .pi{background:#eef1f5}#gps.light .gerr a,#gps.light .gerr button{background:#fff;border-color:#dde2e9;color:#1b2330}#gps.light .gerr .pri{background:#00387B;border-color:#00387B;color:#fff}#gps.light .gload{background:#e5e8ec;color:#5d6777}';
+var CSSL='#gps.light{background:#e5e8ec;color:#1b2330}#gps.light .gban,#gps.light .gfh{color:#fff}#gps.light .gwz{background:rgba(255,255,255,.95);border-color:rgba(11,132,198,.45);box-shadow:0 6px 18px rgba(20,30,50,.18)}#gps.light .gwz small{color:#0b7fc0}#gps.light .gchip>div{background:rgba(255,255,255,.95);border-color:rgba(20,30,50,.12);box-shadow:0 6px 18px rgba(20,30,50,.18)}#gps.light .gchip small{color:#5d6777}#gps.light .gspd,#gps.light .gpill,#gps.light .grnd button{background:rgba(255,255,255,.96);border-color:#dde2e9;box-shadow:0 4px 14px rgba(20,30,50,.18)}#gps.light .gspd small,#gps.light .gpill small{color:#5d6777}#gps.light .gspd.dim b{color:#a3abb8}#gps.light .gspd.over{background:#fde8e8;border-color:#e5484d}#gps.light .gspd.over b{color:#e0262c}#gps.light .grnd button.on{border-color:#4f8cff;background:#e7efff}#gps.light .gv3{color:#1b2330}#gps.light .gpan{background:rgba(255,255,255,.96);border-top-color:#dde2e9;box-shadow:0 -6px 18px rgba(20,30,50,.08)}#gps.light .geta .m{color:#5d6777}#gps.light .gprof{background:#e4f6ec;color:#11633a;border-color:#bfe6cf}#gps.light .galtbtn{background:#e7efff;border-color:#b9cff7;color:#1d4bb0}#gps.light .gstop{background:#fdeeee;border-color:#f2c4c6;color:#c4262c}#gps.light .galt,#gps.light .gsheet{background:#fff;border-top-color:#dde2e9;box-shadow:0 -12px 34px rgba(20,30,50,.18)}#gps.light .galtx{background:#eef1f5}#gps.light .galtc{border-color:#dde2e9;background:#f6f7f9;color:#1b2330}#gps.light .galtc.sel{border-color:#4c8dff;background:#e7efff}#gps.light .galtc .ln{background:#b9c1ce}#gps.light .galtc.sel .ln{background:#4c8dff}#gps.light .galtc .via{color:#5d6777}#gps.light .gtag.fast{background:#e4f6ec;color:#11633a}#gps.light .gtag.slow{background:#fff0d4;color:#8f5400}#gps.light .gtag.same{background:#eef1f5;color:#4a5363}#gps.light .gtag.cur{background:#e7efff;color:#1d4bb0}#gps.light .gtag.conf{background:#e3ecff;color:#1d4bb0}#gps.light .galth .sub{color:#5d6777}#gps.light .galtc .cfd{color:#4a5363}#gps.light .galtc .cfd .w{color:#8f5400}#gps.light .galtsec{background:#eef1f5;border-color:#dde2e9;color:#1b2330}#gps.light .galtw,#gps.light .galtn,#gps.light .gsheet p,#gps.light .gtile small,#gps.light .gcard .hd small,#gps.light .gfl h4,#gps.light .growd small,#gps.light .gwait,#gps.light .gerr p{color:#5d6777}#gps.light .galtw i,#gps.light .gload i{border-color:#dde2e9;border-top-color:#4f8cff}#gps.light .galtgo.keep,#gps.light .gsec{background:#eef1f5;border-color:#dde2e9;color:#1b2330}#gps.light .galtb{background:#fff;box-shadow:0 3px 12px rgba(20,30,50,.3)}#gps.light .galtb:after{border-top-color:#fff}#gps.light .galtb.sel{background:#2f6fe4}#gps.light .galtb.sel:after{border-top-color:#2f6fe4}#gps.light .gattr{color:#7b8493}#gps.light .gscrim{background:rgba(20,28,40,.38)}#gps.light .ghandle{background:#cfd5de}#gps.light .gtile,#gps.light .gopt{background:#f3f5f8;border-color:#dde2e9}#gps.light .gopt.pri{background:#00387B;border-color:#00387B}#gps.light .gopt.ok{background:#1f9d5a;border-color:#1f9d5a}#gps.light .gcard{background:rgba(255,255,255,.98);border-top-color:#dde2e9;box-shadow:0 -12px 34px rgba(20,30,50,.18)}#gps.light .gbar{background:#e3e7ec}#gps.light .gbar i{background:#8a93a3}#gps.light .gtoast{background:rgba(255,255,255,.97);border-color:#dde2e9;color:#1b2330;box-shadow:0 8px 24px rgba(20,30,50,.2)}#gps.light .gfull,#gps.light .gerr{background:#f2f4f7}#gps.light .growd{border-bottom-color:#e6e9ee}#gps.light .growd .pi{background:#eef1f5}#gps.light .gerr a,#gps.light .gerr button{background:#fff;border-color:#dde2e9;color:#1b2330}#gps.light .gerr .pri{background:#00387B;border-color:#00387B;color:#fff}#gps.light .gload{background:#e5e8ec;color:#5d6777}';
 var CSS='#gps{position:fixed;inset:0;z-index:3000;background:#1c1f25;color:#f1f3f6;font:16px/1.3 Roboto,system-ui,-apple-system,"Segoe UI",sans-serif;overflow:hidden;-webkit-user-select:none;user-select:none}'+
 '#gps button{font:inherit;color:inherit;cursor:pointer}#gps .gmap{position:absolute;inset:0}'+
 '#gps .gtop{position:absolute;left:0;right:0;top:0;display:flex;flex-direction:column;z-index:5;pointer-events:none}#gps .gtop>*{pointer-events:auto}'+
@@ -168,6 +168,7 @@ var CSS='#gps{position:fixed;inset:0;z-index:3000;background:#1c1f25;color:#f1f3
 '#gps .galt{position:absolute;left:0;right:0;bottom:0;z-index:16;background:#181b22;border-top:1px solid #2c313c;border-radius:22px 22px 0 0;padding:10px 14px 14px;padding-bottom:max(14px,env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:10px;box-shadow:0 -12px 34px rgba(0,0,0,.55);max-height:64%;box-sizing:border-box;animation:gup .52s cubic-bezier(.32,.72,0,1)}#gps .galt.gout{animation:gdown .34s cubic-bezier(.32,.72,0,1) forwards}'+
 '#gps .galth{display:flex;align-items:center;justify-content:space-between;gap:10px}#gps .galth h3{margin:0;font-size:22px;font-weight:900}#gps .galtx{width:40px;height:40px;border-radius:50%;border:0;background:#262a33;display:flex;align-items:center;justify-content:center;flex:0 0 auto}'+
 '#gps .galtl{display:flex;flex-direction:column;gap:8px;overflow:auto;min-height:0;-webkit-overflow-scrolling:touch}'+
+'#gps .galth .sub{display:block;font-size:13.5px;font-weight:600;color:#9aa3b2;margin-top:2px}#gps .gtag.conf{background:#1b2c4d;color:#a9c8ff;display:inline-flex;align-items:center;gap:4px}#gps .galtc .cfd{display:block;font-size:13.5px;color:#c4cbd6;margin-top:3px;white-space:normal;line-height:1.3}#gps .galtc .cfd .w{color:#ffc061}#gps .galtgo:disabled{opacity:.55}#gps .galtgo[hidden],#gps .galtsec[hidden]{display:none}#gps .galtsec{min-height:50px;border-radius:14px;border:1px solid #2c313c;background:#20242d;color:#f1f3f6;font-size:15.5px;font-weight:700}#gps .galtb .st{display:inline-block;vertical-align:-2px;margin-right:3px}#gps .gb1 .cfi{width:56px;height:56px;border-radius:50%;background:rgba(255,255,255,.14);display:flex;align-items:center;justify-content:center;flex:0 0 auto}'+
 '#gps .galtc{display:flex;align-items:center;gap:12px;padding:9px 13px 10px;border-radius:16px;border:1.5px solid #2c313c;background:#20242d;text-align:left;color:#f1f3f6;flex:0 0 auto;transition:transform .5s cubic-bezier(.32,.72,0,1),border-color .25s ease,background-color .25s ease}#gps .galtc.sel{border-color:#4c8dff;background:#172540}'+
 '#gps .galtc .ln{width:6px;align-self:stretch;border-radius:3px;background:#5b6474;flex:0 0 auto;transition:background-color .25s ease}#gps .galtc.sel .ln{background:#4c8dff}#gps .galtc .mid{flex:1;min-width:0}#gps .galtc .r1{display:flex;align-items:center;justify-content:space-between;gap:8px}#gps .galtc b{display:block;font-size:22px;font-weight:900;line-height:1.15;white-space:nowrap}'+
 '#gps .galtc .via{display:block;font-size:14px;color:#aeb6c3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px}#gps .galtc .tg{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:5px;min-width:0}#gps.galton .gchip{display:none}'+
@@ -277,7 +278,8 @@ function vehTilt(){var fx=$("#gVeh"),s=fx&&fx.firstElementChild;if(!s||!G||!G.ma
 function vehMode(){vehTilt();var fx=$("#gVeh"),on=!!(G.follow&&G.view!=="nord"&&G.mapReady&&G.R&&!G._rc);if(fx)fx.hidden=!on;if(G.veh){if(!on&&G.disp){G.veh.setLngLat([G.disp[1],G.disp[0]]);G.veh.setRotation(G.dispH||0);}var e=G.veh.getElement();if(e)e.style.visibility=on||!G.R?"hidden":"visible";}}
 
 function paintBanner(){
- var b=$("#gBan");if(!b||!G.R)return;var R=G.R,k=G.next,h,bk=(G.arrived?"a":G.rerouting?"r":"m"+k)+"|"+R.total;
+ var b=$("#gBan");if(b&&!G.R&&G.alt&&G.alt.cf){if(b._bk!=="cf"){b._bk="cf";b.innerHTML='<div class="gb1"><span class="cfi">'+svgI(IC.alt,30,"#fff",2.4)+'</span><div style="min-width:0"><div class="d" style="font-size:26px">Trajet confort</div><div class="s">Vers '+esc(G.dest.nom||"la destination")+'</div></div></div>';}return;}
+ if(!b||!G.R)return;var R=G.R,k=G.next,h,bk=(G.arrived?"a":G.rerouting?"r":"m"+k)+"|"+R.total;
  paintWz();
  var nw=b._bk!=null&&b._bk!==bk;b._bk=bk;if(nw)setTimeout(function(){popIn(b.firstElementChild,12);},0);
  if(G.arrived){h='<div class="gb1">'+svgI(IC.flag,56,"#fff",2.7)+'<div style="min-width:0"><div class="d" style="font-size:30px">Arrivé</div><div class="s">'+esc(G.dest.nom||"Destination")+'</div></div></div>';b.innerHTML=h;return;}
@@ -452,6 +454,7 @@ function addLayers(){
  m.addSource("gAlt",{type:"geojson",data:fc()});
  L({id:"gAltC",type:"line",source:"gAlt",layout:round,paint:{"line-color":["case",["==",["get","sel"],1],"#0c2f73",C("#2b3039","#7d8799")],"line-width":W_CAS}});
  L({id:"gAltL",type:"line",source:"gAlt",layout:round,paint:{"line-color":["case",["==",["get","sel"],1],"#4c8dff",C("#8f9ab0","#b9c1ce")],"line-width":W_FIL}});
+ m.addSource("gCfB",{type:"geojson",data:fc()});
  m.on("click","gAltC",function(e){var f=e.features&&e.features[0];if(f&&G&&G.alt)selectAlt(+f.properties.i);});
  m.addSource("gPins",{type:"geojson",data:fc()});
  m.addLayer({id:"gPinsL",type:"symbol",source:"gPins",layout:{"icon-image":["get","img"],"icon-anchor":"bottom","icon-allow-overlap":true,"icon-ignore-placement":true,"icon-pitch-alignment":"viewport","icon-rotation-alignment":"viewport","icon-size":["interpolate",["linear"],["zoom"],13,0.7,16,0.9,18,1]}});
@@ -460,6 +463,7 @@ function addLayers(){
  m.addSource("gDots",{type:"geojson",data:fc()});
  m.addLayer({id:"gDotsHit",type:"circle",source:"gDots",paint:{"circle-radius":18,"circle-opacity":0,"circle-stroke-opacity":0}});
  m.addLayer({id:"gDotsL",type:"symbol",source:"gDots",layout:{"icon-image":"dot-bump","icon-anchor":"center","icon-allow-overlap":true,"icon-ignore-placement":true,"icon-pitch-alignment":"viewport","icon-rotation-alignment":"viewport","icon-size":["interpolate",["linear"],["zoom"],13,0.8,16,1.1,18,1.25]}});
+ m.addLayer({id:"gCfBL",type:"symbol",source:"gCfB",layout:{"icon-image":"dot-bump","icon-anchor":"center","icon-allow-overlap":true,"icon-ignore-placement":true,"icon-pitch-alignment":"viewport","icon-rotation-alignment":"viewport","icon-size":["interpolate",["linear"],["zoom"],11,0.55,14,0.8,16,1]}});
  m.on("click","gDotsHit",function(e){var f=e.features&&e.features[0],x=f&&G.pinData&&G.pinData[f.properties.id];if(x)infoCard(x);});
  m.addSource("gFeux",{type:"geojson",data:fc()});
  m.addLayer({id:"gFeuxL",type:"symbol",source:"gFeux",layout:{"icon-image":"feu","icon-anchor":"bottom","icon-allow-overlap":true,"icon-ignore-placement":true,"icon-pitch-alignment":"viewport","icon-rotation-alignment":"viewport","icon-size":["interpolate",["linear"],["zoom"],13,0.7,16,1.1,18,1.35]}});
@@ -616,7 +620,9 @@ function patientAbord(){
  if(!G.opts.pickup)return;if(G.alt)closeAlt();
  var b=$("#gAbord");if(b){b.disabled=true;b.querySelector("span").textContent="Calcul du trajet…";}else toast("Calcul du trajet vers le rendez-vous…");
  A.nextLeg().then(function(t){if(!G)return;G.dest={lat:t.lat,lon:t.lon,nom:t.nom,addr:t.addr};G.opts.pickup=false;G.opts.destEtab=t.id;G.opts.label=t.label;G.opts.links=t.links;G.arrived=false;G.panMode=null;
-  say("Patient à bord. En route vers "+t.nom+".",true);paintPanel(true);if(G.st){statSave();statOpen("p2",t.id||"");}if(G.rerouting)G._redo=true;else reroute("leg2");},
+  say("Patient à bord. En route vers "+t.nom+".",true);paintPanel(true);if(G.st){statSave();statOpen("p2",t.id||"");}
+  if(t.confort&&G.pos){G.R=null;G.next=-1;src("gRoute",fc());src("gRouteN",fc());cfChoose(t.confort,G.pos).then(function(R){if(!G)return;setRoute(R);say("Guidage démarré.",true);voice();},function(){});return;}
+  if(G.rerouting)G._redo=true;else reroute("leg2");},
   function(e){if(!G)return;toast("Rendez-vous introuvable : "+(e&&e.message?e.message:"vérifie l'adresse."),3500);G.panMode=null;paintPanel(true);});
 }
 
@@ -927,7 +933,7 @@ function openAlt(){
   function(e){if(!G||!G.alt||G.alt.seq!==my)return;G.alt.loading=false;G.alt.err=A.netErr&&A.netErr(e)?"Pas de connexion : impossible de chercher d'autres itinéraires.":"Recherche impossible pour l'instant, réessaie dans un moment.";paintAltList();});
 }
 function paintAltList(fresh){
- var a=G.alt,box=$("#gAltL");if(!a||!box)return;var L=a.list,best=L[0].time,h="";
+ var a=G.alt,box=$("#gAltL");if(!a||!box)return;if(a.cf){paintCfList(fresh);return;}var L=a.list,best=L[0].time,h="";
  L.forEach(function(x,i){var d=Math.round((x.time-best)/60),tag=L.length<2?"":(i===0?'<span class="gtag fast">Le plus rapide</span>':(d<1?'<span class="gtag same">Même durée</span>':'<span class="gtag slow">+'+d+' min</span>'));
   h+='<button type="button" class="galtc'+(i===a.sel?" sel":"")+'" data-g="altPick" data-i="'+i+'"><span class="ln"></span><span class="mid"><span class="r1"><b>'+fmtDur(x.time)+'</b><span class="tg">'+tag+(x.cur?'<span class="gtag cur">Actuel</span>':'')+'</span></span>'+
    '<span class="via">'+fmtDist(x.total)+' · '+(x.via?'via '+esc(x.via):'arrivée '+hhmm(now()+x.time*1000))+'</span></span></button>';});
@@ -937,15 +943,16 @@ function paintAltList(fresh){
  box.innerHTML=h;
  if(fresh)Array.prototype.forEach.call(box.querySelectorAll(".galtc"),function(c,i){if(!L[i].cur)popIn(c,12);});
  paintAltBtn();}
-function paintAltBtn(){var a=G.alt,b=$("#gAltGo");if(!a||!b)return;var x=a.list[a.sel],keep=!x||x.cur;
+function paintAltBtn(){var a=G.alt,b=$("#gAltGo");if(!a||!b)return;if(a.cf){b.hidden=a.loading;b.disabled=!!a.going;b.textContent=a.going?"Démarrage…":(a.err||!a.list.length?"Partir par l'itinéraire rapide":"Démarrer le guidage");var s2=$("#gCfFast");if(s2)s2.hidden=!a.loading;return;}var x=a.list[a.sel],keep=!x||x.cur;
  b.classList.toggle("keep",keep);b.textContent=keep?"Garder l'itinéraire actuel":"Prendre cet itinéraire";}
 function paintAltMap(){
  var a=G.alt;if(!a||!G.mapReady)return;var L=a.list,F=[];
  L.forEach(function(x,i){if(i!==a.sel)F.push(line(altPts(x),{i:i,sel:0}));});if(L[a.sel])F.push(line(altPts(L[a.sel]),{i:a.sel,sel:1}));
  src("gAlt",fc(F));showMainRoute(false);
+ if(a.cf)src("gCfB",fc((a.bumps||[]).map(function(q){return{type:"Feature",geometry:{type:"Point",coordinates:[q[1],q[0]]},properties:{}};})));
  if(a._mkFor!==L){a.mk.forEach(function(m){try{m.remove();}catch(e){}});a.mk=[];a._mkFor=L;
   if(G.ml&&G.ml.Marker)L.forEach(function(x,i){var p=bubbleAt(x,L.filter(function(y){return y!==x;}));
-   var e=el('<div class="galtm" data-g="altPick" data-i="'+i+'"><div class="galtb">'+fmtDur(x.time)+'</div></div>');
+   var e=el('<div class="galtm" data-g="altPick" data-i="'+i+'"><div class="galtb">'+(a.cf&&i===0&&L.length>1?'<span class="st">'+STAR+'</span>':'')+fmtDur(x.time)+'</div></div>');
    try{a.mk.push(new G.ml.Marker({element:e,anchor:"bottom"}).setLngLat([p[1],p[0]]).addTo(G.map));}catch(err){}});}
  a.mk.forEach(function(m,i){var e=m.getElement();if(!e)return;e.style.zIndex=i===a.sel?"3":"2";if(e.firstChild)e.firstChild.classList.toggle("sel",i===a.sel);});}
 function selectAlt(i){var a=G.alt;if(!a||!a.list[i]||a.sel===i)return;a.sel=i;
@@ -961,7 +968,7 @@ function camFit(b,pad,W,H){
 function fitAlt(){
  var a=G.alt;if(!a||!G.map||!G.map.easeTo)return;var b=[90,180,-90,-180];
  function add(p){if(p[0]<b[0])b[0]=p[0];if(p[0]>b[2])b[2]=p[0];if(p[1]<b[1])b[1]=p[1];if(p[1]>b[3])b[3]=p[1];}
- a.list.forEach(function(x){altPts(x).forEach(add);});if(G.disp)add(G.disp);
+ a.list.forEach(function(x){altPts(x).forEach(add);});if(G.disp||G.pos)add(G.disp||G.pos);if(a.cf){if(a.o)add(a.o);add([G.dest.lat,G.dest.lon]);}
  var H=G.root.clientHeight||innerHeight,W=G.root.clientWidth||innerWidth,tp=$(".gtop"),sh=$(".galt"),pad={top:Math.round((tp?tp.offsetHeight:90)+50),bottom:Math.round((sh?sh.offsetHeight:300)+18),left:38,right:38};
  if(H-pad.top-pad.bottom<160)pad.top=Math.max(24,H-pad.bottom-160);
  var cam=camFit(b,pad,W,H);
@@ -970,11 +977,57 @@ function closeAlt(){
  var a=G.alt;if(!a)return;G.alt=null;
  a.mk.forEach(function(m){var e=m.getElement&&m.getElement();if(e&&e.firstChild&&e.animate&&!rm()){try{e.firstChild.animate([{opacity:1},{opacity:0,transform:"scale(.85)"}],{duration:220,easing:"ease-out",fill:"forwards"});}catch(x){}setTimeout(function(){try{m.remove();}catch(x){}},220);}else try{m.remove();}catch(x){}});
  fadeOut($(".galt:not(.gout)"));G.root.classList.remove("galton");
- src("gAlt",fc());showMainRoute(true);recenter();}
+ src("gAlt",fc());if(a.cf){a.dead=true;src("gCfB",fc());}showMainRoute(true);if(!G.anim&&G.map&&G.map.setPadding)try{G.map.setPadding({top:G._padTop||0,bottom:0,left:0,right:0});}catch(e){}recenter();}
 function altGo(){
- var a=G.alt;if(!a)return;var x=a.list[a.sel];
+ var a=G.alt;if(!a)return;if(a.cf){cfGo();return;}var x=a.list[a.sel];
  if(!x||x.cur){closeAlt();return;}
  closeAlt();say("Nouvel itinéraire.",true);setRoute(x.R);toast("Nouvel itinéraire : "+fmtDur(x.time)+(x.via?" via "+x.via:"")+".");}
+/* ---------- trajets confort : calculés au démarrage, choisis dans le GPS ---------- */
+var STAR='<svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.8l2.8 5.7 6.3.9-4.6 4.4 1.1 6.2L12 17l-5.6 3 1.1-6.2-4.6-4.4 6.3-.9z" fill="#f5c400" stroke="#8a6d00" stroke-width="1.2" stroke-linejoin="round"/></svg>';
+function cfChoose(fn,pos){
+ return new Promise(function(res,rej){
+  if(G.alt)closeAlt();closeCard();closeScrim();setLoad(null);
+  var my=G.altSeq=(G.altSeq||0)+1,a=G.alt={seq:my,cf:true,o:pos,sel:0,list:[],mk:[],loading:true,step:"Calcul des trajets confort…",done:res,fail:rej};
+  G.follow=false;G._rc=null;paintRec();G.root.classList.add("galton");
+  G.root.appendChild(el('<div class="galt" role="dialog" aria-label="Trajets confort"><div class="ghandle"></div><div class="galth"><div><h3>Trajets confort</h3><span class="sub" id="gCfSub">Choisis l\'itinéraire avant de partir</span></div></div><div class="galtl" id="gAltL"></div><button type="button" class="gbig galtgo" data-g="altGo" id="gAltGo" hidden></button><button type="button" class="galtsec" data-g="cfFast" id="gCfFast">Partir tout de suite (itinéraire rapide)</button></div>'));
+  paintBanner();paintAltList();paintAltMap();fitAlt();
+  var live=function(){return G&&G.alt===a&&!a.dead;};
+  Promise.resolve().then(function(){return fn({lat:pos[0],lon:pos[1],pos:true},function(t){if(!live())return;a.step=t;var s=$("#gCfStep");if(s)s.textContent=t;});}).then(function(RC){
+   if(!live())return;var C=(RC&&RC.cands)||[];if(!C.length)throw new Error("Aucun itinéraire trouvé.");
+   var fast=null;a.list=C.map(function(c){var R=buildRoute(c.pts,[],{time:c.time},c.shape),x={R:R,a0:0,a1:R.total,time:c.eta||c.time,total:R.total,c:c};if(!fast||x.time<fast.time)fast=x;return x;});
+   a.fast=fast;a.bumpsOk=!!RC.bumpsOk;a.zones=(RC.zones||[]).length;a.noH=RC.noH||0;
+   a.bumps=(RC.bumpPts||[]).filter(function(q){return a.list.some(function(x){return project(x.R,q,null).off<14;});}).slice(0,300);
+   a.loading=false;a.sel=0;paintAltList(true);paintAltMap();fitAlt();
+  }).catch(function(e){if(!live())return;a.loading=false;a.list=[];a.err=(A.netErr&&A.netErr(e))?"Pas de connexion : calcul des trajets confort impossible.":"Calcul des trajets confort impossible pour l'instant.";paintAltList();});
+ });
+}
+function cfDetails(x,a){var c=x.c||{},p=[fmtDist(x.total)];
+ p.push(a.bumpsOk||c.bumps?(c.bumps?'<span class="w">'+c.bumps+" ralentisseur"+(c.bumps>1?"s":"")+"</span>":"aucun ralentisseur"):"ralentisseurs : ?");
+ p.push(c.rough==null?"revêtement : ?":(c.rough<20?"pas de pavés":'<span class="w">'+Math.round(c.rough)+" m pavés / dégradé</span>"));
+ if(a.zones)p.push(c.zoneHits?'<span class="w">traverse '+c.zoneHits+" zone"+(c.zoneHits>1?"s":"")+"</span>":"évite tes zones");
+ return p.join(" · ");}
+function paintCfList(fresh){
+ var a=G.alt,box=$("#gAltL");if(!a||!box)return;var L=a.list,h="";
+ if(a.loading)h='<div class="galtw"><i></i><span id="gCfStep">'+esc(a.step)+'</span></div><div class="galtn" style="text-align:left">Compare les ralentisseurs, les pavés et tes zones sur chaque itinéraire. Compte 5 à 30 secondes.</div>';
+ else if(a.err)h='<div class="galtn">'+esc(a.err)+'</div>';
+ else{var bm=Math.max(1,Math.round(a.fast.time/60));
+  L.forEach(function(x,i){var d=Math.max(1,Math.round(x.time/60))-bm,tg="";
+   if(i===0&&L.length>1)tg+='<span class="gtag conf">'+STAR+'Le plus confortable</span>';
+   if(x===a.fast&&L.length>1)tg+='<span class="gtag fast">Le plus rapide</span>';else if(L.length>1)tg+=d<1?'<span class="gtag same">Même durée</span>':'<span class="gtag slow">+'+d+' min</span>';
+   h+='<button type="button" class="galtc'+(i===a.sel?" sel":"")+'" data-g="altPick" data-i="'+i+'"><span class="ln"></span><span class="mid"><span class="r1"><b>'+fmtDur(x.time)+'</b><span class="tg">'+tg+'</span></span>'+
+    '<span class="cfd">'+cfDetails(x,a)+'</span></span></button>';});
+  if(L.length<2)h+='<div class="galtn">Un seul itinéraire possible.</div>';
+  if(a.noH)h+='<div class="galtn" style="color:#ffc061">Aucun trajet ne respecte la hauteur du véhicule : vérifie les passages bas.</div>';}
+ box.innerHTML=h;var sb=$("#gCfSub");if(sb)sb.textContent=a.loading?"Calcul en cours…":(a.err?"Le guidage peut partir sur l'itinéraire rapide":"Touche un trajet pour le voir sur la carte");
+ if(fresh)Array.prototype.forEach.call(box.querySelectorAll(".galtc"),function(c){popIn(c,12);});
+ paintAltBtn();}
+function cfGo(){var a=G.alt;if(!a||!a.cf||a.going||a.loading)return;
+ if(a.err||!a.list.length){cfFast();return;}
+ var x=a.list[a.sel];a.going=true;paintAltBtn();
+ traceRoute(x.R.shape).catch(function(){toast("Itinéraire confort indisponible : itinéraire rapide.");return routeFrom(G.pos||[x.R.pts[0][0],x.R.pts[0][1]]);}).then(function(R){
+  if(!G||G.alt!==a)return;if(G.st){G.st.cf=true;statSave();}if(G.opts.label&&G.opts.label.indexOf("confort")<0){G.opts.label+=" · trajet confort";G.panMode=null;}var done=a.done;closeAlt();done(R);},
+  function(e){if(!G||G.alt!==a)return;a.going=false;paintAltBtn();toast(A.netErr&&A.netErr(e)?"Pas de connexion : réessaie.":"Démarrage impossible, réessaie.");});}
+function cfFast(){var a=G.alt;if(!a||!a.cf||a.going)return;a.going=true;var done=a.done;closeAlt();done(waitPos(12000).then(routeFrom));}
 function onClick(ev){
  var b=ev.target.closest("[data-g]");if(!b||!G)return;var g=b.getAttribute("data-g");
  if(g==="scrim"){if(ev.target===b&&!b.classList.contains("gout"))closeScrim();return;}
@@ -996,6 +1049,7 @@ function onClick(ev){
  else if(g==="altPick")selectAlt(+b.getAttribute("data-i"));
  else if(g==="altGo")altGo();
  else if(g==="altClose")closeAlt();
+ else if(g==="cfFast")cfFast();
  else if(g==="addr")showAddr();
  else if(g==="recEnd")recEnd(true);
  else if(g==="recCancel"){recEnd(false);toast("Signalement annulé.");}
@@ -1027,7 +1081,7 @@ function simTick(){
 }
 function lockScreen(){try{if(navigator.wakeLock&&document.visibilityState==="visible")navigator.wakeLock.request("screen").then(function(l){if(G)G.lock=l;else l.release();}).catch(function(){});}catch(e){}}
 function onVis(){if(!G)return;if(document.visibilityState==="visible"){lockScreen();pollAlerts();}}
-function onPop(){if(!G)return;try{history.pushState({gps:1},"");}catch(e){}if(G.alt){closeAlt();return;}openStop();}
+function onPop(){if(!G)return;try{history.pushState({gps:1},"");}catch(e){}if(G.alt&&!G.alt.cf){closeAlt();return;}openStop();}
 function onResize(){setPad();if(G&&G.alt)fitAlt();else if(G&&G.view==="nord"&&G.follow)fitNord();}
 /* dernière position connue (sur ce téléphone seulement) : la carte s'ouvre là, pas sur la destination */
 function lastPos(){try{var o=JSON.parse(localStorage.getItem("ambumaps-pos")||"null");if(o&&o.p&&Date.now()-o.t<864e5)return o.p;}catch(e){}return(A.ui&&A.ui.lastPos)||null;}
@@ -1057,7 +1111,7 @@ function boot(){
     vehMode();loadPins().then(function(){if(G)refreshMarkers();});refreshFeatures();setRouteData();if(G.R)paintFeux(cutAt(),true);G._manKey=null;manArrow();if(G.alt){paintAltMap();fitAlt();}});
   }
   setLoad("Calcul de l'itinéraire…");
-  var p=G.opts.shape?traceRoute(G.opts.shape).catch(function(){return waitPos(12000).then(routeFrom);}):waitPos(12000).then(routeFrom);
+  var p=G.opts.confort?waitPos(12000).then(function(pos){return cfChoose(G.opts.confort,pos);}):G.opts.shape?traceRoute(G.opts.shape).catch(function(){return waitPos(12000).then(routeFrom);}):waitPos(12000).then(routeFrom);
   return p.then(function(R){if(!G)return;setLoad(null);
    if(G.sim&&!G.pos){G.pos=R.pts[0];}
    G.quiet=true;setRoute(R);G.quiet=false;camOnUser();var m0=R.man.filter(function(m){return m.type<1||m.type>3;})[0];
