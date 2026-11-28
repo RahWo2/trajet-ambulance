@@ -766,7 +766,7 @@ function goBtns(L,reco,wl,gl){
 function navBtns(L,reco,gl){var t=L.app?'':' target="_blank" rel="noopener"';
  return '<div class="nav2"><a class="btn'+(reco==="waze"?" pri":"")+'" href="'+L.waze+'"'+t+'>Waze</a><a class="btn'+(reco==="gmaps"?" pri":"")+'" href="'+L.gmaps+'"'+t+'>'+(gl||"Google Maps")+'</a></div>';}
 function secours(L){var t=L.app?'':' target="_blank" rel="noopener"';return '<div class="hint" style="margin-top:8px">En secours : <a href="'+L.waze+'"'+t+' style="color:var(--acc)">Waze</a> · <a href="'+L.gmaps+'"'+t+' style="color:var(--acc)">Google Maps</a></div>';}
-function gpsBtns(L,leg,confort){return '<div class="go"><button class="btn pri" data-a="gps" data-leg="'+leg+'">'+ico("play")+'<span>Démarrer le guidage</span></button></div><div class="hint" id="gpsMsg">'+(confort?"Le GPS suit le trajet confort choisi.":"")+'</div>'+secours(L);}
+function gpsBtns(L,leg,confort){return '<div class="go"><button class="btn pri" data-a="gps" data-leg="'+leg+'">'+ico("play")+'<span>Démarrer le guidage</span></button></div><div class="hint" id="gpsMsg">'+(confort?"Le GPS calcule les trajets confort et te laisse choisir l'itinéraire avant de partir.":"Au « Patient à bord », le GPS te proposera les trajets confort vers le rendez-vous.")+'</div>'+secours(L);}
 function vComfortMini(R){
  if(!R)return '<button class="btn small" style="margin-top:12px" data-a="calcRoute">'+ico("map")+'<span>Calculer un trajet confort</span></button>';
  if(R.status==="loading")return '<div class="spin" style="margin:14px auto 8px;width:30px;height:30px"></div><p class="center" id="rtStep">'+esc(R.step||"Calcul…")+'</p>';
@@ -799,9 +799,8 @@ function paintMission(el,e,d,addr){
   '<div class="rstop'+(leg===2?" cur":"")+'"><span class="rdot">'+ico("flag")+'</span><div class="rtx"><small>Rendez-vous</small><b>'+esc(d?d.nom:libreName(addr))+'</b>'+((d||libreName(addr)!==addr)?'<span class="ra">'+esc(addr)+'</span>':'')+(d&&d.infos?'<span class="ri">'+ico("pin")+'<span>'+esc(d.infos)+'</span></span>':'')+'</div><button class="btn small" data-a="editStep" data-id="2" aria-label="Modifier le rendez-vous">Modifier</button></div>'+
  '</div>';
  // puis le départ
- h+='<div class="mgo" data-k="mgo'+leg+'">'+gpsBtns(L,leg,leg===2&&!!RD)+'</div>';
+ h+='<div class="mgo" data-k="mgo'+leg+'">'+gpsBtns(L,leg,leg===2)+'</div>';
  if(leg===2){
-  h+='<div class="rcomf" data-k="rcomf">'+vComfortMini(R)+'</div>';
   if(!pk.skip)h+='<button class="btn legb" data-k="lg2" data-a="leg1">'+ico("undo")+'<span>Revenir à la prise en charge</span></button>';
  }
  clearRouteMap();el.innerHTML=h;
@@ -2346,7 +2345,9 @@ var KN={p1:["Prise en charge","pin","#45d08f","#163a28"],p2:["Transport programm
    À chaque mise à jour : ajouter une entrée EN TÊTE de NEWS et changer APP_V.
    2.x = depuis l'arrivée du GPS ; nouvelle fonction -> 2e chiffre +1 ; petite correction -> 3e chiffre (2.7.1).
    Retouches mineures de l'interface (taille, place, icône, texte, transition) : ni entrée ni changement de version. */
-var APP_V="2.16",NEWSKEY="ambumaps-vu",NEWS=[
+var APP_V="2.17",NEWSKEY="ambumaps-vu",NEWS=[
+ {v:"2.17",d:"28 nov. 2026",t:"Trajets confort dans le GPS",l:["Pour un trajet confort, « Démarrer le guidage » calcule les itinéraires et te laisse choisir dans le GPS."],
+  x:["Tous les trajets s'affichent sur la carte, avec leur durée, leurs ralentisseurs et leurs pavés.","L'étoile marque le plus confortable ; touche un trajet pour le voir en bleu.","« Partir tout de suite » lance l'itinéraire rapide sans attendre le calcul.","En transport programmé, le choix s'ouvre au moment de « Patient à bord »."]},
  {v:"2.16",d:"24 nov. 2026",t:"Feux tricolores sur le GPS",l:["Le GPS montre les feux tricolores de ton trajet."],
   x:["Un feu par carrefour, au bord de la route, d'après OpenStreetMap.","Il disparaît une fois passé.","Le GPS ne connaît pas la couleur du feu : l'icône dit seulement qu'il y en a un."]},
  {v:"2.15",d:"23 nov. 2026",t:"Sens des travaux",l:["Sur la carte interactive, indique si les travaux touchent un sens, l'autre ou les deux."],
@@ -2597,8 +2598,7 @@ function paintFeuille(){
  h+='<div class="blk"><h3>Consignes de conduite</h3><ul>';
  p.consignes.forEach(function(c){h+="<li>"+esc(c)+"</li>";});
  h+='</ul></div></div>';
- if(!classic)h+=vComfort(R);
- var why=RD&&!classic?"Le GPS suit le trajet confort choisi ci-dessus.":(e.p==="rapide"?"Itinéraire le plus rapide, en évitant les bouchons signalés par l'équipe.":e.id==="peu"?"Itinéraire classique, en évitant les bouchons signalés par l'équipe.":"Calcule le trajet confort ci-dessus pour que le GPS le suive, ou démarre directement.");
+ var why=e.p==="rapide"?"Itinéraire le plus rapide, en évitant les bouchons signalés par l'équipe.":e.id==="peu"?"Itinéraire classique, en évitant les bouchons signalés par l'équipe.":"Le GPS calcule les trajets confort et te laisse choisir l'itinéraire avant de partir.";
  h+='<div class="go"><button class="btn pri" data-a="gps" data-leg="0">'+ico("play")+'<span>Démarrer le guidage</span></button></div><div class="hint" id="gpsMsg">'+esc(why)+'</div>'+secours(L);
  h+='<button class="btn reset" data-a="copy" data-addr="'+esc(addr)+'">'+ico("copy")+'<span>Copier l\'adresse</span></button><div class="hint" id="copyMsg"></div>';
  h+='<button class="btn reset" data-a="reset">Fin d\'intervention</button>';
@@ -2691,25 +2691,27 @@ function clearDest(){ui.destId=null;ui.libre="";ui.libreGeo=null;ui.libreOk=fals
 function clearEtat(){ui.etat=null;ui.route=null;}
 function resetMission(){ui.mid=null;ui.edit=null;ui.editFrom=null;ui.etat=ui.mode==="programme"?"programme":null;ui.destId=null;ui.libre="";ui.libreGeo=null;ui.libreOk=false;ui.filtre="";ui.pecFiltre="";ui.pec={q:"",etab:""};ui.leg=1;ui.dep=null;ui.depEdit=false;ui.route=null;keepUi();}
 /* ===== GPS intégré (module gps.js chargé à la demande) ===== */
-var GPS_V="38",gpsP=null;
+var GPS_V="39",gpsP=null;
 function loadGps(){if(window.AmbuGPS)return Promise.resolve();if(gpsP)return gpsP;
  gpsP=new Promise(function(res,rej){var sc=document.createElement("script");sc.src="gps.js?v="+GPS_V;
   sc.onload=function(){if(window.AmbuGPS)res();else{gpsP=null;rej(new Error("GPS indisponible."));}};
   sc.onerror=function(){gpsP=null;sc.remove();rej(new Error("GPS indisponible : pas de connexion internet ?"));};document.head.appendChild(sc);});
  return gpsP;}
+/* trajets confort : calculés par le GPS au démarrage, depuis la position du moment */
+function cfFn(e,t){return function(dep,step){return computeRoute(e,{id:t.id||"",lat:t.lat,lon:t.lon,nom:t.nom},dep,step).then(function(res){res.cands.forEach(function(c){c.eta=etaOf(c.time,c.km,false);});return res;});};}
 function startGps(leg){
  try{if(window.speechSynthesis){var su=new SpeechSynthesisUtterance(" ");su.volume=0;speechSynthesis.speak(su);}}catch(e){}
  var ug=u1()&&leg===1,e=ug?null:curEtat();if(!e&&!ug)return;var prog=ui.etat==="programme",pickup=ug||(prog&&leg===1);
  var d=ui.destId?etab(ui.destId):null,addr=d?d.adresse:ui.libre.trim();
- var R=(!pickup&&!(e&&e.id==="peu")&&ui.route&&ui.route.key===routeKey()&&ui.route.status==="done")?ui.route:null,cand=R?R.cands[R.sel]:null,p=PROFILS[e?e.p:"rapide"];
+ var cf=!pickup&&!!e&&e.p!=="rapide"&&e.id!=="peu",p=PROFILS[e?e.p:"rapide"];
  var target=pickup?pecCoords().then(function(g){var pk=pecInfo();return{lat:g.lat,lon:g.lon,nom:pk.label||g.label,addr:pk.addr,id:pk.etab?pk.etab.id:""};})
   :resolveDest(d,addr).then(function(x){return{lat:x.lat,lon:x.lon,nom:x.nom||addr,addr:addr,id:x.id||""};});
  var btn=document.querySelector('[data-a="gps"]'),msg=document.getElementById("gpsMsg");if(btn){btn.disabled=true;btn.textContent="Ouverture du GPS…";}
  if(!ui.mid){ui.mid=uid();keepUi();}var sk=ug?"u1":(pickup?"p1":(prog?"p2":"u2"));
  Promise.all([target,loadGps()]).then(function(r){var t=r[0];
   if(btn){btn.disabled=false;paintFeuille();}
-  window.AmbuGPS.start({dest:t,shape:cand?cand.shape:null,start:cand?[R.dep.lat,R.dep.lon]:(ui.lastPos||null),zoneTypes:p.zones,destEtab:t.id,pickup:pickup,urg:ug,vitale:!ug&&!pickup&&e.id==="vitale",
-   label:(ug?"Urgence · aller au patient":pickup?"Prise en charge":({vitale:"Urgence vitale",rachis:"Trauma immobilisé",enceinte:"Femme enceinte",fragile:"Patient fragile",peu:"Peu urgent",programme:"Transport programmé"}[e.id]||e.label))+(cand?" · trajet confort":""),links:links(t.addr,"",t.lat,t.lon),sim:/[?&]sim\b/.test(location.search),stat:{k:sk,m:ui.mid,e:t.id||"",cf:!!cand}});
+  window.AmbuGPS.start({dest:t,confort:cf?cfFn(e,t):null,start:ui.lastPos||null,zoneTypes:p.zones,destEtab:t.id,pickup:pickup,urg:ug,vitale:!ug&&!pickup&&e.id==="vitale",
+   label:(ug?"Urgence · aller au patient":pickup?"Prise en charge":({vitale:"Urgence vitale",rachis:"Trauma immobilisé",enceinte:"Femme enceinte",fragile:"Patient fragile",peu:"Peu urgent",programme:"Transport programmé"}[e.id]||e.label)),links:links(t.addr,"",t.lat,t.lon),sim:/[?&]sim\b/.test(location.search),stat:{k:sk,m:ui.mid,e:t.id||"",cf:false}});
  },function(err){if(btn){btn.disabled=false;btn.innerHTML=ico("play")+"<span>Démarrer le guidage</span>";}if(msg)msg.textContent=netErr(err)?"Pas de connexion internet : utilise Waze ou Google Maps en secours.":err.message;});
 }
 window.AMB={get state(){return state;},zSens:zSens,zoneDir:zoneDir,vehH:vehH,posSvg:function(v){return posSvg(null,null,v);},posKind:function(){return posKind();},ui:ui,api:api,isCloud:isCloud,netErr:netErr,valhalla:valhalla,decode6:decode6,distM:distM,linePolys:linePolys,circlePoly:circlePoly,midChemins:midChemins,edgeMid:edgeMid,
@@ -2722,7 +2724,7 @@ window.AMB={get state(){return state;},zSens:zSens,zoneDir:zoneDir,vehH:vehH,pos
   ui.route=null;keepUi();},
  nextLeg:function(){ui.leg=2;keepUi();var d=ui.destId?etab(ui.destId):null,addr=d?d.adresse:ui.libre.trim();
   if(!addr)return Promise.reject(new Error("aucun lieu de rendez-vous."));
-  return resolveDest(d,addr).then(function(x){return{lat:x.lat,lon:x.lon,nom:x.nom||addr,addr:addr,id:x.id||"",label:"Transport programmé",links:links(addr,"",x.lat,x.lon)};});},
+  return resolveDest(d,addr).then(function(x){var e=curEtat(),t={lat:x.lat,lon:x.lon,nom:x.nom||addr,addr:addr,id:x.id||"",label:"Transport programmé",links:links(addr,"",x.lat,x.lon)};if(e&&e.p!=="rapide"&&e.id!=="peu")t.confort=cfFn(e,t);return t;});},
  onEnd:function(kind){if(kind==="abord"){ui.leg=2;ui.navDir=1;ui.edit=null;ui.editFrom=null;keepUi();}if(kind==="nouvelle"||kind==="termine"){resetMission();ui.mode=null;ui.etat=null;keepUi();if(location.hash!=="#trajet"&&location.hash!==""){location.hash="#trajet";return;}}render();window.scrollTo(0,0);}
 };
 document.addEventListener("click",function(ev){
